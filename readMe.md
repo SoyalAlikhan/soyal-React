@@ -1,3 +1,3 @@
 # soyal-React
 React tutorial
-hello soyal khan bro
+hello soyal khan react 
