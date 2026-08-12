@@ -6,7 +6,7 @@ function App() {
     <> {/* fragment tag  <> </>    */}
       
       <Soyal /> 
-      <h1>Welcome to 1 React</h1>
+      <h1>Welcome to 1 2React</h1>
       <p>This is a simple React app {name}</p>
     </> 
   )

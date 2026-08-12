@@ -19,8 +19,8 @@ const ReactElement = {
     props: {
         href: 'https://www.google.com',
         target: '_blank'
-    },
-    children: 'click me to go to google'
+    }, 
+    children: 'click 1 me to go to google'
 }
 
 const mainContainer = document.querySelector('#root')
