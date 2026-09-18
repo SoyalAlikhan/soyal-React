@@ -1,0 +1,19 @@
+{
+  "name": "al-noor-islamic-learning-platform",
+  "version": "1.0.0",
+  "description": "Open Source Islamic Learning Ecosystem based on BRD",
+  "main": "index.html",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File server.ps1"
+  },
+  "keywords": [
+    "islamic-studies",
+    "quran",
+    "tajweed",
+    "education",
+    "open-source",
+    "react"
+  ],
+  "author": "Al-Noor Open Academy",
+  "license": "MIT"
+}
