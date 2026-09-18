@@ -22,21 +22,26 @@ function MyApp(){
 const anotherReactElement = (
   <a href="https://www.google.com" target='_blank'> visit google </a>
 )
-    
+
+const anotherReactElement2 = 'hello world from react'
+
 const reactElement = React.createElement(
   'a',
   {
     href: 'https://www.google.com',
     target: '_blank'
   },
-  'click me to go to google'
+  'click me to go to google',
+  anotherReactElement2
 )
 
 ReactDOM.createRoot(document.getElementById('root')).
 render(
     //MyApp()  
     //  <MyApp />
-    <App />
+    
     //anotherReactElement
     //reactElement
+
+    <App />
 )
