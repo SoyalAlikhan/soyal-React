@@ -1,0 +1,10 @@
+{
+  "name": "react-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix Islamic-Learning-Platform start",
+    "islamic": "npm --prefix Islamic-Learning-Platform start",
+    "vite": "npm --prefix 01viteReact run dev"
+  }
+}
