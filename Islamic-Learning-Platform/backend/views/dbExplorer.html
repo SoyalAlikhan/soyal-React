@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Explorer | Al-Noor Islamic Learning Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #050a12;
+      --bg-card: #0c1524;
+      --bg-surface: #111d33;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-emerald: rgba(16, 185, 129, 0.3);
+      --color-emerald: #10b981;
+      --color-emerald-light: #34d399;
+      --color-gold: #f59e0b;
+      --color-ruby: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Nav */
+    header {
+      background: #080f1c;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #ffffff;
+    }
+
+    .brand i { color: var(--color-emerald-light); font-size: 1.4rem; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: #ffffff;
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.12); }
+
+    .btn-primary {
+      background: var(--color-emerald);
+      border: 1px solid var(--color-emerald-light);
+      color: #ffffff;
+    }
+    .btn-primary:hover { background: #059669; }
+
+    .badge-gold {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: var(--color-gold);
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    /* Layout */
+    .app-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    aside {
+      width: 280px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #ffffff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--color-emerald); }
+
+    .table-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .table-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .table-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #ffffff;
+    }
+
+    .table-item.active {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--border-emerald);
+      color: var(--color-emerald-light);
+    }
+
+    .row-pill {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 7px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .table-item.active .row-pill {
+      background: var(--color-emerald);
+      color: #ffffff;
+    }
+
+    /* Main Area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-dark);
+    }
+
+    .table-toolbar {
+      padding: 16px 24px;
+      background: #091220;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .table-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .grid-container {
+      flex: 1;
+      overflow: auto;
+      padding: 20px 24px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: var(--bg-surface);
+      color: var(--color-emerald-light);
+      padding: 12px 14px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      white-space: nowrap;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Console Drawer */
+    .sql-drawer {
+      height: 180px;
+      background: #060c16;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .drawer-header {
+      padding: 8px 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--color-gold);
+    }
+
+    .drawer-body {
+      flex: 1;
+      display: flex;
+      padding: 10px 20px;
+      gap: 12px;
+    }
+
+    .sql-input {
+      flex: 1;
+      background: #02060d;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+    }
+    .sql-input:focus { border-color: var(--color-emerald); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <i class="fas fa-database"></i>
+      <span>Al-Noor Database Explorer</span>
+      <span class="badge-gold">SQLite Built-in (node:sqlite)</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-outline" onclick="loadTables()">
+        <i class="fas fa-sync"></i> Refresh Data
+      </button>
+      <a href="/" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i> Back to Islamic LMS Portal
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Body Layout -->
+  <div class="app-body">
+    <!-- Sidebar: List of 14 Tables -->
+    <aside>
+      <div class="sidebar-header">
+        <input 
+          type="text" 
+          id="tableSearch" 
+          class="search-input" 
+          placeholder="Filter tables..." 
+          oninput="filterTablesList()"
+        />
+      </div>
+      <div class="table-list" id="tableListContainer">
+        <!-- Loaded via JS -->
+      </div>
+    </aside>
+
+    <!-- Main Content Area: Active Table View -->
+    <main>
+      <div class="table-toolbar">
+        <div>
+          <div class="table-title">
+            <i class="fas fa-table" style="color: var(--color-emerald);"></i>
+            <span id="activeTableTitle">Select a table</span>
+            <span id="activeTableCount" class="badge-gold">0 records</span>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+            Al-Noor Persistent SQLite Storage • Changes persist directly to <code>alnoor_lms.db</code>
+          </div>
+        </div>
+        <div>
+          <input 
+            type="text" 
+            id="rowSearch" 
+            class="search-input" 
+            style="width: 240px;" 
+            placeholder="Search rows in table..." 
+            oninput="handleRowSearch()"
+          />
+        </div>
+      </div>
+
+      <!-- Data Grid -->
+      <div class="grid-container" id="gridContainer">
+        <div class="empty-state">
+          <i class="fas fa-server" style="font-size: 3rem; margin-bottom: 12px; color: var(--border-emerald);"></i>
+          <h3>Select a table from the sidebar to inspect records</h3>
+          <p style="margin-top: 6px; font-size: 0.85rem;">You can view, search, and run SQL queries across all 14 tables in real time.</p>
+        </div>
+      </div>
+
+      <!-- Interactive SQL Console Drawer -->
+      <div class="sql-drawer">
+        <div class="drawer-header">
+          <span><i class="fas fa-terminal"></i> Interactive SQL Query Runner</span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-outline" style="padding: 3px 10px; font-size: 0.72rem;" onclick="setPresetQuery('SELECT * FROM leave_applications ORDER BY created_at DESC')">Leaves Query</button>
+            <button class="btn btn-outline" style="padding: 3px 10px; font-size: 0.72rem;" onclick="setPresetQuery('SELECT * FROM admissions')">Admissions Query</button>
+            <button class="btn btn-outline" style="padding: 3px 10px; font-size: 0.72rem;" onclick="setPresetQuery('SELECT * FROM courses')">Courses Query</button>
+          </div>
+        </div>
+        <div class="drawer-body">
+          <textarea id="sqlInput" class="sql-input" placeholder="Enter SQL query (e.g. SELECT * FROM leave_applications WHERE status LIKE '%Pending%')">SELECT * FROM leave_applications ORDER BY created_at DESC;</textarea>
+          <button class="btn btn-primary" style="height: 100%; padding: 0 20px;" onclick="runCustomQuery()">
+            <i class="fas fa-play"></i> Run SQL
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let allTables = [];
+    let currentTable = null;
+    let currentSearch = '';
+
+    async function loadTables() {
+      try {
+        const res = await fetch('/api/v1/explorer/tables');
+        const data = await res.json();
+        if (data.success) {
+          allTables = data.tables;
+          renderTablesList();
+          if (!currentTable && allTables.length > 0) {
+            selectTable(allTables[0].name);
+          } else if (currentTable) {
+            selectTable(currentTable);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load tables:', err);
+      }
+    }
+
+    function renderTablesList() {
+      const filter = (document.getElementById('tableSearch').value || '').toLowerCase();
+      const container = document.getElementById('tableListContainer');
+      const filtered = allTables.filter(t => t.name.toLowerCase().includes(filter));
+
+      container.innerHTML = filtered.map(t => `
+        <div class="table-item ${currentTable === t.name ? 'active' : ''}" onclick="selectTable('${t.name}')">
+          <span><i class="fas fa-folder" style="margin-right: 8px; font-size: 0.8rem;"></i>${t.name}</span>
+          <span class="row-pill">${t.rowCount}</span>
+        </div>
+      `).join('');
+    }
+
+    function filterTablesList() {
+      renderTablesList();
+    }
+
+    async function selectTable(tableName) {
+      currentTable = tableName;
+      renderTablesList();
+      document.getElementById('activeTableTitle').innerText = tableName;
+      document.getElementById('gridContainer').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top: 10px;">Loading records...</p></div>';
+
+      try {
+        const url = `/api/v1/explorer/table/${tableName}?search=${encodeURIComponent(currentSearch)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('activeTableCount').innerText = `${data.totalRows} records`;
+          renderTableData(data.columns, data.rows);
+        }
+      } catch (err) {
+        document.getElementById('gridContainer').innerHTML = `<div class="empty-state" style="color: var(--color-ruby);"><i class="fas fa-exclamation-triangle fa-2x"></i><p>Error loading table: ${err.message}</p></div>`;
+      }
+    }
+
+    function renderTableData(columns, rows) {
+      const container = document.getElementById('gridContainer');
+      if (rows.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox fa-3x"></i><h3 style="margin-top: 12px;">No records found in this table</h3></div>';
+        return;
+      }
+
+      let html = '<table class="data-table"><thead><tr>';
+      columns.forEach(col => {
+        html += `<th>${col}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      rows.forEach(row => {
+        html += '<tr>';
+        columns.forEach(col => {
+          let val = row[col];
+          if (val === null || val === undefined) val = '<span style="color: var(--text-muted); font-style: italic;">NULL</span>';
+          html += `<td>${val}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function handleRowSearch() {
+      currentSearch = document.getElementById('rowSearch').value;
+      if (currentTable) {
+        selectTable(currentTable);
+      }
+    }
+
+    function setPresetQuery(sql) {
+      document.getElementById('sqlInput').value = sql;
+      runCustomQuery();
+    }
+
+    async function runCustomQuery() {
+      const query = document.getElementById('sqlInput').value.trim();
+      if (!query) return;
+
+      document.getElementById('gridContainer').innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top: 10px;">Executing query...</p></div>';
+      document.getElementById('activeTableTitle').innerText = 'Custom Query Results';
+
+      try {
+        const res = await fetch('/api/v1/explorer/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (data.type === 'SELECT') {
+            document.getElementById('activeTableCount').innerText = `${data.rowCount} rows returned`;
+            renderTableData(data.columns, data.rows);
+          } else {
+            document.getElementById('activeTableCount').innerText = `${data.affectedRows} rows affected`;
+            document.getElementById('gridContainer').innerHTML = `
+              <div class="empty-state" style="color: var(--color-emerald-light);">
+                <i class="fas fa-check-circle fa-3x"></i>
+                <h3 style="margin-top: 12px;">Query Executed Successfully</h3>
+                <p>${data.type} command completed. Rows affected: ${data.affectedRows}</p>
+              </div>
+            `;
+            loadTables();
+          }
+        } else {
+          document.getElementById('gridContainer').innerHTML = `
+            <div class="empty-state" style="color: var(--color-ruby);">
+              <i class="fas fa-exclamation-circle fa-3x"></i>
+              <h3 style="margin-top: 12px;">SQL Query Error</h3>
+              <p>${data.error}</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        document.getElementById('gridContainer').innerHTML = `<div class="empty-state" style="color: var(--color-ruby);"><i class="fas fa-exclamation-triangle fa-2x"></i><p>Execution error: ${err.message}</p></div>`;
+      }
+    }
+
+    // Initialize on page load
+    loadTables();
+  </script>
+</body>
+</html>

@@ -862,6 +862,30 @@ function App() {
     return () => clearInterval(interval);
   }, [attendanceEngine.classStatus]);
 
+  // Initial Data Fetch from SQLite Database
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.apiService) {
+      window.apiService.getLeaves().then(leaves => {
+        if (leaves && leaves.length > 0) {
+          const formatted = leaves.map(l => ({
+            id: l.id,
+            studentName: l.student_name,
+            courseTitle: l.course_title,
+            assignedTeacher: l.assigned_teacher,
+            approverRole: l.approver_role,
+            leaveType: l.leave_type,
+            fromDate: l.from_date,
+            toDate: l.to_date,
+            reason: l.reason,
+            status: l.status,
+            remarks: l.ustad_remarks
+          }));
+          setLeaveApplications(formatted);
+        }
+      });
+    }
+  }, []);
+
   // Audio Recorder Toggle
   const toggleRecording = () => {
     if (!isRecording) {
@@ -1509,6 +1533,26 @@ function App() {
     };
     setLeaveApplications([newLeave, ...leaveApplications]);
     setLeaveModal({ ...leaveModal, isOpen: false });
+
+    // Persist directly to backend SQLite database
+    if (typeof window !== 'undefined' && window.apiService) {
+      window.apiService.submitLeave({
+        student_id: currentUser.id || 'usr-student-1',
+        student_name: currentUser.name,
+        course_title: leaveModal.courseTitle,
+        assigned_teacher: leaveModal.assignedTeacher,
+        approver_role: leaveModal.approverRole,
+        leave_type: leaveModal.leaveType,
+        from_date: leaveModal.fromDate,
+        to_date: leaveModal.toDate,
+        reason: leaveModal.reason
+      }).then(res => {
+        if (res && res.success) {
+          console.log('[SQLite Backend] Leave persisted with ID:', res.data.id);
+        }
+      });
+    }
+
     alert(`Leave application submitted to Ustad (${newLeave.assignedTeacher}) for course "${newLeave.courseTitle}"!`);
   };
 
@@ -1524,6 +1568,16 @@ function App() {
       }
       return l;
     }));
+
+    // Persist decision directly to backend SQLite database
+    if (typeof window !== 'undefined' && window.apiService) {
+      window.apiService.updateLeaveDecision(leaveId, decision, teacherRemarks).then(res => {
+        if (res && res.success) {
+          console.log('[SQLite Backend] Teacher decision recorded for:', leaveId);
+        }
+      });
+    }
+
     alert(`Leave request ${leaveId} has been ${decision} by Ustaad!`);
   };
 
@@ -1699,6 +1753,29 @@ function App() {
             </div>
             <i className="fas fa-chevron-down" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}></i>
           </div>
+
+          {/* Database Explorer Direct Button */}
+          <a 
+            href="/db-explorer" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              padding: '6px 12px', 
+              background: 'rgba(16, 185, 129, 0.15)', 
+              borderRadius: '99px', 
+              border: '1px solid var(--color-emerald-light)', 
+              color: 'var(--color-emerald-light)', 
+              fontSize: '0.78rem', 
+              fontWeight: 700, 
+              textDecoration: 'none' 
+            }}
+            title="Open SQLite Database Explorer GUI"
+          >
+            <i className="fas fa-database"></i> DB Explorer
+          </a>
 
           <div className="lang-switcher">
             <button className={`lang-btn ${lang === 'ru' ? 'active' : ''}`} onClick={() => setLang('ru')}>Roman</button>
