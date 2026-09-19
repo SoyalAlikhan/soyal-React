@@ -1769,8 +1769,8 @@ function App() {
         <div className="nav-actions">
           {/* Notification Bell with 15-min Alert Badge */}
           <div 
+            className="nav-notif-btn"
             onClick={() => alert(`🔔 Live Notification (BRD Section 14):\n\n"${class15MinAlert.classTitle}" by ${class15MinAlert.teacher} shuru hone me sirf ${class15MinAlert.remainingMins} minute baqi hain!\n\nWudhu aur Mushaf tayyar rakhein.`)}
-            style={{ position: 'relative', cursor: 'pointer', padding: '8px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '6px' }}
             title="Class Reminders & Notifications"
           >
             <i className="fas fa-bell" style={{ color: '#f59e0b' }}></i>
@@ -1778,8 +1778,8 @@ function App() {
           </div>
 
           <div 
+            className="nav-user-pill"
             onClick={() => setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 })}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 14px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px', cursor: 'pointer', border: '1px solid var(--border-light)' }}
             title="Click to Register New Account / View Profile"
           >
             <i className={`fas ${currentUser.avatarIcon}`} style={{ color: 'var(--color-primary-light)' }}></i>
@@ -1797,19 +1797,7 @@ function App() {
             href="/db-explorer" 
             target="_blank" 
             rel="noopener noreferrer"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              padding: '6px 12px', 
-              background: 'rgba(16, 185, 129, 0.15)', 
-              borderRadius: '99px', 
-              border: '1px solid var(--color-emerald-light)', 
-              color: 'var(--color-emerald-light)', 
-              fontSize: '0.78rem', 
-              fontWeight: 700, 
-              textDecoration: 'none' 
-            }}
+            className="nav-db-btn"
             title="Open SQLite Database Explorer GUI"
           >
             <i className="fas fa-database"></i> DB Explorer
