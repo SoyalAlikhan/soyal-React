@@ -238,6 +238,171 @@ function App() {
     overrideReason: "Student informed prior about electricity outage during last 5 mins."
   });
 
+  // Teacher Workspace Sub-Navigation State (BRD v2.0)
+  const [teacherSubTab, setTeacherSubTab] = useState('courses'); // 'courses', 'live', 'batches', 'homework', 'tajweed', 'finances', 'notices', 'settings'
+
+  // Teacher Lesson Modal (Add/Edit Lesson)
+  const [lessonModal, setLessonModal] = useState({
+    isOpen: false,
+    moduleId: 1,
+    title: "",
+    type: "Video",
+    duration: "25 min",
+    mediaUrl: "https://www.youtube.com/watch?v=sample-tajweed",
+    isFreePreview: false,
+    notes: ""
+  });
+
+  // Teacher Quiz / Exam Builder Modal (BRD Section 12)
+  const [quizModal, setQuizModal] = useState({
+    isOpen: false,
+    moduleId: 1,
+    title: "Ahkam-e-Tajweed Module 1 Quiz",
+    timeLimitMin: 15,
+    passingPercent: 70,
+    questions: [
+      {
+        id: 1,
+        question: "Huroof-e-Halqiyyah kul kitne hain aur kahan se ada hote hain?",
+        arabicText: "حروف الحلق ستة: الهمزة والهاء، والعين والحاء، والغين والخاء",
+        options: ["4 Huroof (Zaban se)", "6 Huroof (Halaq ke 3 hisson se)", "8 Huroof (Honton se)", "2 Huroof (Naak se)"],
+        correctIndex: 1,
+        explanation: "Huroof-e-Halqiyyah 6 hain jo Aqsa-e-Halq, Wasat-e-Halq aur Adna-e-Halq se nikalte hain (Al-Jazariyyah)."
+      }
+    ]
+  });
+
+  // Teacher Batch Creator Modal (BRD Section 02 & 09)
+  const [batchModal, setBatchModal] = useState({
+    isOpen: false,
+    courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+    batchName: "Batch 2026 - Morning Fajr Track",
+    startDate: "2026-10-01",
+    days: "Mon, Tue, Wed, Thu",
+    timing: "06:30 AM - 07:15 AM",
+    maxSeats: 30,
+    feeMonthly: "₹650"
+  });
+
+  // Teacher Student Enrollment Modal
+  const [enrollModal, setEnrollModal] = useState({
+    isOpen: false,
+    studentName: "",
+    studentEmail: "",
+    studentPhone: "",
+    batchName: "Morning Hifz & Tajweed Batch A",
+    courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+    enrollType: "Paid (Standard)",
+    feeDueDate: "2026-10-05"
+  });
+
+  // Teacher Offline Fee Collection Entry Modal (BRD Section 13.4)
+  const [offlineFeeModal, setOfflineFeeModal] = useState({
+    isOpen: false,
+    studentName: "Ahmad Raza",
+    batchName: "Morning Hifz & Tajweed Batch A",
+    amount: "1000",
+    currency: "INR (₹)",
+    mode: "Cash Handover",
+    receiptNo: "RCP-2026-1021",
+    paymentDate: "2026-09-20",
+    nextDueDate: "2026-10-20",
+    notes: "Mahana fees baraye September/October wasool payi."
+  });
+
+  // Teacher Tajweed Audio Evaluation Modal (BRD Section 11)
+  const [tajweedEvalModal, setTajweedEvalModal] = useState({
+    isOpen: false,
+    submissionId: null,
+    studentName: "Ahmad Raza",
+    courseTitle: "Tajweed Foundation",
+    lessonTitle: "Surah Al-Fatiha Recitation",
+    audioUrl: "https://everyayah.com/data/Husary_128kbps/001001.mp3",
+    timestamp: "00:42",
+    selectedMistakes: ["Madd", "Ghunnah"],
+    teacherNote: "MashaAllah achhi tilawat hai. Ayat 4 par Madd-e-Muttasil ki miqdar 4-5 harakaat pukhta karein.",
+    modelAudioUrl: "https://everyayah.com/data/Husary_128kbps/001001.mp3",
+    grade: "Mumtaz (A)"
+  });
+
+  // Teacher Homework Grading Modal (BRD Section 10)
+  const [hwGradeModal, setHwGradeModal] = useState({
+    isOpen: false,
+    hwId: null,
+    studentName: "Ahmad Raza",
+    courseTitle: "Tajweed Foundation",
+    submissionText: "Surah Al-Mulk ki pehli 10 aayat me tamam 14 Huroof-e-Musta'liyah ko mark kar diya gaya hai. File attach ki gayi hai.",
+    attachmentName: "Surah_Al_Mulk_Makharij_Ahmad.pdf",
+    maxMarks: 25,
+    marksAwarded: 24,
+    grade: "Mumtaz (A+)",
+    teacherFeedback: "MashaAllah, behtareen koshish. Qalqalah ke baare me nishandehi bilkul durust hai.",
+    voiceNoteDuration: "01:15 min recorded",
+    status: "Graded"
+  });
+
+  // Teacher Notice Broadcast Modal (BRD Section 14)
+  const [noticeModal, setNoticeModal] = useState({
+    isOpen: false,
+    target: "All Enrolled Students (142 Talaba)",
+    title: "Kal ki Fajr Class me Surah Al-Mulk ka Dars hoga",
+    message: "Tamam Talaba se guzarish hai ke subah 6:30 baje waqt par live room me tashreef layein. Mushaf aur tajweed register sath rakhein.",
+    priority: "Important ⚠️",
+    sendWhatsApp: true,
+    sendEmail: true
+  });
+
+  // Teacher Certificate Issuance Modal (BRD Section 12)
+  const [certModal, setCertModal] = useState({
+    isOpen: false,
+    studentName: "Ahmad Raza",
+    courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+    completionDate: "2026-09-20",
+    grade: "Mumtaz (A+)",
+    sanadAuthority: "Qari Abdul Basit Siddiqui (Darul Uloom Certified)",
+    certId: "CERT-2026-8910",
+    qrCode: "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://alnoor.edu/verify/CERT-2026-8910"
+  });
+
+  // Teacher Mini-Academy Profile Modal (BRD Section 05 & 03)
+  const [academyProfileModal, setAcademyProfileModal] = useState({
+    isOpen: false,
+    academyName: "Al-Qari Online Tajweed Academy",
+    slug: "academy/qari-abdul-basit",
+    specialization: "Tajweed-ul-Quran & Qirat-e-Saba",
+    bio: "Darul Uloom se farigh-ut-tahseel aur Sanad-e-Qirat Saba ke hamil. Pichle 12 saal se dars-o-tadrees se wabasta.",
+    qualification: "Fazil Darul Uloom & Sanad-e-Qirat Saba",
+    payoutUpi: "qari.basit@okhdfcbank",
+    demoVideoUrl: "https://youtube.com/watch?v=demo-tajweed-lesson"
+  });
+
+  // Teacher Workspace Batches, Students & Ledgers Lists
+  const [teacherBatches, setTeacherBatches] = useState([
+    { id: "batch-1", name: "Morning Hifz & Tajweed Batch A", course: "Ahkam-e-Tajweed & Makharij Foundation", timing: "06:30 AM - 07:15 AM", days: "Mon - Thu", enrolled: 24, max: 30, feeMonthly: "₹650", status: "Active" },
+    { id: "batch-2", name: "Evening Dars-e-Quran Batch B", course: "Noorani Qaida & Nazra", timing: "05:00 PM - 05:45 PM", days: "Mon - Fri", enrolled: 28, max: 30, feeMonthly: "₹500", status: "Active" }
+  ]);
+
+  const [teacherStudents, setTeacherStudents] = useState([
+    { id: "stud-1", name: "Ahmad Raza", email: "ahmad.raza@example.com", phone: "+91 98765 43210", batch: "Morning Hifz & Tajweed Batch A", attendance: "88%", feeStatus: "Paid ✅" },
+    { id: "stud-2", name: "Muhammad Bilal", email: "bilal.k@example.com", phone: "+91 98111 22334", batch: "Morning Hifz & Tajweed Batch A", attendance: "79%", feeStatus: "Due ₹650 ⚠️" },
+    { id: "stud-3", name: "Fatima Bano", email: "fatima.b@example.com", phone: "+91 94555 66778", batch: "Evening Dars-e-Quran Batch B", attendance: "94%", feeStatus: "Paid ✅" }
+  ]);
+
+  const [feeLedger, setFeeLedger] = useState([
+    { id: "fee-1", student: "Ahmad Raza", batch: "Morning Batch A", amount: "₹1,000", mode: "Cash Handover", receipt: "RCP-2026-1021", date: "2026-09-18", status: "Received" },
+    { id: "fee-2", student: "Fatima Bano", batch: "Evening Batch B", amount: "₹850", mode: "Direct UPI QR", receipt: "RCP-2026-1022", date: "2026-09-19", status: "Received" },
+    { id: "fee-3", student: "Muhammad Bilal", batch: "Morning Batch A", amount: "₹650", mode: "Pending", receipt: "—", date: "Due 2026-09-25", status: "Pending" }
+  ]);
+
+  const [noticesList, setNoticesList] = useState([
+    { id: "not-1", title: "Kal ki Fajr Class me Surah Al-Mulk ka Dars hoga", target: "Morning Hifz & Tajweed Batch A", date: "2026-09-19", priority: "Important ⚠️" },
+    { id: "not-2", title: "Tajweed Audio Assignment due date extended", target: "All Enrolled Students", date: "2026-09-15", priority: "Normal" }
+  ]);
+
+  const [issuedCerts, setIssuedCerts] = useState([
+    { id: "CERT-2026-8910", student: "Ahmad Raza", course: "Ahkam-e-Tajweed & Makharij Foundation", date: "2026-09-20", grade: "Mumtaz (A+)", status: "Issued" }
+  ]);
+
   // Student Homework Submission Modal
   const [hwSubmitModal, setHwSubmitModal] = useState({
     isOpen: false,
@@ -481,7 +646,6 @@ function App() {
   ]);
 
   // Modals
-  const [certModal, setCertModal] = useState({ isOpen: false, course: null, studentName: "Ahmad Raza", grade: "Mumtaz (95%)" });
   const [libraryModal, setLibraryModal] = useState({ isOpen: false, book: null });
 
   // Translation Helper
@@ -725,6 +889,259 @@ function App() {
     alert(`Audit Log Recorded: Status for ${attendanceOverrideModal.studentName} updated to "${attendanceOverrideModal.newStatus}" with reason: "${attendanceOverrideModal.overrideReason}"`);
   };
 
+  // Open Add Lesson Modal
+  const handleOpenAddLesson = (moduleId) => {
+    setLessonModal({
+      isOpen: true,
+      moduleId: moduleId || 1,
+      title: "",
+      type: "Video",
+      duration: "25 min",
+      mediaUrl: "https://www.youtube.com/watch?v=sample-tajweed",
+      isFreePreview: false,
+      notes: ""
+    });
+  };
+
+  // Save Lesson to Course Studio
+  const handleSaveLesson = (e) => {
+    e.preventDefault();
+    if (!lessonModal.title) {
+      alert("Lesson title is required!");
+      return;
+    }
+    const newLesson = {
+      id: Date.now(),
+      title: lessonModal.title,
+      type: lessonModal.type,
+      duration: lessonModal.duration,
+      mediaUrl: lessonModal.mediaUrl,
+      isFreePreview: lessonModal.isFreePreview,
+      notes: lessonModal.notes
+    };
+    const updatedModules = courseStudio.modules.map(m => {
+      if (m.id === lessonModal.moduleId) {
+        return {
+          ...m,
+          lessons: [...m.lessons, newLesson]
+        };
+      }
+      return m;
+    });
+    setCourseStudio({ ...courseStudio, modules: updatedModules });
+    setLessonModal({ ...lessonModal, isOpen: false });
+    alert(`Lesson "${lessonModal.title}" added to module successfully!`);
+  };
+
+  // Open Quiz Modal
+  const handleOpenAddQuiz = (moduleId) => {
+    setQuizModal({
+      ...quizModal,
+      isOpen: true,
+      moduleId: moduleId || 1
+    });
+  };
+
+  // Save Quiz to Module
+  const handleSaveQuiz = (e) => {
+    e.preventDefault();
+    const newQuizLesson = {
+      id: Date.now(),
+      title: `Quiz / Exam: ${quizModal.title} (${quizModal.timeLimitMin} min, Passing ${quizModal.passingPercent}%)`,
+      type: "Quiz",
+      duration: `${quizModal.timeLimitMin} min`,
+      isFreePreview: false,
+      questionsCount: quizModal.questions.length
+    };
+    const updatedModules = courseStudio.modules.map(m => {
+      if (m.id === quizModal.moduleId) {
+        return {
+          ...m,
+          lessons: [...m.lessons, newQuizLesson]
+        };
+      }
+      return m;
+    });
+    setCourseStudio({ ...courseStudio, modules: updatedModules });
+    setQuizModal({ ...quizModal, isOpen: false });
+    alert(`Quiz "${quizModal.title}" attached to course module!`);
+  };
+
+  // Create Batch Submit
+  const handleCreateBatchSubmit = (e) => {
+    e.preventDefault();
+    const newBatch = {
+      id: "batch-" + Date.now(),
+      name: batchModal.batchName,
+      course: batchModal.courseTitle,
+      timing: batchModal.timing,
+      days: batchModal.days,
+      enrolled: 0,
+      max: parseInt(batchModal.maxSeats) || 30,
+      feeMonthly: batchModal.feeMonthly,
+      status: "Active"
+    };
+    setTeacherBatches([...teacherBatches, newBatch]);
+    setBatchModal({ ...batchModal, isOpen: false });
+    alert(`New Batch "${batchModal.batchName}" created successfully!`);
+  };
+
+  // Enroll Student Submit
+  const handleEnrollStudentSubmit = (e) => {
+    e.preventDefault();
+    if (!enrollModal.studentName) {
+      alert("Student name is required!");
+      return;
+    }
+    const newStudent = {
+      id: "stud-" + Date.now(),
+      name: enrollModal.studentName,
+      email: enrollModal.studentEmail || "talib@example.com",
+      phone: enrollModal.studentPhone || "+91 90000 00000",
+      batch: enrollModal.batchName,
+      attendance: "100%",
+      feeStatus: enrollModal.enrollType.includes("Free") ? "Scholarship ✅" : "Paid ✅"
+    };
+    setTeacherStudents([...teacherStudents, newStudent]);
+    setEnrollModal({ ...enrollModal, isOpen: false });
+    alert(`Talib-e-Ilm "${enrollModal.studentName}" enrolled in "${enrollModal.batchName}"!`);
+  };
+
+  // Offline Fee Submit
+  const handleOfflineFeeSubmit = (e) => {
+    e.preventDefault();
+    const newRecord = {
+      id: "fee-" + Date.now(),
+      student: offlineFeeModal.studentName,
+      batch: offlineFeeModal.batchName,
+      amount: `${offlineFeeModal.currency.split(' ')[0]} ${offlineFeeModal.amount}`,
+      mode: offlineFeeModal.mode,
+      receipt: offlineFeeModal.receiptNo,
+      date: offlineFeeModal.paymentDate,
+      status: "Received"
+    };
+    setFeeLedger([newRecord, ...feeLedger]);
+    setOfflineFeeModal({ ...offlineFeeModal, isOpen: false });
+    alert(`Payment of ${offlineFeeModal.amount} recorded for ${offlineFeeModal.studentName}! Receipt: ${offlineFeeModal.receiptNo}`);
+  };
+
+  // Open Tajweed Eval Modal
+  const handleOpenTajweedEval = (sub) => {
+    setTajweedEvalModal({
+      isOpen: true,
+      submissionId: sub.id,
+      studentName: sub.studentName,
+      courseTitle: sub.courseTitle,
+      lessonTitle: sub.lessonTitle,
+      audioUrl: "https://everyayah.com/data/Husary_128kbps/001001.mp3",
+      timestamp: "00:42",
+      selectedMistakes: ["Madd", "Ghunnah"],
+      teacherNote: "MashaAllah, tilawat durust hai. Ayat 4 par Madd ki miqdar 4-5 harakaat pukhta karein.",
+      modelAudioUrl: "https://everyayah.com/data/Husary_128kbps/001001.mp3",
+      grade: "Mumtaz (A)"
+    });
+  };
+
+  // Save Tajweed Eval
+  const handleSaveTajweedEval = (e) => {
+    e.preventDefault();
+    setAudioSubmissions(audioSubmissions.map(s => {
+      if (s.id === tajweedEvalModal.submissionId) {
+        return {
+          ...s,
+          status: "Graded",
+          grade: tajweedEvalModal.grade,
+          teacherNote: tajweedEvalModal.teacherNote,
+          mistakes: tajweedEvalModal.selectedMistakes
+        };
+      }
+      return s;
+    }));
+    setTajweedEvalModal({ ...tajweedEvalModal, isOpen: false });
+    alert(`Tajweed evaluation & structured feedback submitted for ${tajweedEvalModal.studentName}!`);
+  };
+
+  // Open HW Grade Modal
+  const handleOpenHwGrade = (hw) => {
+    setHwGradeModal({
+      isOpen: true,
+      hwId: hw.id,
+      studentName: "Ahmad Raza",
+      courseTitle: hw.course || "Tajweed Foundation",
+      submissionText: "Surah Al-Mulk ki pehli 10 aayat me tamam 14 Huroof-e-Musta'liyah ko mark kar diya gaya hai. File attach ki gayi hai.",
+      attachmentName: "Surah_Al_Mulk_Makharij_Ahmad.pdf",
+      maxMarks: hw.maxMarks || 25,
+      marksAwarded: 24,
+      grade: "Mumtaz (A+)",
+      teacherFeedback: "MashaAllah, behtareen koshish. Qalqalah ke baare me nishandehi bilkul durust hai.",
+      voiceNoteDuration: "01:15 min recorded",
+      status: "Graded"
+    });
+  };
+
+  // Save HW Grade
+  const handleSaveHwGrade = (e) => {
+    e.preventDefault();
+    setHomeworkList(homeworkList.map(h => {
+      if (h.id === hwGradeModal.hwId) {
+        return {
+          ...h,
+          mySubmissionStatus: hwGradeModal.status,
+          myGrade: `${hwGradeModal.marksAwarded}/${hwGradeModal.maxMarks} (${hwGradeModal.grade})`,
+          feedback: hwGradeModal.teacherFeedback
+        };
+      }
+      return h;
+    }));
+    setHwGradeModal({ ...hwGradeModal, isOpen: false });
+    alert(`Assignment evaluated for ${hwGradeModal.studentName}: Marks ${hwGradeModal.marksAwarded}/${hwGradeModal.maxMarks}`);
+  };
+
+  // Broadcast Notice Submit
+  const handleBroadcastNoticeSubmit = (e) => {
+    e.preventDefault();
+    const newNotice = {
+      id: "not-" + Date.now(),
+      title: noticeModal.title,
+      target: noticeModal.target,
+      date: new Date().toISOString().split('T')[0],
+      priority: noticeModal.priority
+    };
+    setNoticesList([newNotice, ...noticesList]);
+    setNoticeModal({ ...noticeModal, isOpen: false });
+    alert(`Notice broadcasted to ${noticeModal.target} via In-App, Email & WhatsApp!`);
+  };
+
+  // Issue Certificate Submit
+  const handleIssueCertificateSubmit = (e) => {
+    e.preventDefault();
+    const newCert = {
+      id: certModal.certId,
+      student: certModal.studentName,
+      course: certModal.courseTitle,
+      date: certModal.completionDate,
+      grade: certModal.grade,
+      status: "Issued"
+    };
+    setIssuedCerts([newCert, ...issuedCerts]);
+    setCertModal({ ...certModal, isOpen: false });
+    alert(`Official Certificate (${certModal.certId}) generated & issued with QR Verification code!`);
+  };
+
+  // Save Academy Profile
+  const handleSaveAcademyProfile = (e) => {
+    e.preventDefault();
+    setCurrentUser({
+      ...currentUser,
+      specialization: academyProfileModal.specialization,
+      qualification: academyProfileModal.qualification,
+      academySlug: academyProfileModal.slug
+    });
+    setAcademyProfileModal({ ...academyProfileModal, isOpen: false });
+    alert("Mini-Academy Profile & Payout Settings successfully updated!");
+  };
+
+
   return (
     <div className={lang === 'ur' ? 'urdu-mode' : ''} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
       {/* 1. TOP NAVIGATION */}
@@ -958,12 +1375,12 @@ function App() {
         )}
 
         {/* =========================================================================
-            2. TEACHER STUDIO & MINI ACADEMY (ALL TEACHER FORMS)
+            2. TEACHER STUDIO & MINI ACADEMY (FULL 8-TAB TEACHER WORKSPACE — BRD v2.0)
            ========================================================================= */}
         {currentUser.role === 'teacher' && activeNav === 'teacher' && !activeCourse && (
           <div>
-            {/* Header with All Action Buttons */}
-            <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+            {/* Header with All Action Buttons & Stats */}
+            <div className="glass-card" style={{ padding: '24px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
                 <div>
                   <span className="badge badge-gold" style={{ marginBottom: '6px' }}>Independent Educator Workspace</span>
@@ -979,154 +1396,726 @@ function App() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  <button className="btn btn-gold" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true })}>
-                    <i className="fas fa-plus-circle"></i> Create Course Studio (BRD Flow 3)
-                  </button>
-                  <button className="btn btn-primary" onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true })}>
-                    <i className="fas fa-calendar-plus"></i> Schedule Recurring Class (Flow 5)
-                  </button>
-                  <button className="btn btn-outline" onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true })}>
-                    <i className="fas fa-tasks"></i> Create Homework (Section 10)
-                  </button>
-                  <button className="btn btn-outline" onClick={() => setHifzEntryModal({ ...hifzEntryModal, isOpen: true })}>
-                    <i className="fas fa-book-reader"></i> Daily Hifz Entry (Section 11)
-                  </button>
+                {/* 4 Key Metrics */}
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ENROLLED TALABA</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>142</div>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ACTIVE COURSES</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>{courses.length}</div>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ACTIVE BATCHES</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>{teacherBatches.length}</div>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>WALLET PAYOUT</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-emerald-light)' }}>{teacherEarnings.readyForPayout}</div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Quick Action Strip */}
+              <div className="quick-action-strip" style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+                <button className="btn btn-gold btn-sm" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true })}>
+                  <i className="fas fa-plus-circle"></i> + Create Course Studio
+                </button>
+                <button className="btn btn-primary btn-sm" onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true })}>
+                  <i className="fas fa-calendar-plus"></i> + Schedule Class
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setBatchModal({ ...batchModal, isOpen: true })}>
+                  <i className="fas fa-layer-group"></i> + Create Batch
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true })}>
+                  <i className="fas fa-user-plus"></i> + Enroll Student
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true })}>
+                  <i className="fas fa-tasks"></i> + Create Homework
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setHifzEntryModal({ ...hifzEntryModal, isOpen: true })}>
+                  <i className="fas fa-book-reader"></i> + Daily Hifz Entry
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true })}>
+                  <i className="fas fa-receipt"></i> + Record Offline Fee
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setNoticeModal({ ...noticeModal, isOpen: true })}>
+                  <i className="fas fa-bullhorn"></i> + Broadcast Notice
+                </button>
+                <button className="btn btn-outline btn-sm" onClick={() => setCertModal({ ...certModal, isOpen: true })}>
+                  <i className="fas fa-award"></i> + Issue Certificate
+                </button>
               </div>
             </div>
 
-            {/* LIVE AUTO ATTENDANCE SIMULATOR & OVERRIDE */}
-            <div className="attendance-sim-box">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="heartbeat-dot"></span>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
-                      Live Auto Attendance Engine (SDK 30s Heartbeat)
+            {/* Sub-Navigation Tabs */}
+            <div className="teacher-subnav-tabs">
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'courses' ? 'active' : ''}`} onClick={() => setTeacherSubTab('courses')}>
+                <i className="fas fa-book"></i> 1. Course Studio & Management ({courses.length})
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'live' ? 'active' : ''}`} onClick={() => setTeacherSubTab('live')}>
+                <i className="fas fa-video"></i> 2. Live Classes & Auto Attendance
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'batches' ? 'active' : ''}`} onClick={() => setTeacherSubTab('batches')}>
+                <i className="fas fa-users"></i> 3. Batches & Talaba Directory ({teacherStudents.length})
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'homework' ? 'active' : ''}`} onClick={() => setTeacherSubTab('homework')}>
+                <i className="fas fa-clipboard-list"></i> 4. Homework & Hifz Register
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'tajweed' ? 'active' : ''}`} onClick={() => setTeacherSubTab('tajweed')}>
+                <i className="fas fa-microphone-alt"></i> 5. Tajweed Audio Studio ({audioSubmissions.length})
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'finances' ? 'active' : ''}`} onClick={() => setTeacherSubTab('finances')}>
+                <i className="fas fa-wallet"></i> 6. Fees & Payout Wallet
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'notices' ? 'active' : ''}`} onClick={() => setTeacherSubTab('notices')}>
+                <i className="fas fa-bell"></i> 7. Notices & Certificates
+              </button>
+              <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'settings' ? 'active' : ''}`} onClick={() => setTeacherSubTab('settings')}>
+                <i className="fas fa-cog"></i> 8. Academy Profile & Settings
+              </button>
+            </div>
+
+            {/* =================================================================
+                SUB-TAB 1: COURSES & STUDIO MANAGEMENT
+               ================================================================= */}
+            {teacherSubTab === 'courses' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-graduation-cap" style={{ color: 'var(--color-primary-light)' }}></i> My Created Courses (BRD Flow 3 & Section 06)
                     </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Courses under Shariah Review, Academic Verification and Live Publishing.
+                    </p>
                   </div>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    Class: <strong>{attendanceEngine.classTitle}</strong> (40 Min) • Attendance Threshold: <strong>{attendanceEngine.attendanceThreshold}%</strong>
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="btn btn-outline btn-sm" onClick={() => alert("Simulated net glitch: Ahmad Raza disconnected -> reconnected.")}>
-                    Simulate Net Glitch
-                  </button>
-                  <button className="btn btn-primary btn-sm" onClick={() => alert("Class ended. Attendance percentage calculated automatically per BRD Flow 6!")}>
-                    Finalize Attendance
+                  <button className="btn btn-gold" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true })}>
+                    <i className="fas fa-plus-circle"></i> + Open 5-Tab Course Creation Studio
                   </button>
                 </div>
-              </div>
 
-              <table className="custom-table" style={{ background: 'rgba(0,0,0,0.3)', marginTop: '16px' }}>
-                <thead>
-                  <tr>
-                    <th>Student</th>
-                    <th>Join Time</th>
-                    <th>Timeline</th>
-                    <th>Duration</th>
-                    <th>%</th>
-                    <th>Auto Status</th>
-                    <th>Flags</th>
-                    <th>Manual Override Form</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendanceEngine.sessions.map(sess => (
-                    <tr key={sess.id}>
-                      <td><strong>{sess.studentName}</strong></td>
-                      <td>{sess.joinTime}</td>
-                      <td>{sess.exitTime} -> {sess.rejoinTime}</td>
-                      <td>{sess.totalDurationMin} min</td>
-                      <td><strong>{sess.attendancePercent}%</strong></td>
-                      <td><span className={`badge ${sess.status === 'Present' ? 'badge-emerald' : 'badge-ruby'}`}>{sess.status}</span></td>
-                      <td>{sess.flag === 'network_unstable' ? <span className="badge badge-gold">Net Unstable</span> : <span>—</span>}</td>
-                      <td>
-                        <button 
-                          className="btn btn-outline btn-sm" 
-                          style={{ padding: '2px 8px', fontSize: '0.72rem' }}
-                          onClick={() => setAttendanceOverrideModal({
-                            isOpen: true,
-                            sessionId: sess.id,
-                            studentName: sess.studentName,
-                            currentStatus: `${sess.status} (${sess.attendancePercent}%)`,
-                            newStatus: "Present",
-                            overrideReason: "Student informed prior due to technical outage."
-                          })}
-                        >
-                          <i className="fas fa-edit"></i> Override Form
+                <div className="teacher-course-grid">
+                  {courses.map((crs, idx) => (
+                    <div key={crs.id || idx} className="teacher-course-card">
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <span className="dept-tag">{crs.dept || "Quran & Tajweed"}</span>
+                          <span className={`badge ${crs.status && crs.status.includes('Approved') ? 'badge-emerald' : crs.status && crs.status.includes('Academic') ? 'badge-teal' : 'badge-gold'}`}>
+                            {crs.status || "Under Scholar Review Board"}
+                          </span>
+                        </div>
+                        <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '4px 0 2px' }}>{crs.title}</h4>
+                        {crs.titleArabic && <div style={{ fontSize: '0.92rem', color: 'var(--color-accent-gold)', direction: 'rtl', marginBottom: '6px' }}>{crs.titleArabic}</div>}
+                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '6px 0 12px' }}>
+                          {crs.description || "Comprehensive structured Islamic curriculum with authenticated kitab references."}
+                        </p>
+                        <div style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.25)', padding: '8px', borderRadius: '8px', marginBottom: '12px', color: 'var(--text-muted)' }}>
+                          <div><strong style={{ color: 'var(--color-accent-gold)' }}>Hawala:</strong> {crs.kitabHawala || "Al-Muqaddimah Al-Jazariyyah (Page 42)"}</div>
+                          <div style={{ marginTop: '3px' }}><strong>Duration:</strong> {crs.duration || "12 Weeks"} • <strong>Level:</strong> {crs.level || "Beginner"} • <strong>Fee:</strong> {crs.price ? `${crs.price} (${crs.feeModel})` : "Free / Sadaqah"}</div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => handleOpenAddLesson(1)}>
+                          <i className="fas fa-plus"></i> + Add Lesson
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Recitation Grading Queue */}
-            <div className="glass-card" style={{ padding: '24px', margin: '24px 0' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '16px' }}>
-                <i className="fas fa-microphone-alt"></i> Student Tajweed Recitations to Evaluate
-              </h3>
-              {audioSubmissions.map(sub => (
-                <div key={sub.id} style={{ padding: '16px', background: 'rgba(0,0,0,0.25)', borderRadius: '12px', marginBottom: '14px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-primary-light)' }}>{sub.studentName}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{sub.courseTitle} • {sub.lessonTitle}</div>
+                        <button className="btn btn-outline btn-sm" onClick={() => handleOpenAddQuiz(1)}>
+                          <i className="fas fa-question-circle"></i> + Add Quiz
+                        </button>
+                        <button className="btn btn-outline btn-sm" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true, title: crs.title })}>
+                          <i className="fas fa-edit"></i> Edit in Studio
+                        </button>
+                      </div>
                     </div>
-                    <span className={`badge ${sub.status === 'Graded' ? 'badge-emerald' : 'badge-gold'}`}>{sub.status}</span>
-                  </div>
-                  <div style={{ margin: '12px 0' }}>
-                    <audio controls src="https://everyayah.com/data/Husary_128kbps/001001.mp3" style={{ height: '36px', width: '100%' }}></audio>
-                  </div>
-                  <button 
-                    className="btn btn-primary btn-sm" 
-                    onClick={() => {
-                      const note = prompt("Enter teacher feedback:", "MashaAllah, good recitation. Keep proper Ghunnah duration.");
-                      if (note) {
-                        setAudioSubmissions(audioSubmissions.map(s => s.id === sub.id ? { ...s, status: "Graded", grade: "Mumtaz (A)", teacherNote: note } : s));
-                        alert("Evaluation submitted!");
-                      }
-                    }}
-                  >
-                    Grade Recitation & Submit Voice/Text
-                  </button>
-                </div>
-              ))}
-            </div>
+                  ))}
 
-            {/* Teacher Wallet */}
-            <div className="glass-card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '16px' }}>
-                <i className="fas fa-wallet" style={{ color: 'var(--color-accent-gold)' }}></i> Teacher Payout Wallet
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>NET EARNINGS</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800 }}>{teacherEarnings.netEarnings}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Platform Cut: {teacherEarnings.platformFee}</div>
-                </div>
-                <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>ESCROW HOLD (7-DAYS)</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>{teacherEarnings.inEscrow}</div>
-                </div>
-                <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>READY FOR PAYOUT</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-emerald-light)' }}>{teacherEarnings.readyForPayout}</div>
-                </div>
-                <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>PAYOUT ACCOUNT</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: '4px' }}>{teacherEarnings.payoutAccount}</div>
-                  <button className="btn btn-outline btn-sm" style={{ marginTop: '8px' }} onClick={() => alert("Payout request submitted to platform accounts!")}>
-                    Request Payout
-                  </button>
+                  {/* Empty Create Course Card */}
+                  <div 
+                    onClick={() => setCourseStudio({ ...courseStudio, isOpen: true })}
+                    style={{ border: '2px dashed var(--border-accent)', borderRadius: '14px', padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', cursor: 'pointer', background: 'rgba(13, 148, 136, 0.04)', minHeight: '220px' }}
+                  >
+                    <div style={{ fontSize: '2.4rem', color: 'var(--color-accent-gold)', marginBottom: '10px' }}><i className="fas fa-folder-plus"></i></div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-primary-light)' }}>Create Another Course</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      5-Tab Studio: Kitab Hawala, Modules, Pricing & Review Routing
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 2: LIVE CLASSES & AUTO-ATTENDANCE ENGINE
+               ================================================================= */}
+            {teacherSubTab === 'live' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-broadcast-tower" style={{ color: 'var(--color-ruby)' }}></i> Live Classes & Auto-Attendance Engine (BRD Flow 5 & Flow 6)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      SDK 30-second ping tracking, join/exit timeline, and mandatory audit log manual overrides.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true })}>
+                    <i className="fas fa-calendar-plus"></i> Schedule Recurring Live Class (Flow 5)
+                  </button>
+                </div>
+
+                {/* LIVE SIMULATOR BOX */}
+                <div className="attendance-sim-box">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="heartbeat-dot"></span>
+                        <h4 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
+                          Active Live Session: {attendanceEngine.classTitle}
+                        </h4>
+                      </div>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Duration: <strong>40 Min</strong> • Auto-Present Attendance Threshold: <strong>{attendanceEngine.attendanceThreshold}% (30 Min)</strong>
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-outline btn-sm" onClick={() => alert("Simulated net glitch: Ahmad Raza disconnected -> reconnected after 4 min.")}>
+                        Simulate Disconnect Ping
+                      </button>
+                      <button className="btn btn-primary btn-sm" onClick={() => alert("Class finalized! Auto attendance stored in DB per BRD Section 09.")}>
+                        Finalize & Archive Roster
+                      </button>
+                    </div>
+                  </div>
+
+                  <table className="custom-table" style={{ background: 'rgba(0,0,0,0.3)', marginTop: '16px' }}>
+                    <thead>
+                      <tr>
+                        <th>Student Name</th>
+                        <th>Join Time</th>
+                        <th>Exit / Rejoin Timeline</th>
+                        <th>Total Duration</th>
+                        <th>%</th>
+                        <th>Auto Status</th>
+                        <th>Network Flag</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attendanceEngine.sessions.map(sess => (
+                        <tr key={sess.id}>
+                          <td><strong>{sess.studentName}</strong></td>
+                          <td>{sess.joinTime}</td>
+                          <td>{sess.exitTime} -> {sess.rejoinTime}</td>
+                          <td>{sess.totalDurationMin} min</td>
+                          <td><strong>{sess.attendancePercent}%</strong></td>
+                          <td><span className={`badge ${sess.status === 'Present' ? 'badge-emerald' : 'badge-ruby'}`}>{sess.status}</span></td>
+                          <td>{sess.flag === 'network_unstable' ? <span className="badge badge-gold">Net Unstable</span> : <span>Normal</span>}</td>
+                          <td>
+                            <button 
+                              className="btn btn-outline btn-sm" 
+                              style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                              onClick={() => setAttendanceOverrideModal({
+                                isOpen: true,
+                                sessionId: sess.id,
+                                studentName: sess.studentName,
+                                currentStatus: `${sess.status} (${sess.attendancePercent}%)`,
+                                newStatus: "Present",
+                                overrideReason: "Student informed prior due to technical outage."
+                              })}
+                            >
+                              <i className="fas fa-edit"></i> Override Form
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Upcoming Live Classes */}
+                <div className="glass-card" style={{ padding: '20px', marginTop: '20px' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '12px' }}>
+                    Upcoming Scheduled Live Sessions
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                    {liveClasses.map(cls => (
+                      <div key={cls.id} style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-primary-light)' }}>{cls.title}</div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0' }}>{cls.date}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                          <span className="badge badge-teal">{cls.enrolled} Enrolled</span>
+                          <button className="btn btn-primary btn-sm" onClick={() => alert(`Starting Live Class: ${cls.title}`)}>
+                            <i className="fas fa-video"></i> Start Room
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 3: BATCHES & TALABA DIRECTORY
+               ================================================================= */}
+            {teacherSubTab === 'batches' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-users-cog" style={{ color: 'var(--color-accent-gold)' }}></i> Batches & Talaba Directory (BRD Section 02)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Batch rosters, class schedules, and direct student enrolment management.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-outline" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true })}>
+                      <i className="fas fa-user-plus"></i> + Enroll Student
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setBatchModal({ ...batchModal, isOpen: true })}>
+                      <i className="fas fa-layer-group"></i> + Create New Batch
+                    </button>
+                  </div>
+                </div>
+
+                {/* Batches Grid */}
+                <div className="batch-grid" style={{ marginBottom: '24px' }}>
+                  {teacherBatches.map(b => (
+                    <div key={b.id} className="batch-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>{b.name}</h4>
+                        <span className="badge badge-emerald">{b.status}</span>
+                      </div>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)', marginTop: '4px' }}>{b.course}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '8px 0' }}>
+                        <div><strong>Timing:</strong> {b.timing}</div>
+                        <div><strong>Days:</strong> {b.days}</div>
+                        <div><strong>Fees:</strong> {b.feeMonthly}</div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', fontWeight: 700 }}>
+                          {b.enrolled} / {b.max} Seats Filled
+                        </span>
+                        <button className="btn btn-outline btn-sm" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true, batchName: b.name })}>
+                          + Add Student
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Talaba Directory Table */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>
+                    Enrolled Talaba (Students) List
+                  </h4>
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Student Name</th>
+                        <th>Email & Phone</th>
+                        <th>Enrolled Batch</th>
+                        <th>Attendance %</th>
+                        <th>Fee Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teacherStudents.map(st => (
+                        <tr key={st.id}>
+                          <td><strong>{st.name}</strong></td>
+                          <td>
+                            <div style={{ fontSize: '0.82rem' }}>{st.email}</div>
+                            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{st.phone}</div>
+                          </td>
+                          <td><span className="badge badge-teal">{st.batch}</span></td>
+                          <td><strong>{st.attendance}</strong></td>
+                          <td><span className={`badge ${st.feeStatus.includes('Paid') ? 'badge-emerald' : 'badge-gold'}`}>{st.feeStatus}</span></td>
+                          <td>
+                            <button 
+                              className="btn btn-outline btn-sm" 
+                              style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                              onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true, studentName: st.name, batchName: st.batch })}
+                            >
+                              Collect Fee
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 4: HOMEWORK & HIFZ REGISTER
+               ================================================================= */}
+            {teacherSubTab === 'homework' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-tasks" style={{ color: 'var(--color-primary-light)' }}></i> Homework & Daily Hifz Register (BRD Section 10 & 11)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Assign exercises, evaluate submissions with voice feedback, and maintain daily Madrasa Hifz records.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-outline" onClick={() => setHifzEntryModal({ ...hifzEntryModal, isOpen: true })}>
+                      <i className="fas fa-book-reader"></i> + Daily Hifz Entry
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true })}>
+                      <i className="fas fa-plus-circle"></i> + Create Homework
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submissions to Grade */}
+                <div className="glass-card" style={{ padding: '20px', marginBottom: '22px' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>
+                    Student Submissions Awaiting Evaluation
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                    {homeworkList.map(hw => (
+                      <div key={hw.id} style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <h5 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{hw.title}</h5>
+                          <span className="badge badge-gold">{hw.mySubmissionStatus}</span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '6px 0' }}>
+                          Course: <strong>{hw.course}</strong> • Due: <strong>{hw.dueDate}</strong> • Max: <strong>{hw.maxMarks} Marks</strong>
+                        </div>
+                        <div style={{ marginTop: '12px' }}>
+                          <button className="btn btn-primary btn-sm" onClick={() => handleOpenHwGrade(hw)}>
+                            <i className="fas fa-check-double"></i> Evaluate & Grade Submission
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Daily Hifz Register View */}
+                <div className="glass-card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
+                        <i className="fas fa-quran" style={{ color: 'var(--color-accent-gold)' }}></i> Daily Hifz Logbook (Sabaq / Sabqi / Manzil)
+                      </h4>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Talib: <strong>{hifzRecord.studentName}</strong> • Date: <strong>{hifzRecord.date}</strong>
+                      </div>
+                    </div>
+                    <button className="btn btn-gold btn-sm" onClick={() => setHifzEntryModal({ ...hifzEntryModal, isOpen: true })}>
+                      <i className="fas fa-signature"></i> Sign Today's Record
+                    </button>
+                  </div>
+
+                  <div className="hifz-register">
+                    <div className="hifz-entry-box">
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>NAYA SABAQ</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 700, margin: '6px 0' }}>{hifzRecord.sabaq}</div>
+                      <span className="badge badge-emerald">{hifzRecord.sabaqGrade}</span>
+                    </div>
+                    <div className="hifz-entry-box">
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>SABQI (PICHLA SABAQ)</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 700, margin: '6px 0' }}>{hifzRecord.sabqi}</div>
+                      <span className="badge badge-teal">{hifzRecord.sabqiGrade}</span>
+                    </div>
+                    <div className="hifz-entry-box">
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>MANZIL (DAUR)</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 700, margin: '6px 0' }}>{hifzRecord.manzil}</div>
+                      <span className="badge badge-gold">{hifzRecord.manzilGrade}</span>
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '10px', marginTop: '14px', fontSize: '0.85rem' }}>
+                    <strong>Ustaad Remarks:</strong> {hifzRecord.teacherRemarks} • <em>Seal: {hifzRecord.teacherSeal}</em>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 5: TAJWEED AUDIO STUDIO
+               ================================================================= */}
+            {teacherSubTab === 'tajweed' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-microphone-alt" style={{ color: 'var(--color-primary-light)' }}></i> Tajweed Audio Assessment Studio (BRD Section 11)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Listen to student tilawat, tag mistakes with structured markers, and provide teacher model recitation.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="glass-card" style={{ padding: '24px' }}>
+                  {audioSubmissions.map(sub => (
+                    <div key={sub.id} style={{ padding: '18px', background: 'rgba(0,0,0,0.25)', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-primary-light)' }}>{sub.studentName}</div>
+                          <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>{sub.courseTitle} • {sub.lessonTitle}</div>
+                        </div>
+                        <span className={`badge ${sub.status === 'Graded' ? 'badge-emerald' : 'badge-gold'}`}>{sub.status}</span>
+                      </div>
+
+                      <div style={{ margin: '14px 0' }}>
+                        <audio controls src="https://everyayah.com/data/Husary_128kbps/001001.mp3" style={{ height: '38px', width: '100%' }}></audio>
+                      </div>
+
+                      {sub.mistakes && (
+                        <div style={{ margin: '8px 0', fontSize: '0.82rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Detected Mistake Tags: </span>
+                          {sub.mistakes.map(m => (
+                            <span key={m} className="badge badge-gold" style={{ marginRight: '6px' }}>{m}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      <button className="btn btn-primary btn-sm" onClick={() => handleOpenTajweedEval(sub)}>
+                        <i className="fas fa-sliders-h"></i> Open Structured Evaluation Modal (Timestamp & Tags)
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 6: FEES & PAYOUT WALLET
+               ================================================================= */}
+            {teacherSubTab === 'finances' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-wallet" style={{ color: 'var(--color-accent-gold)' }}></i> Teacher Payout Wallet & Fee Ledger (BRD Section 13)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Split settlements, 7-day escrow protection, and offline cash/UPI receipt recording.
+                    </p>
+                  </div>
+                  <button className="btn btn-gold" onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true })}>
+                    <i className="fas fa-receipt"></i> + Record Offline Cash / UPI Payment
+                  </button>
+                </div>
+
+                {/* Earnings Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+                  <div className="glass-card" style={{ padding: '18px' }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>NET EARNINGS</div>
+                    <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>{teacherEarnings.netEarnings}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Platform Share: 15%</div>
+                  </div>
+                  <div className="glass-card" style={{ padding: '18px' }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>ESCROW HOLD (7-DAYS)</div>
+                    <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>{teacherEarnings.inEscrow}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>Pending Student Refund Window</div>
+                  </div>
+                  <div className="glass-card" style={{ padding: '18px' }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>READY FOR PAYOUT</div>
+                    <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--color-emerald-light)' }}>{teacherEarnings.readyForPayout}</div>
+                    <button className="btn btn-primary btn-sm" style={{ marginTop: '8px' }} onClick={() => alert("Payout request of " + teacherEarnings.readyForPayout + " submitted!")}>
+                      Request Bank Payout
+                    </button>
+                  </div>
+                  <div className="glass-card" style={{ padding: '18px' }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>PAYOUT ACCOUNT</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, margin: '6px 0' }}>{teacherEarnings.payoutAccount}</div>
+                    <button className="btn btn-outline btn-sm" onClick={() => setAcademyProfileModal({ ...academyProfileModal, isOpen: true })}>
+                      Change UPI / Bank
+                    </button>
+                  </div>
+                </div>
+
+                {/* Fee Ledger */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>
+                    Offline / Online Fee Receipts Ledger
+                  </h4>
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Student</th>
+                        <th>Batch</th>
+                        <th>Amount</th>
+                        <th>Payment Mode</th>
+                        <th>Receipt No</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {feeLedger.map(f => (
+                        <tr key={f.id}>
+                          <td><strong>{f.student}</strong></td>
+                          <td>{f.batch}</td>
+                          <td><strong>{f.amount}</strong></td>
+                          <td><span className="badge badge-teal">{f.mode}</span></td>
+                          <td><code>{f.receipt}</code></td>
+                          <td>{f.date}</td>
+                          <td><span className={`badge ${f.status === 'Received' ? 'badge-emerald' : 'badge-gold'}`}>{f.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 7: NOTICES & CERTIFICATES
+               ================================================================= */}
+            {teacherSubTab === 'notices' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-bullhorn" style={{ color: 'var(--color-primary-light)' }}></i> Class Announcements & Certificates (BRD Section 12 & 14)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Send multi-channel notices to talaba and generate verifiable completion certificates with QR codes.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn btn-outline" onClick={() => setCertModal({ ...certModal, isOpen: true })}>
+                      <i className="fas fa-award"></i> + Issue Certificate
+                    </button>
+                    <button className="btn btn-primary" onClick={() => setNoticeModal({ ...noticeModal, isOpen: true })}>
+                      <i className="fas fa-paper-plane"></i> + Broadcast Notice
+                    </button>
+                  </div>
+                </div>
+
+                {/* Notices List */}
+                <div className="glass-card" style={{ padding: '20px', marginBottom: '22px' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>
+                    Recent Class Broadcasts
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '12px' }}>
+                    {noticesList.map(n => (
+                      <div key={n.id} style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span className="badge badge-gold">{n.priority}</span>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{n.date}</span>
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: '1rem', marginTop: '6px' }}>{n.title}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Target: {n.target}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Issued Certificates */}
+                <div className="glass-card" style={{ padding: '20px' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>
+                    Issued Course Certificates
+                  </h4>
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Certificate ID</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Completion Date</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {issuedCerts.map(c => (
+                        <tr key={c.id}>
+                          <td><code>{c.id}</code></td>
+                          <td><strong>{c.student}</strong></td>
+                          <td>{c.course}</td>
+                          <td>{c.date}</td>
+                          <td><span className="badge badge-emerald">{c.grade}</span></td>
+                          <td><span className="badge badge-teal">{c.status}</span></td>
+                          <td>
+                            <button className="btn btn-outline btn-sm" onClick={() => setCertModal({ ...certModal, isOpen: true, studentName: c.student, courseTitle: c.course, certId: c.id })}>
+                              View Certificate
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 8: ACADEMY PROFILE & SETTINGS
+               ================================================================= */}
+            {teacherSubTab === 'settings' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-user-cog" style={{ color: 'var(--color-accent-gold)' }}></i> Mini Academy Profile & Payout Settings (BRD Section 05)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Configure your public academy storefront, Sanad verification documents, and payout banking details.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setAcademyProfileModal({ ...academyProfileModal, isOpen: true })}>
+                    <i className="fas fa-edit"></i> Edit Profile & Payout Form
+                  </button>
+                </div>
+
+                <div className="glass-card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+                    <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '14px' }}>
+                      <div style={{ fontSize: '3.5rem', color: 'var(--color-primary-light)', marginBottom: '10px' }}>
+                        <i className="fas fa-chalkboard-teacher"></i>
+                      </div>
+                      <h4 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{currentUser.name}</h4>
+                      <span className="badge badge-emerald" style={{ margin: '6px 0' }}>{currentUser.verificationLevel}</span>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--color-accent-gold)', marginTop: '8px' }}>
+                        Public Academy: <code>alnoor.edu/{currentUser.academySlug}</code>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>SPECIALIZATION</div>
+                          <div style={{ fontWeight: 700, marginTop: '2px' }}>{currentUser.specialization}</div>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>SANAD / IJAZAH</div>
+                          <div style={{ fontWeight: 700, marginTop: '2px' }}>{currentUser.qualification}</div>
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>PAYOUT UPI / BANK ACCOUNT</div>
+                        <div style={{ fontWeight: 700, color: 'var(--color-emerald-light)', marginTop: '2px' }}>{academyProfileModal.payoutUpi}</div>
+                      </div>
+
+                      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>DEMO LECTURE VIDEO</div>
+                        <div style={{ fontSize: '0.85rem', marginTop: '2px' }}>
+                          <a href={academyProfileModal.demoVideoUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent-gold)' }}>
+                            {academyProfileModal.demoVideoUrl}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1491,16 +2480,24 @@ function App() {
 
                   {courseStudio.modules.map(mod => (
                     <div key={mod.id} className="module-builder-box">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontWeight: 700, color: 'var(--color-primary-light)' }}>{mod.title}</div>
-                        <button type="button" className="btn btn-primary btn-sm" style={{ padding: '3px 8px', fontSize: '0.72rem' }} onClick={() => handleAddLesson(mod.id)}>
-                          + Add Lesson
-                        </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--color-primary-light)' }}>
+                          <i className="fas fa-folder" style={{ marginRight: '6px', color: 'var(--color-accent-gold)' }}></i>
+                          {mod.title}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button type="button" className="btn btn-primary btn-sm" style={{ padding: '3px 10px', fontSize: '0.74rem' }} onClick={() => handleOpenAddLesson(mod.id)}>
+                            <i className="fas fa-plus"></i> + Add Lesson Form
+                          </button>
+                          <button type="button" className="btn btn-outline btn-sm" style={{ padding: '3px 10px', fontSize: '0.74rem' }} onClick={() => handleOpenAddQuiz(mod.id)}>
+                            <i className="fas fa-question-circle"></i> + Add Quiz Form
+                          </button>
+                        </div>
                       </div>
 
                       {mod.lessons.map(les => (
                         <div key={les.id} className="lesson-item-row">
-                          <i className={`fas ${les.type === 'Video' ? 'fa-video' : les.type === 'Audio' ? 'fa-headphones' : 'fa-file-alt'}`} style={{ color: 'var(--color-accent-gold)' }}></i>
+                          <i className={`fas ${les.type === 'Video' ? 'fa-video' : les.type === 'Audio' ? 'fa-headphones' : les.type === 'Quiz' ? 'fa-question-circle' : 'fa-file-alt'}`} style={{ color: 'var(--color-accent-gold)' }}></i>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>{les.title}</div>
                             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{les.type} • {les.duration}</div>
@@ -1883,23 +2880,676 @@ function App() {
         </div>
       )}
 
-      {/* 8. CERTIFICATE MODAL */}
+      {/* 9. ADD/EDIT LESSON MODAL (BRD Section 06) */}
+      {lessonModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setLessonModal({ ...lessonModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setLessonModal({ ...lessonModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-emerald">Course Studio Form</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-play-circle" style={{ color: 'var(--color-primary-light)' }}></i> Add / Edit Lesson to Curriculum
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Module ID: <strong>{lessonModal.moduleId}</strong> • Upload lecture, recitation audio, or kitab reading material.
+            </p>
+
+            <form onSubmit={handleSaveLesson}>
+              <div className="form-group">
+                <label className="form-label">Lesson Title (Urdu / English)</label>
+                <input type="text" className="form-input" required placeholder="e.g. Lesson 2: Ahkam-e-Ghunnah wa Qalqalah" value={lessonModal.title} onChange={(e) => setLessonModal({ ...lessonModal, title: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Content Type</label>
+                  <select className="form-select" value={lessonModal.type} onChange={(e) => setLessonModal({ ...lessonModal, type: e.target.value })}>
+                    <option value="Video">Video Lecture (YouTube / URL)</option>
+                    <option value="Audio">Audio Tilawat (MP3 / Recitation)</option>
+                    <option value="PDF Text">PDF Kitab / Text Reading</option>
+                    <option value="Live Session">Scheduled Live Interactive Session</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Duration</label>
+                  <input type="text" className="form-input" required placeholder="e.g. 25 min" value={lessonModal.duration} onChange={(e) => setLessonModal({ ...lessonModal, duration: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Media Source URL or Document Attachment</label>
+                <input type="text" className="form-input" placeholder="https://youtube.com/... or https://everyayah.com/..." value={lessonModal.mediaUrl} onChange={(e) => setLessonModal({ ...lessonModal, mediaUrl: e.target.value })} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Lesson Objectives & Shariah Notes</label>
+                <textarea className="form-textarea" rows="2" placeholder="Is dars ke mukhtasar maqasid..." value={lessonModal.notes} onChange={(e) => setLessonModal({ ...lessonModal, notes: e.target.value })}></textarea>
+              </div>
+
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 14px', borderRadius: '8px', margin: '12px 0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.86rem' }}>
+                  <input type="checkbox" checked={lessonModal.isFreePreview} onChange={(e) => setLessonModal({ ...lessonModal, isFreePreview: e.target.checked })} />
+                  <span><strong>Free Preview:</strong> Allow prospective students to view this lesson before paying</span>
+                </label>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
+                <i className="fas fa-check-circle"></i> Save Lesson to Module
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 10. QUIZ / EXAM CREATOR MODAL (BRD Section 12) */}
+      {quizModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setQuizModal({ ...quizModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setQuizModal({ ...quizModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">BRD Section 12 Form</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-tasks" style={{ color: 'var(--color-accent-gold)' }}></i> Create Module Test / Quiz
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Auto-grading MCQ, True/False, and Arabic text quiz builder for course certification.
+            </p>
+
+            <form onSubmit={handleSaveQuiz}>
+              <div className="form-group">
+                <label className="form-label">Quiz / Exam Title</label>
+                <input type="text" className="form-input" required value={quizModal.title} onChange={(e) => setQuizModal({ ...quizModal, title: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Time Limit (Minutes)</label>
+                  <input type="number" className="form-input" value={quizModal.timeLimitMin} onChange={(e) => setQuizModal({ ...quizModal, timeLimitMin: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Passing Percentage Requirement</label>
+                  <select className="form-select" value={quizModal.passingPercent} onChange={(e) => setQuizModal({ ...quizModal, passingPercent: e.target.value })}>
+                    <option value="60">60% (Maqbool)</option>
+                    <option value="70">70% (Standard BRD Rule)</option>
+                    <option value="80">80% (Mumtaz Requirement)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Question 1 Preview & Edit */}
+              <div className="quiz-q-card">
+                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--color-primary-light)', marginBottom: '6px' }}>
+                  Question 1: MCQ with Daleel Citation
+                </div>
+                <div className="form-group">
+                  <input type="text" className="form-input" value={quizModal.questions[0].question} onChange={(e) => {
+                    const updated = [...quizModal.questions];
+                    updated[0].question = e.target.value;
+                    setQuizModal({ ...quizModal, questions: updated });
+                  }} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '0.76rem' }}>Arabic Text / Daleel (اسم المتن / الآية)</label>
+                  <input type="text" className="form-input" style={{ direction: 'rtl', color: 'var(--color-accent-gold)' }} value={quizModal.questions[0].arabicText} onChange={(e) => {
+                    const updated = [...quizModal.questions];
+                    updated[0].arabicText = e.target.value;
+                    setQuizModal({ ...quizModal, questions: updated });
+                  }} />
+                </div>
+
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '8px 0 4px' }}>Options & Correct Answer:</div>
+                {quizModal.questions[0].options.map((opt, oIdx) => (
+                  <div key={oIdx} className="quiz-option-row">
+                    <input 
+                      type="radio" 
+                      name="correctOption" 
+                      className="quiz-option-radio" 
+                      checked={quizModal.questions[0].correctIndex === oIdx} 
+                      onChange={() => {
+                        const updated = [...quizModal.questions];
+                        updated[0].correctIndex = oIdx;
+                        setQuizModal({ ...quizModal, questions: updated });
+                      }} 
+                    />
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }} 
+                      value={opt} 
+                      onChange={(e) => {
+                        const updated = [...quizModal.questions];
+                        updated[0].options[oIdx] = e.target.value;
+                        setQuizModal({ ...quizModal, questions: updated });
+                      }} 
+                    />
+                    {quizModal.questions[0].correctIndex === oIdx && <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>Correct</span>}
+                  </div>
+                ))}
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check-double"></i> Save Quiz & Attach to Module
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 11. BATCH CREATOR MODAL (BRD Section 02 & 09) */}
+      {batchModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setBatchModal({ ...batchModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setBatchModal({ ...batchModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-teal">Batch Management</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-layer-group" style={{ color: 'var(--color-primary-light)' }}></i> Create New Student Batch
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Define batch capacity, class timing, and days for live auto-attendance grouping.
+            </p>
+
+            <form onSubmit={handleCreateBatchSubmit}>
+              <div className="form-group">
+                <label className="form-label">Associated Course</label>
+                <select className="form-select" value={batchModal.courseTitle} onChange={(e) => setBatchModal({ ...batchModal, courseTitle: e.target.value })}>
+                  {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Batch Name</label>
+                <input type="text" className="form-input" required value={batchModal.batchName} onChange={(e) => setBatchModal({ ...batchModal, batchName: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Class Timing Slot</label>
+                  <input type="text" className="form-input" required value={batchModal.timing} onChange={(e) => setBatchModal({ ...batchModal, timing: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Days of Week</label>
+                  <input type="text" className="form-input" required value={batchModal.days} onChange={(e) => setBatchModal({ ...batchModal, days: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Maximum Student Capacity</label>
+                  <input type="number" className="form-input" required value={batchModal.maxSeats} onChange={(e) => setBatchModal({ ...batchModal, maxSeats: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Monthly Fee per Student</label>
+                  <input type="text" className="form-input" value={batchModal.feeMonthly} onChange={(e) => setBatchModal({ ...batchModal, feeMonthly: e.target.value })} />
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-plus-circle"></i> Create Batch & Open Enrolment
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 12. ENROLL STUDENT MODAL */}
+      {enrollModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setEnrollModal({ ...enrollModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setEnrollModal({ ...enrollModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-emerald">Dakhila Form</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-user-plus" style={{ color: 'var(--color-primary-light)' }}></i> Enroll Student in Batch
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Add a new talib-e-ilm directly to your roster with automatic email & WhatsApp invitation.
+            </p>
+
+            <form onSubmit={handleEnrollStudentSubmit}>
+              <div className="form-group">
+                <label className="form-label">Student Full Name</label>
+                <input type="text" className="form-input" required placeholder="e.g. Muhammad Bilal" value={enrollModal.studentName} onChange={(e) => setEnrollModal({ ...enrollModal, studentName: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input type="email" className="form-input" placeholder="bilal@example.com" value={enrollModal.studentEmail} onChange={(e) => setEnrollModal({ ...enrollModal, studentEmail: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">WhatsApp / Phone</label>
+                  <input type="text" className="form-input" placeholder="+91 98765 00000" value={enrollModal.studentPhone} onChange={(e) => setEnrollModal({ ...enrollModal, studentPhone: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Select Batch</label>
+                  <select className="form-select" value={enrollModal.batchName} onChange={(e) => setEnrollModal({ ...enrollModal, batchName: e.target.value })}>
+                    {teacherBatches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Enrollment Type</label>
+                  <select className="form-select" value={enrollModal.enrollType} onChange={(e) => setEnrollModal({ ...enrollModal, enrollType: e.target.value })}>
+                    <option value="Paid (Standard)">Paid (Standard)</option>
+                    <option value="Scholarship / Free">Scholarship / Free (Zakat/Waqf Funded)</option>
+                    <option value="Installments">Installment Plan</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check-circle"></i> Confirm Enrollment & Add to Batch
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 13. OFFLINE FEE COLLECTION MODAL (BRD Section 13.4) */}
+      {offlineFeeModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">BRD Section 13.4 Fee Module</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-receipt" style={{ color: 'var(--color-accent-gold)' }}></i> Record Cash / Direct UPI Fee Payment
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Excel/Notebook replacement — record physical or direct UPI fee payment and generate PDF receipt.
+            </p>
+
+            <form onSubmit={handleOfflineFeeSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Student Name</label>
+                  <input type="text" className="form-input" required value={offlineFeeModal.studentName} onChange={(e) => setOfflineFeeModal({ ...offlineFeeModal, studentName: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Batch</label>
+                  <select className="form-select" value={offlineFeeModal.batchName} onChange={(e) => setOfflineFeeModal({ ...offlineFeeModal, batchName: e.target.value })}>
+                    {teacherBatches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Amount Collected</label>
+                  <input type="number" className="form-input" required value={offlineFeeModal.amount} onChange={(e) => setOfflineFeeModal({ ...offlineFeeModal, amount: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Payment Mode</label>
+                  <select className="form-select" value={offlineFeeModal.mode} onChange={(e) => setOfflineFeeModal({ ...offlineFeeModal, mode: e.target.value })}>
+                    <option value="Cash Handover">Cash Handover (Physical)</option>
+                    <option value="Direct UPI QR">Direct UPI QR (GPay / PhonePe / Paytm)</option>
+                    <option value="Bank Transfer">Bank NEFT / IMPS Transfer</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Auto Receipt Number</label>
+                  <input type="text" className="form-input" readOnly value={offlineFeeModal.receiptNo} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Next Fee Due Date</label>
+                  <input type="date" className="form-input" value={offlineFeeModal.nextDueDate} onChange={(e) => setOfflineFeeModal({ ...offlineFeeModal, nextDueDate: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Notes & Ledger Remarks</label>
+                <textarea className="form-textarea" rows="2" value={offlineFeeModal.notes} onChange={(e) => setOfflineFeeModal({ ...offlineFeeModal, notes: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-file-invoice"></i> Save Fee Entry & Issue Receipt
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 14. TAJWEED EVALUATION MODAL (BRD Section 11) */}
+      {tajweedEvalModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setTajweedEvalModal({ ...tajweedEvalModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setTajweedEvalModal({ ...tajweedEvalModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-emerald">BRD Section 11 Studio</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-microphone-alt" style={{ color: 'var(--color-primary-light)' }}></i> Structured Tajweed Evaluation & Voice Marker
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Student: <strong>{tajweedEvalModal.studentName}</strong> • {tajweedEvalModal.courseTitle}
+            </p>
+
+            <form onSubmit={handleSaveTajweedEval}>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '12px', marginBottom: '14px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '6px' }}>STUDENT RECITATION AUDIO:</div>
+                <audio controls src={tajweedEvalModal.audioUrl} style={{ width: '100%', height: '40px' }}></audio>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Timestamp Marker (e.g. 0:42 par Madd chhoti hui)</label>
+                  <input type="text" className="form-input" value={tajweedEvalModal.timestamp} onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, timestamp: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Overall Recitation Grade</label>
+                  <select className="form-select" value={tajweedEvalModal.grade} onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, grade: e.target.value })}>
+                    <option value="Mumtaz (A+)">Mumtaz (A+)</option>
+                    <option value="Jayyid Jiddan (A)">Jayyid Jiddan (A)</option>
+                    <option value="Jayyid (B)">Jayyid (B)</option>
+                    <option value="Maqbool (C)">Maqbool (C)</option>
+                    <option value="Resubmit Required (D)">Resubmit Required (D)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Structured Mistake Categories (Click to Tag):</label>
+                <div className="mistake-tag-group">
+                  {["Makharij", "Madd", "Ghunnah", "Qalqalah", "Waqf", "Ikhfa", "Idgham"].map(tag => {
+                    const isSelected = tajweedEvalModal.selectedMistakes.includes(tag);
+                    return (
+                      <button 
+                        key={tag} 
+                        type="button" 
+                        className={`mistake-tag ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          const updated = isSelected 
+                            ? tajweedEvalModal.selectedMistakes.filter(m => m !== tag)
+                            : [...tajweedEvalModal.selectedMistakes, tag];
+                          setTajweedEvalModal({ ...tajweedEvalModal, selectedMistakes: updated });
+                        }}
+                      >
+                        {tag} {isSelected && <i className="fas fa-check" style={{ fontSize: '0.7rem' }}></i>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Teacher Written / Voice Guidance Note</label>
+                <textarea className="form-textarea" rows="2" required value={tajweedEvalModal.teacherNote} onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, teacherNote: e.target.value })}></textarea>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Teacher Model Recitation Link (Reply with Correct Pronunciation)</label>
+                <input type="text" className="form-input" value={tajweedEvalModal.modelAudioUrl} onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, modelAudioUrl: e.target.value })} />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check-circle"></i> Save Evaluation & Send Feedback to Student
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 15. HOMEWORK GRADING MODAL (BRD Section 10) */}
+      {hwGradeModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setHwGradeModal({ ...hwGradeModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setHwGradeModal({ ...hwGradeModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-teal">BRD Section 10 Grading</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-edit" style={{ color: 'var(--color-primary-light)' }}></i> Evaluate Student Homework
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Student: <strong>{hwGradeModal.studentName}</strong> • Course: <strong>{hwGradeModal.courseTitle}</strong>
+            </p>
+
+            <form onSubmit={handleSaveHwGrade}>
+              <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px', marginBottom: '14px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>STUDENT WRITTEN SUBMISSION:</div>
+                <p style={{ fontSize: '0.88rem', margin: '4px 0 8px' }}>{hwGradeModal.submissionText}</p>
+                <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)' }}>
+                  <i className="fas fa-paperclip"></i> Attached: <strong>{hwGradeModal.attachmentName}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Marks Awarded (Out of {hwGradeModal.maxMarks})</label>
+                  <input type="number" className="form-input" required min="0" max={hwGradeModal.maxMarks} value={hwGradeModal.marksAwarded} onChange={(e) => setHwGradeModal({ ...hwGradeModal, marksAwarded: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Submission Status</label>
+                  <select className="form-select" value={hwGradeModal.status} onChange={(e) => setHwGradeModal({ ...hwGradeModal, status: e.target.value })}>
+                    <option value="Graded">Graded (Pass & Certified)</option>
+                    <option value="Resubmit Required">Resubmit Required (Islah ki zaroorat)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Teacher Written Remarks & Correction</label>
+                <textarea className="form-textarea" rows="3" required value={hwGradeModal.teacherFeedback} onChange={(e) => setHwGradeModal({ ...hwGradeModal, teacherFeedback: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check-double"></i> Submit Grade & Send Notification
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 16. BROADCAST NOTICE MODAL (BRD Section 14) */}
+      {noticeModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setNoticeModal({ ...noticeModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setNoticeModal({ ...noticeModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">BRD Section 14 Notification</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-bullhorn" style={{ color: 'var(--color-accent-gold)' }}></i> Broadcast Announcement to Students
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Send in-app notification with automated email and WhatsApp business integration fallback.
+            </p>
+
+            <form onSubmit={handleBroadcastNoticeSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Recipient Target</label>
+                  <select className="form-select" value={noticeModal.target} onChange={(e) => setNoticeModal({ ...noticeModal, target: e.target.value })}>
+                    <option value="All Enrolled Students (142 Talaba)">All Enrolled Students (142 Talaba)</option>
+                    <option value="Morning Hifz & Tajweed Batch A">Morning Hifz & Tajweed Batch A</option>
+                    <option value="Evening Dars-e-Quran Batch B">Evening Dars-e-Quran Batch B</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Urgency Level</label>
+                  <select className="form-select" value={noticeModal.priority} onChange={(e) => setNoticeModal({ ...noticeModal, priority: e.target.value })}>
+                    <option value="Normal">Normal</option>
+                    <option value="Important ⚠️">Important ⚠️</option>
+                    <option value="Urgent 🚨">Urgent 🚨</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Notice Subject</label>
+                <input type="text" className="form-input" required value={noticeModal.title} onChange={(e) => setNoticeModal({ ...noticeModal, title: e.target.value })} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Announcement Message</label>
+                <textarea className="form-textarea" rows="3" required value={noticeModal.message} onChange={(e) => setNoticeModal({ ...noticeModal, message: e.target.value })}></textarea>
+              </div>
+
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px 14px', borderRadius: '8px', margin: '12px 0', display: 'flex', gap: '20px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={noticeModal.sendWhatsApp} onChange={(e) => setNoticeModal({ ...noticeModal, sendWhatsApp: e.target.checked })} />
+                  <span>Send WhatsApp</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={noticeModal.sendEmail} onChange={(e) => setNoticeModal({ ...noticeModal, sendEmail: e.target.checked })} />
+                  <span>Send Email</span>
+                </label>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
+                <i className="fas fa-paper-plane"></i> Broadcast Notice to Students
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 17. CERTIFICATE ISSUANCE & PREVIEW MODAL (BRD Section 12) */}
       {certModal.isOpen && (
         <div className="auth-overlay" onClick={() => setCertModal({ ...certModal, isOpen: false })}>
-          <div className="auth-modal" style={{ maxWidth: '650px', border: '2px solid var(--border-gold)' }} onClick={(e) => e.stopPropagation()}>
+          <div className="auth-modal" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
             <button className="auth-close-btn" onClick={() => setCertModal({ ...certModal, isOpen: false })}>
               <i className="fas fa-times"></i>
             </button>
-            <div style={{ textAlign: 'center', border: '2px dashed var(--border-gold)', padding: '24px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '1.8rem', color: 'var(--color-accent-gold)' }}><i className="fas fa-certificate"></i></div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-accent-gold)', margin: '6px 0' }}>Official Certificate of Completion</h3>
-              <div style={{ margin: '14px 0' }}>
-                <div>This certifies that</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff' }}>{certModal.studentName}</div>
-                <div>has mastered the curriculum of Noorani Qaida & Tajweed</div>
+            <span className="badge badge-gold">BRD Section 12 Sanad</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-award" style={{ color: 'var(--color-accent-gold)' }}></i> Course Completion Certificate Engine
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Issue certified Sanad-e-Takmeel with public QR verification code and teacher accreditation.
+            </p>
+
+            <form onSubmit={handleIssueCertificateSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Student Name</label>
+                  <input type="text" className="form-input" required value={certModal.studentName} onChange={(e) => setCertModal({ ...certModal, studentName: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Course Title</label>
+                  <select className="form-select" value={certModal.courseTitle} onChange={(e) => setCertModal({ ...certModal, courseTitle: e.target.value })}>
+                    {courses.map(c => <option key={c.id} value={c.title}>{c.title}</option>)}
+                  </select>
+                </div>
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Certificate ID: CERT-2026-00892</div>
-            </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Completion Grade Awarded</label>
+                  <select className="form-select" value={certModal.grade} onChange={(e) => setCertModal({ ...certModal, grade: e.target.value })}>
+                    <option value="Mumtaz (A+) — With High Honors">Mumtaz (A+) — With High Honors</option>
+                    <option value="Jayyid Jiddan (A) — Very Good">Jayyid Jiddan (A) — Very Good</option>
+                    <option value="Jayyid (B) — Good">Jayyid (B) — Good</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Certificate Serial ID</label>
+                  <input type="text" className="form-input" readOnly value={certModal.certId} />
+                </div>
+              </div>
+
+              {/* Ornate Certificate Preview */}
+              <div className="cert-preview-box">
+                <div className="cert-seal"><i className="fas fa-certificate"></i></div>
+                <div style={{ fontSize: '0.78rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent-gold)' }}>
+                  Al-Noor Open Islamic Learning Academy
+                </div>
+                <h4 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: '6px 0 2px' }}>
+                  Certificate of Course Completion
+                </h4>
+                <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>This is to certify that</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-light)', margin: '8px 0' }}>
+                  {certModal.studentName}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: '#e2e8f0' }}>
+                  has successfully completed all lectures, assignments, and practical Tajweed recitations for
+                </div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-accent-gold)', marginTop: '4px' }}>
+                  {certModal.courseTitle}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px', paddingTop: '12px', borderTop: '1px solid rgba(245,158,11,0.3)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  <div>Grade: <strong style={{ color: '#ffffff' }}>{certModal.grade}</strong></div>
+                  <div>Issued by: <strong style={{ color: '#ffffff' }}>{currentUser.name}</strong></div>
+                  <div>Verify: <code>alnoor.edu/verify/{certModal.certId}</code></div>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '14px' }}>
+                <i className="fas fa-stamp"></i> Issue Official Certificate to Student
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 18. MINI ACADEMY PROFILE & PAYOUT MODAL (BRD Section 05 & 03) */}
+      {academyProfileModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setAcademyProfileModal({ ...academyProfileModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setAcademyProfileModal({ ...academyProfileModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-emerald">Academy Profile Form</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-university" style={{ color: 'var(--color-primary-light)' }}></i> Configure Mini Academy & Payout
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Customize your educator branding, public URL slug, and banking payout information.
+            </p>
+
+            <form onSubmit={handleSaveAcademyProfile}>
+              <div className="form-group">
+                <label className="form-label">Academy Name</label>
+                <input type="text" className="form-input" required value={academyProfileModal.academyName} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, academyName: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Public URL Slug</label>
+                  <input type="text" className="form-input" required value={academyProfileModal.slug} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, slug: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Teaching Specialization</label>
+                  <input type="text" className="form-input" required value={academyProfileModal.specialization} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, specialization: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Sanad / Darul Uloom Credentials</label>
+                <input type="text" className="form-input" required value={academyProfileModal.qualification} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, qualification: e.target.value })} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Educator Bio & Introduction</label>
+                <textarea className="form-textarea" rows="2" value={academyProfileModal.bio} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, bio: e.target.value })}></textarea>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Payout UPI ID or Bank Account Details (Split Settlements)</label>
+                <input type="text" className="form-input" required value={academyProfileModal.payoutUpi} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, payoutUpi: e.target.value })} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Demo Video Link (YouTube / Vimeo)</label>
+                <input type="text" className="form-input" value={academyProfileModal.demoVideoUrl} onChange={(e) => setAcademyProfileModal({ ...academyProfileModal, demoVideoUrl: e.target.value })} />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-save"></i> Save Academy Profile & Payout Settings
+              </button>
+            </form>
           </div>
         </div>
       )}
