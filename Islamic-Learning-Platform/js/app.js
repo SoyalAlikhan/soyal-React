@@ -376,8 +376,10 @@ function App() {
     fileName: ''
   });
 
-  // Institute Tab State
-  const [instituteTab, setInstituteTab] = useState('faculty');
+  // ==========================================
+  // INSTITUTE (MADRASA HUB) STATE & FORMS
+  // ==========================================
+  const [instituteSubTab, setInstituteSubTab] = useState('faculty'); // 'faculty', 'admissions', 'finances', 'departments', 'exams', 'settings'
 
   // Affiliated Faculty List for Institute
   const [facultyList, setFacultyList] = useState([
@@ -387,6 +389,7 @@ function App() {
       designation: "Head Ustad-e-Tajweed & Qirat",
       sanad: "Al-Shahadat-ul-Aalamiyyah & Qirat-e-Saba",
       department: "Quran o Tajweed",
+      hadya: "₹28,000/mo",
       studentsCount: 95,
       batches: ["Hifz Morning Batch A", "Tajweed Foundation"],
       status: "Active",
@@ -398,6 +401,7 @@ function App() {
       designation: "Shaykh-ul-Hadith & Senior Mufti",
       sanad: "Darul Uloom Deoband (Takhassus Fil Fiqh)",
       department: "Dars-e-Nizami (Aalim)",
+      hadya: "₹35,000/mo",
       studentsCount: 78,
       batches: ["Hidayah / Fiqh Foundation", "Mishkat-ul-Masabih"],
       status: "Active",
@@ -409,6 +413,7 @@ function App() {
       designation: "Director Banat (Women's Wing)",
       sanad: "Wifaq-ul-Madaris Al-Arabia (Mumtaz)",
       department: "Women Section (Fiqh-e-Niswan)",
+      hadya: "₹24,000/mo",
       studentsCount: 64,
       batches: ["Taharat & Fiqh-e-Niswan", "Seerah of Sahabiyat"],
       status: "Active",
@@ -420,6 +425,7 @@ function App() {
       designation: "Muallim-e-Hifz & Sabaq Reciter",
       sanad: "Hafiz & Qari (Sanad-e-Hifz)",
       department: "Hifz-ul-Quran",
+      hadya: "₹18,000/mo",
       studentsCount: 43,
       batches: ["Hifz Evening Batch", "Nazra Revision"],
       status: "Active",
@@ -427,25 +433,179 @@ function App() {
     }
   ]);
 
-  // Add Teacher Modal for Institute
-  const [addTeacherModal, setAddTeacherModal] = useState(false);
-  const [newTeacherForm, setNewTeacherForm] = useState({
+  // Form 1: Add Ustad (Faculty Onboarding) Modal
+  const [addFacultyModal, setAddFacultyModal] = useState({
+    isOpen: false,
     name: '',
+    email: '',
+    phone: '',
     designation: 'Ustad-e-Tajweed',
-    sanad: 'Dars-e-Nizami / Hafiz',
+    sanad: 'Fazil Dars-e-Nizami',
     department: 'Quran o Tajweed',
     gender: 'Male',
-    batch: 'Morning Batch'
+    hadya: '₹20,000/mo',
+    batch: 'Morning Batch A'
   });
 
-  // Madrasa Student Roster
+  // Madrasa Student Admissions Roster
   const [madrasaStudents, setMadrasaStudents] = useState([
-    { rollNo: "TAL-101", name: "Muhammad Zaid", dept: "Hifz-ul-Quran", feeStatus: "Paid", amount: "₹1,500/mo", lastPaid: "10 Sep 2026" },
-    { rollNo: "TAL-102", name: "Abdullah Tariq", dept: "Dars-e-Nizami", feeStatus: "Due", amount: "₹2,000/mo", lastPaid: "12 Aug 2026" },
-    { rollNo: "TAL-103", name: "Fatima Noor", dept: "Women Section", feeStatus: "Paid", amount: "₹1,200/mo", lastPaid: "08 Sep 2026" },
-    { rollNo: "TAL-104", name: "Ibrahim Khan", dept: "Kids Maktab", feeStatus: "Scholarship", amount: "₹0 (Sadaqah)", lastPaid: "100% Waqf Funded" },
-    { rollNo: "TAL-105", name: "Ahmad Raza", dept: "Quran o Tajweed", feeStatus: "Paid", amount: "₹1,500/mo", lastPaid: "05 Sep 2026" }
+    { rollNo: "TAL-101", name: "Muhammad Zaid", guardian: "Tariq Mahmood", phone: "+91 98765 11223", dept: "Hifz-ul-Quran", darja: "Para 15 Daur", feeStatus: "Paid", amount: "₹1,500/mo", lastPaid: "10 Sep 2026" },
+    { rollNo: "TAL-102", name: "Abdullah Tariq", guardian: "Tariq Jameel", phone: "+91 98111 55667", dept: "Dars-e-Nizami", darja: "Kafiya / Hidayah (Year 3)", feeStatus: "Due", amount: "₹2,000/mo", lastPaid: "12 Aug 2026" },
+    { rollNo: "TAL-103", name: "Fatima Noor", guardian: "Noor Muhammad", phone: "+91 94555 88990", dept: "Women Section", darja: "Sanad-e-Aalimah (Year 2)", feeStatus: "Paid", amount: "₹1,200/mo", lastPaid: "08 Sep 2026" },
+    { rollNo: "TAL-104", name: "Ibrahim Khan", guardian: "Orphan (Yateem Kifalah)", phone: "+91 99000 33445", dept: "Kids Maktab", darja: "Nazra Qaida Level 2", feeStatus: "Scholarship", amount: "₹0 (100% Waqf)", lastPaid: "Waqf Sponsored" },
+    { rollNo: "TAL-105", name: "Ahmad Raza", guardian: "Ghulam Murtaza", phone: "+91 98765 43210", dept: "Quran o Tajweed", darja: "Al-Jazariyyah Sanad Track", feeStatus: "Paid", amount: "₹1,500/mo", lastPaid: "05 Sep 2026" }
   ]);
+
+  // Form 2: Talaba Admission Modal
+  const [admissionModal, setAdmissionModal] = useState({
+    isOpen: false,
+    name: '',
+    guardian: '',
+    phone: '',
+    department: 'Hifz-ul-Quran',
+    darja: 'Hifz Foundation (Year 1)',
+    feeStatus: 'Paid',
+    monthlyFee: '₹1,500'
+  });
+
+  // Madrasa Chanda & Waqf Ledger
+  const [chandaLedger, setChandaLedger] = useState([
+    { id: "CHN-101", donorStudent: "Ahmad Raza (Fees)", category: "Ta'limi Mahana Chanda", amount: "₹1,500", mode: "Direct UPI", date: "2026-09-05", receiptNo: "RCP-CHN-8921" },
+    { id: "CHN-102", donorStudent: "Haji Abdul Rehman (Kifalah)", category: "Waqf Yateem Sponsorship", amount: "₹25,000", mode: "Bank Transfer (NEFT)", date: "2026-09-08", receiptNo: "RCP-CHN-8922" },
+    { id: "CHN-103", donorStudent: "Muhammad Zaid (Fees)", category: "Ta'limi Mahana Chanda", amount: "₹1,500", mode: "Cash Handover", date: "2026-09-10", receiptNo: "RCP-CHN-8923" },
+    { id: "CHN-104", donorStudent: "Fatima Noor (Fees)", category: "Banat Wing Chanda", amount: "₹1,200", mode: "UPI Transfer", date: "2026-09-08", receiptNo: "RCP-CHN-8924" }
+  ]);
+
+  // Form 3: Record Mahana Chanda & Waqf Modal
+  const [chandaModal, setChandaModal] = useState({
+    isOpen: false,
+    donorStudent: '',
+    category: "Ta'limi Mahana Chanda",
+    amount: '',
+    mode: 'Cash Handover',
+    receiptNo: 'RCP-CHN-' + Math.floor(1000 + Math.random() * 9000),
+    notes: ''
+  });
+
+  // Madrasa Departments / Shoba-jaat List
+  const [departmentsList, setDepartmentsList] = useState([
+    { id: "dept-1", name: "Shoba-e-Hifz-ul-Quran", nameArabic: "شعبة تحفيظ القرآن الكريم", nazim: "Hafiz Muhammad Bilal", facultyCount: 2, studentsCount: 95, batches: 4, genderPolicy: "Male Only (Boys Campus)" },
+    { id: "dept-2", name: "Dars-e-Nizami (Aalim Course)", nameArabic: "شعبة درس نظامي (العالمية)", nazim: "Mufti Muhammad Salman", facultyCount: 3, studentsCount: 78, batches: 3, genderPolicy: "Male Only (Ulama Wing)" },
+    { id: "dept-3", name: "Shoba-e-Banat (Khawateen Wing)", nameArabic: "شعبة البنات (للسيدات فقط)", nazim: "Aalima Maryam Siddiqa", facultyCount: 2, studentsCount: 64, batches: 3, genderPolicy: "Female Only (Strict Pardah)" },
+    { id: "dept-4", name: "Shoba-e-Tajweed & Qirat", nameArabic: "شعبة التجويد والقراءات", nazim: "Maulana Qari Abdul Basit", facultyCount: 2, studentsCount: 43, batches: 2, genderPolicy: "General (Separate Timings)" }
+  ]);
+
+  // Form 4: Create Shoba / Department Modal
+  const [deptModal, setDeptModal] = useState({
+    isOpen: false,
+    name: '',
+    nameArabic: '',
+    nazim: '',
+    genderPolicy: 'General (Separate Timings)',
+    curriculumFocus: ''
+  });
+
+  // Madrasa Imtihanat & Sanad Records
+  const [examRecords, setExamRecords] = useState([
+    { id: "EX-101", studentName: "Muhammad Zaid", rollNo: "TAL-101", dept: "Hifz-ul-Quran", examTitle: "Salana Hifz Imtihan 1447H", marks: 96, grade: "Mumtaz (A+)", sanadIssued: true, sanadNo: "SANAD-HIFZ-1447-01" },
+    { id: "EX-102", studentName: "Ahmad Raza", rollNo: "TAL-105", dept: "Quran o Tajweed", examTitle: "Jazariyyah Practical Exam", marks: 91, grade: "Mumtaz (A+)", sanadIssued: true, sanadNo: "SANAD-TAJW-1447-08" },
+    { id: "EX-103", studentName: "Fatima Noor", rollNo: "TAL-103", dept: "Women Section", examTitle: "Fiqh-e-Niswan Annual Exam", marks: 88, grade: "Jayyid Jiddan (A)", sanadIssued: false, sanadNo: "—" }
+  ]);
+
+  // Form 5: Record Exam Marks & Issue Sanad Modal
+  const [examModal, setExamModal] = useState({
+    isOpen: false,
+    studentName: 'Muhammad Zaid',
+    dept: 'Hifz-ul-Quran',
+    examTitle: 'Salana Imtihan 1447H',
+    marks: 90,
+    grade: 'Mumtaz (A+)',
+    sanadNo: 'SANAD-' + Math.floor(1000 + Math.random() * 9000)
+  });
+
+  // Form 6: Jamia Profile & Waqf Identity Modal
+  const [jamiaProfileModal, setJamiaProfileModal] = useState({
+    isOpen: false,
+    name: 'Jamia Darul Uloom Markaz',
+    principal: 'Maulana Ibrahim Qasmi (Nazim-e-Ala)',
+    waqfRegId: 'WQF-2026-9812',
+    city: 'Lucknow / Karachi',
+    subdomain: 'darululoom',
+    monthlyChandaTarget: '₹2,00,000',
+    bankDetails: 'A/C: 981200381928, IFSC: HDFC000182, Jamia Waqf Trust'
+  });
+
+  // ==========================================
+  // STUDENT LEARNING PORTAL FORMS STATE
+  // ==========================================
+
+  // Form 7: Course Enrollment & Checkout Modal (BRD Section 13)
+  const [checkoutModal, setCheckoutModal] = useState({
+    isOpen: false,
+    course: null,
+    feeModel: 'monthly', // 'monthly', 'one_time', 'free'
+    amount: '₹1,500',
+    promoCode: '',
+    discount: 0,
+    kifalahApplied: false,
+    paymentMethod: 'upi', // 'upi', 'card', 'cash_offline'
+    agreedRefundPolicy: true
+  });
+
+  // Form 8: Student Tajweed Recitation Submission Modal (BRD Section 11)
+  const [recitationSubmitModal, setRecitationSubmitModal] = useState({
+    isOpen: false,
+    surah: 'Surah Al-Mulk (Aayat 1-14)',
+    recitationType: 'mic', // 'mic', 'file'
+    notes: 'Qari Sahab, Aayat 8 me Qalqalah aur Madd ki timing par zaroor tawajjuh farmayein.',
+    audioDuration: '02:45 min',
+    isRecordingActive: false
+  });
+
+  // Form 9: Madrasa Leave (Chutti) Application Modal
+  const [leaveModal, setLeaveModal] = useState({
+    isOpen: false,
+    leaveType: "Uzr-e-Shar'i (Beemari)",
+    fromDate: new Date().toISOString().split('T')[0],
+    toDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+    reason: 'Shadeed bukhar aur sardi ki wajah se kal ki class me hazir nahi ho sakunga. Ijazat inayat farmayein.'
+  });
+
+  // Student Leave Applications
+  const [leaveApplications, setLeaveApplications] = useState([
+    { id: "LV-101", leaveType: "Uzr-e-Shar'i (Safar)", fromDate: "2026-09-12", toDate: "2026-09-14", reason: "Umrah safar ki wajah se 2 din rukhsaat.", status: "Approved ✅", remarks: "Manzoor shuda ba-hukm Nazim-e-Ta'limat." }
+  ]);
+
+  // Form 10: Course Rating & Feedback Modal
+  const [courseReviewModal, setCourseReviewModal] = useState({
+    isOpen: false,
+    course: null,
+    rating: 5,
+    maslakAccuracy: 'Authentic & Verified',
+    feedback: 'Alhamdulillah, Qari Sahab ka samjhane ka andaaz nihayat shandar aur aasan hai.'
+  });
+
+  // Student Reviews
+  const [studentReviews, setStudentReviews] = useState([
+    { id: "rev-1", course: "Ahkam-e-Tajweed & Makharij Foundation", student: "Ahmad Raza", rating: 5, feedback: "MashaAllah, JazakAllah! Makharij ki practice bohat mufeed rahi.", date: "2026-09-19" }
+  ]);
+
+  // ==========================================
+  // SCHOLAR REVIEW PIPELINE STATE
+  // ==========================================
+
+  // Form 11: Shariah Content Approval / Revision Modal (BRD Flow 3 & Section 07)
+  const [scholarReviewModal, setScholarReviewModal] = useState({
+    isOpen: false,
+    course: null,
+    kitabVerified: true,
+    noMusicVerified: true,
+    consensusCompliant: true,
+    femalePardahCompliant: true,
+    decision: 'Approved', // 'Approved', 'Revisions', 'Rejected'
+    fatwaRemarks: 'Tamam aqaid wa ahkam Ahl-us-Sunnah wal Jama\'ah ke mutabiq sahi paye gaye. Dars dene ki ijazat di jati hai.',
+    slaDays: 3
+  });
 
   // Madrasa Hifz Daily Record
   const [hifzRecord, setHifzRecord] = useState({
@@ -1106,6 +1266,224 @@ function App() {
     alert("Mini-Academy Profile & Payout Settings successfully updated!");
   };
 
+  // ==========================================
+  // INSTITUTE (MADRASA) HANDLERS
+  // ==========================================
+
+  // Add Faculty Submit
+  const handleAddFacultySubmit = (e) => {
+    e.preventDefault();
+    const newFac = {
+      id: "fac-" + (facultyList.length + 1),
+      name: addFacultyModal.name,
+      designation: addFacultyModal.designation,
+      sanad: addFacultyModal.sanad,
+      department: addFacultyModal.department,
+      hadya: addFacultyModal.hadya,
+      studentsCount: 0,
+      batches: [addFacultyModal.batch],
+      status: "Active",
+      gender: addFacultyModal.gender
+    };
+    setFacultyList([...facultyList, newFac]);
+    setAddFacultyModal({ ...addFacultyModal, isOpen: false, name: '', email: '', phone: '' });
+    alert(`Ustaad ${newFac.name} successfully onboarded to ${newFac.department}!`);
+  };
+
+  // Talaba Admission Submit
+  const handleAdmissionSubmit = (e) => {
+    e.preventDefault();
+    const newRoll = "TAL-" + (100 + madrasaStudents.length + 1);
+    const newStudent = {
+      rollNo: newRoll,
+      name: admissionModal.name,
+      guardian: admissionModal.guardian,
+      phone: admissionModal.phone,
+      dept: admissionModal.department,
+      darja: admissionModal.darja,
+      feeStatus: admissionModal.feeStatus,
+      amount: admissionModal.monthlyFee,
+      lastPaid: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+    setMadrasaStudents([newStudent, ...madrasaStudents]);
+    setCurrentUser(prev => ({ ...prev, totalStudents: (prev.totalStudents || 280) + 1 }));
+    setAdmissionModal({ ...admissionModal, isOpen: false, name: '', guardian: '', phone: '' });
+    alert(`Talib-e-Ilm ${newStudent.name} admitted successfully with Roll No: ${newRoll}!`);
+  };
+
+  // Record Chanda / Fee Submit
+  const handleChandaSubmit = (e) => {
+    e.preventDefault();
+    const newEntry = {
+      id: "CHN-" + (100 + chandaLedger.length + 1),
+      donorStudent: chandaModal.donorStudent,
+      category: chandaModal.category,
+      amount: chandaModal.amount,
+      mode: chandaModal.mode,
+      date: new Date().toISOString().split('T')[0],
+      receiptNo: chandaModal.receiptNo
+    };
+    setChandaLedger([newEntry, ...chandaLedger]);
+    setChandaModal({ ...chandaModal, isOpen: false, donorStudent: '', amount: '' });
+    alert(`Mahana Chanda receipt ${newEntry.receiptNo} generated for ${newEntry.amount}!`);
+  };
+
+  // Create Department Submit
+  const handleDeptSubmit = (e) => {
+    e.preventDefault();
+    const newDept = {
+      id: "dept-" + (departmentsList.length + 1),
+      name: deptModal.name,
+      nameArabic: deptModal.nameArabic || deptModal.name,
+      nazim: deptModal.nazim,
+      facultyCount: 1,
+      studentsCount: 0,
+      batches: 1,
+      genderPolicy: deptModal.genderPolicy
+    };
+    setDepartmentsList([...departmentsList, newDept]);
+    setDeptModal({ ...deptModal, isOpen: false, name: '', nazim: '', curriculumFocus: '' });
+    alert(`Shoba "${newDept.name}" created under Nazim: ${newDept.nazim}!`);
+  };
+
+  // Record Exam & Sanad Submit
+  const handleExamSubmit = (e) => {
+    e.preventDefault();
+    const newRecord = {
+      id: "EX-" + (100 + examRecords.length + 1),
+      studentName: examModal.studentName,
+      rollNo: "TAL-" + Math.floor(100 + Math.random() * 50),
+      dept: examModal.dept,
+      examTitle: examModal.examTitle,
+      marks: Number(examModal.marks),
+      grade: examModal.grade,
+      sanadIssued: true,
+      sanadNo: examModal.sanadNo
+    };
+    setExamRecords([newRecord, ...examRecords]);
+    setExamModal({ ...examModal, isOpen: false });
+    alert(`Imtihan result recorded for ${newRecord.studentName}. Sanad (${newRecord.sanadNo}) issued!`);
+  };
+
+  // Save Jamia Profile Submit
+  const handleSaveJamiaProfile = (e) => {
+    e.preventDefault();
+    setCurrentUser(prev => ({
+      ...prev,
+      name: jamiaProfileModal.name,
+      principal: jamiaProfileModal.principal,
+      waqfRegId: jamiaProfileModal.waqfRegId,
+      city: jamiaProfileModal.city,
+      subdomain: jamiaProfileModal.subdomain
+    }));
+    setJamiaProfileModal({ ...jamiaProfileModal, isOpen: false });
+    alert("Jamia Darul Uloom Markaz Profile & Waqf Identity updated successfully!");
+  };
+
+  // ==========================================
+  // STUDENT PORTAL HANDLERS
+  // ==========================================
+
+  // Open Checkout
+  const handleOpenCheckout = (course) => {
+    setCheckoutModal({
+      isOpen: true,
+      course: course,
+      feeModel: course.feeModel || 'monthly',
+      amount: course.price || '₹1,500',
+      promoCode: '',
+      discount: 0,
+      kifalahApplied: false,
+      paymentMethod: 'upi',
+      agreedRefundPolicy: true
+    });
+  };
+
+  // Checkout & Enroll Submit
+  const handleCheckoutSubmit = (e) => {
+    e.preventDefault();
+    if (!checkoutModal.course) return;
+    const courseId = checkoutModal.course.id;
+    if (!enrolledIds.includes(courseId)) {
+      setEnrolledIds([...enrolledIds, courseId]);
+      setCourseProgress(prev => ({ ...prev, [courseId]: 5 }));
+    }
+    setCheckoutModal({ ...checkoutModal, isOpen: false });
+    alert(`Mabrook! You are successfully enrolled in "${checkoutModal.course.title}". 7-Day Shariah Escrow active!`);
+  };
+
+  // Submit Tajweed Recitation
+  const handleRecitationSubmit = (e) => {
+    e.preventDefault();
+    const newSubmission = {
+      id: "sub-" + (audioSubmissions.length + 1),
+      studentName: currentUser.name,
+      courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+      lessonTitle: recitationSubmitModal.surah,
+      timestamp: "Just Now",
+      status: "Pending Review",
+      feedbackTags: ["Submitted"],
+      teacherNote: "Waiting for Ustaad evaluation."
+    };
+    setAudioSubmissions([newSubmission, ...audioSubmissions]);
+    setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: false });
+    alert(`Audio Tilawat (${recitationSubmitModal.surah}) submitted to Ustaad for structured review!`);
+  };
+
+  // Submit Leave Application
+  const handleLeaveSubmit = (e) => {
+    e.preventDefault();
+    const newLeave = {
+      id: "LV-" + (100 + leaveApplications.length + 1),
+      leaveType: leaveModal.leaveType,
+      fromDate: leaveModal.fromDate,
+      toDate: leaveModal.toDate,
+      reason: leaveModal.reason,
+      status: "Under Review ⏳",
+      remarks: "Nazim-e-Ta'limat review in progress"
+    };
+    setLeaveApplications([newLeave, ...leaveApplications]);
+    setLeaveModal({ ...leaveModal, isOpen: false });
+    alert("Madrasa Leave Application submitted to Nazim-e-Ta'limat for approval!");
+  };
+
+  // Submit Course Rating & Review
+  const handleCourseReviewSubmit = (e) => {
+    e.preventDefault();
+    const newReview = {
+      id: "rev-" + Date.now(),
+      course: courseReviewModal.course ? courseReviewModal.course.title : "Ahkam-e-Tajweed",
+      student: currentUser.name,
+      rating: courseReviewModal.rating,
+      feedback: courseReviewModal.feedback,
+      date: new Date().toISOString().split('T')[0]
+    };
+    setStudentReviews([newReview, ...studentReviews]);
+    setCourseReviewModal({ ...courseReviewModal, isOpen: false });
+    alert("JazakAllahu Khaira! Your review and rating have been recorded.");
+  };
+
+  // ==========================================
+  // SCHOLAR REVIEW PIPELINE HANDLER
+  // ==========================================
+
+  const handleScholarReviewSubmit = (e) => {
+    e.preventDefault();
+    if (!scholarReviewModal.course) return;
+    const courseId = scholarReviewModal.course.id;
+    setCourses(courses.map(c => {
+      if (c.id === courseId) {
+        return {
+          ...c,
+          status: scholarReviewModal.decision === 'Approved' ? 'Published' : 'Revisions Requested'
+        };
+      }
+      return c;
+    }));
+    setScholarReviewModal({ ...scholarReviewModal, isOpen: false });
+    alert(`Course "${scholarReviewModal.course.title}" marked as ${scholarReviewModal.decision} by Shariah Review Board!`);
+  };
+
 
   return (
     <div className={lang === 'ur' ? 'urdu-mode' : ''} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
@@ -1214,16 +1592,37 @@ function App() {
            ========================================================================= */}
         {currentUser.role === 'student' && activeNav === 'dashboard' && !activeCourse && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
               <div>
                 <span className="badge badge-teal" style={{ marginBottom: '6px' }}>Student Learning Portal</span>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Welcome, {currentUser.name}!</h2>
-                <p style={{ color: 'var(--text-secondary)' }}>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>Welcome, {currentUser.name}!</h2>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                   Track: <strong>{currentUser.goal}</strong> • Institution: <strong>{currentUser.instituteAffiliation}</strong>
                 </p>
               </div>
-              <button className="btn btn-gold" onClick={() => setCertModal({ isOpen: true, course: courses[0], studentName: currentUser.name, grade: "Mumtaz (A+)" })}>
-                <i className="fas fa-award"></i> View Official Certificate
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
+                  <i className="fas fa-microphone"></i> Submit Tajweed Audio Form
+                </button>
+                <button className="btn btn-outline" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
+                  <i className="fas fa-calendar-minus"></i> Apply for Leave Form
+                </button>
+                <button className="btn btn-gold" onClick={() => setCertModal({ isOpen: true, course: courses[0], studentName: currentUser.name, grade: "Mumtaz (A+)" })}>
+                  <i className="fas fa-award"></i> View Official Certificate
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Action Strip for Student */}
+            <div className="quick-action-strip" style={{ marginBottom: '20px' }}>
+              <button className="btn btn-outline btn-sm" onClick={() => handleOpenCheckout(courses[0])}>
+                <i className="fas fa-shopping-cart"></i> Course Enrollment Checkout
+              </button>
+              <button className="btn btn-outline btn-sm" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
+                <i className="fas fa-quran"></i> Record Surah Al-Mulk Recitation
+              </button>
+              <button className="btn btn-outline btn-sm" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
+                <i className="fas fa-envelope-open-text"></i> Madrasa Chutti (Leave) Application
               </button>
             </div>
 
@@ -1329,11 +1728,60 @@ function App() {
                       <span className="badge badge-teal">{courseProgress[c.id] || 0}%</span>
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '6px 0 10px' }}>Instructor: {c.instructor}</div>
-                    <button className="btn btn-primary btn-sm" onClick={() => handleEnroll(c.id)}>
-                      <i className="fas fa-play"></i> Continue Learning
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-primary btn-sm" onClick={() => handleEnroll(c.id)}>
+                        <i className="fas fa-play"></i> Continue Learning
+                      </button>
+                      <button className="btn btn-outline btn-sm" onClick={() => setCourseReviewModal({ ...courseReviewModal, isOpen: true, course: c })}>
+                        <i className="fas fa-star"></i> Rate & Review
+                      </button>
+                    </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Leave Applications History */}
+            <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+                    <i className="fas fa-calendar-alt" style={{ color: 'var(--color-primary-light)' }}></i> Madrasa Chutti (Leave) Applications
+                  </h3>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Excused absence applications approved by Nazim-e-Ta'limat & Class Ustaad.
+                  </div>
+                </div>
+                <button className="btn btn-outline btn-sm" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
+                  <i className="fas fa-plus"></i> New Leave Request
+                </button>
+              </div>
+
+              <div className="table-responsive">
+                <table className="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Ref ID</th>
+                      <th>Reason / Uzr</th>
+                      <th>From Date</th>
+                      <th>To Date</th>
+                      <th>Status</th>
+                      <th>Nazim Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leaveApplications.map(l => (
+                      <tr key={l.id}>
+                        <td><code>{l.id}</code></td>
+                        <td><strong>{l.leaveType}</strong> — <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{l.reason}</span></td>
+                        <td>{l.fromDate}</td>
+                        <td>{l.toDate}</td>
+                        <td><span className="badge badge-emerald">{l.status}</span></td>
+                        <td style={{ fontSize: '0.85rem', color: 'var(--color-accent-gold)' }}>{l.remarks}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -2087,103 +2535,439 @@ function App() {
         {/* =========================================================================
             3. MADRASA OPERATIONS HUB
            ========================================================================= */}
+        {/* =========================================================================
+            3. MADRASA OPERATIONS HUB (FULL 6-SUB-TAB SUITE — BRD v2.0)
+           ========================================================================= */}
         {currentUser.role === 'institute' && activeNav === 'institute' && !activeCourse && (
           <div>
-            <div className="glass-card" style={{ padding: '28px', marginBottom: '24px' }}>
+            {/* Madrasa Banner & Stats */}
+            <div className="glass-card" style={{ padding: '24px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <span className="badge badge-teal">Madrasa Administration</span>
+                  <span className="badge badge-teal">Jamia & Madrasa Operations Hub</span>
                   <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: '6px 0 2px' }}>{currentUser.name}</h2>
-                  <p style={{ color: 'var(--text-secondary)' }}>
-                    Nazim-e-Ala: <strong>{currentUser.principal}</strong> • Waqf Reg ID: <code>{currentUser.waqfRegId}</code>
+                  <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                    Nazim-e-Ala: <strong>{currentUser.principal}</strong> • Waqf Reg ID: <code>{currentUser.waqfRegId}</code> • Subdomain: <code>{currentUser.subdomain}.alnoor.edu</code>
                   </p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setAddTeacherModal(true)}>
-                  <i className="fas fa-user-plus"></i> + Add Teacher to Madrasa Form
-                </button>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary" onClick={() => setAddFacultyModal({ ...addFacultyModal, isOpen: true })}>
+                    <i className="fas fa-user-plus"></i> + Onboard Ustad Form
+                  </button>
+                  <button className="btn btn-gold" onClick={() => setAdmissionModal({ ...admissionModal, isOpen: true })}>
+                    <i className="fas fa-user-graduate"></i> + Admit Talib Form
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setChandaModal({ ...chandaModal, isOpen: true })}>
+                    <i className="fas fa-hand-holding-usd"></i> + Record Chanda / Fee
+                  </button>
+                </div>
               </div>
 
+              {/* 4 Madrasa Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginTop: '20px' }}>
-                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>AFFILIATED FACULTY</div>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>{facultyList.length} Asateza</div>
+                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>AFFILIATED ASATEZA</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>{facultyList.length} Ulama & Qura</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-emerald-light)' }}>Active Faculty Roster</div>
                 </div>
-                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>ENROLLED TALABA</div>
                   <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>{currentUser.totalStudents}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-accent-gold)' }}>Across 4 Departments</div>
                 </div>
-                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>MONTHLY CHANDA</div>
+                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>MAHANA CHANDA TARGET</div>
                   <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#38bdf8' }}>{currentUser.monthlyChanda}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#38bdf8' }}>Waqf & Education Fund</div>
+                </div>
+                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>ACTIVE SHOBA-JAAT</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#a855f7' }}>{departmentsList.length} Wings</div>
+                  <div style={{ fontSize: '0.75rem', color: '#a855f7' }}>Including Shoba-e-Banat</div>
                 </div>
               </div>
             </div>
 
-            <div className="institute-faculty-grid">
-              {facultyList.map(t => (
-                <div key={t.id} className="faculty-card">
-                  <div className="faculty-header">
-                    <div className="faculty-avatar"><i className="fas fa-user-tie"></i></div>
-                    <div>
-                      <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>{t.name}</h4>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--color-accent-gold)' }}>{t.designation}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.department}</div>
+            {/* Institute 6-Sub-Nav Tabs */}
+            <div className="institute-subnav-tabs">
+              <button className={`institute-subnav-tab ${instituteSubTab === 'faculty' ? 'active' : ''}`} onClick={() => setInstituteSubTab('faculty')}>
+                <i className="fas fa-chalkboard-teacher"></i> 1. Asateza Directory ({facultyList.length})
+              </button>
+              <button className={`institute-subnav-tab ${instituteSubTab === 'admissions' ? 'active' : ''}`} onClick={() => setInstituteSubTab('admissions')}>
+                <i className="fas fa-user-graduate"></i> 2. Talaba Admissions ({madrasaStudents.length})
+              </button>
+              <button className={`institute-subnav-tab ${instituteSubTab === 'finances' ? 'active' : ''}`} onClick={() => setInstituteSubTab('finances')}>
+                <i className="fas fa-wallet"></i> 3. Mahana Chanda & Waqf
+              </button>
+              <button className={`institute-subnav-tab ${instituteSubTab === 'departments' ? 'active' : ''}`} onClick={() => setInstituteSubTab('departments')}>
+                <i className="fas fa-mosque"></i> 4. Shoba-jaat & Wings ({departmentsList.length})
+              </button>
+              <button className={`institute-subnav-tab ${instituteSubTab === 'exams' ? 'active' : ''}`} onClick={() => setInstituteSubTab('exams')}>
+                <i className="fas fa-file-signature"></i> 5. Imtihanat & Sanad
+              </button>
+              <button className={`institute-subnav-tab ${instituteSubTab === 'settings' ? 'active' : ''}`} onClick={() => setInstituteSubTab('settings')}>
+                <i className="fas fa-cogs"></i> 6. Jamia Profile & Waqf
+              </button>
+            </div>
+
+            {/* =================================================================
+                SUB-TAB 1: ASATEZA (FACULTY) DIRECTORY
+               ================================================================= */}
+            {instituteSubTab === 'faculty' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-user-tie" style={{ color: 'var(--color-primary-light)' }}></i> Asateza-e-Kiram (Faculty Directory)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Affiliated Ulama, Qura, and Muallimat with teaching assignments and monthly hadya records.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setAddFacultyModal({ ...addFacultyModal, isOpen: true })}>
+                    <i className="fas fa-user-plus"></i> + Onboard New Ustad Form
+                  </button>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Ustad Name</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Sanad / Ijazah</th>
+                        <th>Monthly Hadya</th>
+                        <th>Batches Assigned</th>
+                        <th>Enrolled Talaba</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {facultyList.map(t => (
+                        <tr key={t.id}>
+                          <td><strong>{t.name}</strong> ({t.gender})</td>
+                          <td><span className="badge badge-gold">{t.designation}</span></td>
+                          <td><span className="badge badge-teal">{t.department}</span></td>
+                          <td><code style={{ fontSize: '0.8rem' }}>{t.sanad}</code></td>
+                          <td style={{ color: 'var(--color-emerald-light)', fontWeight: 700 }}>{t.hadya}</td>
+                          <td>{t.batches.join(', ')}</td>
+                          <td><strong>{t.studentsCount}</strong> Talaba</td>
+                          <td><span className="badge badge-emerald">{t.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 2: TALABA ADMISSIONS & ROSTER
+               ================================================================= */}
+            {instituteSubTab === 'admissions' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-user-graduate" style={{ color: 'var(--color-accent-gold)' }}></i> Talaba Dakhila Register (Admissions Roster)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Formal register of enrolled students across Hifz, Dars-e-Nizami, Banat, and Maktab wings.
+                    </p>
+                  </div>
+                  <button className="btn btn-gold" onClick={() => setAdmissionModal({ ...admissionModal, isOpen: true })}>
+                    <i className="fas fa-plus-circle"></i> + Admit New Talib Form
+                  </button>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Roll No</th>
+                        <th>Talib Name</th>
+                        <th>Guardian / Walid</th>
+                        <th>Contact</th>
+                        <th>Department</th>
+                        <th>Darja / Level</th>
+                        <th>Fee Status</th>
+                        <th>Monthly Fee</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {madrasaStudents.map(s => (
+                        <tr key={s.rollNo}>
+                          <td><code>{s.rollNo}</code></td>
+                          <td><strong>{s.name}</strong></td>
+                          <td>{s.guardian}</td>
+                          <td>{s.phone}</td>
+                          <td><span className="badge badge-teal">{s.dept}</span></td>
+                          <td>{s.darja}</td>
+                          <td>
+                            <span className={`badge ${s.feeStatus === 'Paid' ? 'badge-emerald' : s.feeStatus === 'Due' ? 'badge-ruby' : 'badge-gold'}`}>
+                              {s.feeStatus}
+                            </span>
+                          </td>
+                          <td style={{ fontWeight: 700 }}>{s.amount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 3: MAHANA CHANDA & WAQF
+               ================================================================= */}
+            {instituteSubTab === 'finances' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-coins" style={{ color: '#38bdf8' }}></i> Mahana Chanda & Waqf Ledger (BRD Section 13)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Interest-free (Riba-free) fees, Waqf donations, Yateem Kifalah sponsorships, and digital receipts.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setChandaModal({ ...chandaModal, isOpen: true })}>
+                    <i className="fas fa-plus"></i> + Record Chanda / Fee Form
+                  </button>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Receipt No</th>
+                        <th>Talib / Donor Name</th>
+                        <th>Category / Head</th>
+                        <th>Amount</th>
+                        <th>Payment Mode</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chandaLedger.map(c => (
+                        <tr key={c.id}>
+                          <td><code>{c.receiptNo}</code></td>
+                          <td><strong>{c.donorStudent}</strong></td>
+                          <td><span className="badge badge-teal">{c.category}</span></td>
+                          <td style={{ color: 'var(--color-emerald-light)', fontWeight: 800 }}>{c.amount}</td>
+                          <td>{c.mode}</td>
+                          <td>{c.date}</td>
+                          <td>
+                            <button className="btn btn-outline btn-sm" onClick={() => alert(`Receipt #${c.receiptNo} printed/downloaded!`)}>
+                              <i className="fas fa-print"></i> Receipt
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 4: SHOBA-JAAT (DEPARTMENTS)
+               ================================================================= */}
+            {instituteSubTab === 'departments' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-building" style={{ color: '#a855f7' }}></i> Shoba-jaat & Academic Wings
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Department configuration, Nazim-e-Ta'limat supervision, and Shariah gender policy segregation.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setDeptModal({ ...deptModal, isOpen: true })}>
+                    <i className="fas fa-folder-plus"></i> + Create New Shoba Form
+                  </button>
+                </div>
+
+                <div className="dept-grid">
+                  {departmentsList.map(d => (
+                    <div key={d.id} className="dept-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{d.name}</h4>
+                          <div style={{ fontFamily: 'var(--font-arabic)', fontSize: '1.05rem', color: 'var(--color-accent-gold)', marginTop: '2px' }}>
+                            {d.nameArabic}
+                          </div>
+                        </div>
+                        <span className="badge badge-teal">{d.batches} Batches</span>
+                      </div>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '12px 0 8px' }}>
+                        <div><strong>Nazim-e-Shoba:</strong> {d.nazim}</div>
+                        <div><strong>Faculty:</strong> {d.facultyCount} Asateza • <strong>Talaba:</strong> {d.studentsCount}</div>
+                        <div style={{ marginTop: '4px', color: 'var(--color-emerald-light)' }}><strong>Policy:</strong> {d.genderPolicy}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 5: IMTIHANAT & SANAD REGISTER
+               ================================================================= */}
+            {instituteSubTab === 'exams' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-file-signature" style={{ color: 'var(--color-accent-gold)' }}></i> Imtihanat Register & Sanad Issuance (BRD Section 12)
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Salana wa Shashmahi Imtihan marks, official grading, and authenticated Madrasa Sanad records.
+                    </p>
+                  </div>
+                  <button className="btn btn-gold" onClick={() => setExamModal({ ...examModal, isOpen: true })}>
+                    <i className="fas fa-plus"></i> + Record Exam & Issue Sanad
+                  </button>
+                </div>
+
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Exam Title</th>
+                        <th>Talib Name</th>
+                        <th>Roll No</th>
+                        <th>Department</th>
+                        <th>Marks Obtained</th>
+                        <th>Grade</th>
+                        <th>Sanad Number</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {examRecords.map(ex => (
+                        <tr key={ex.id}>
+                          <td><strong>{ex.examTitle}</strong></td>
+                          <td><strong>{ex.studentName}</strong></td>
+                          <td><code>{ex.rollNo}</code></td>
+                          <td><span className="badge badge-teal">{ex.dept}</span></td>
+                          <td><strong style={{ color: 'var(--color-primary-light)' }}>{ex.marks}/100</strong></td>
+                          <td><span className="badge badge-emerald">{ex.grade}</span></td>
+                          <td><code>{ex.sanadNo}</code></td>
+                          <td>
+                            <span className={`badge ${ex.sanadIssued ? 'badge-emerald' : 'badge-gold'}`}>
+                              {ex.sanadIssued ? 'Sanad Issued ✅' : 'Pending Review'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================================
+                SUB-TAB 6: JAMIA PROFILE & WAQF IDENTITY
+               ================================================================= */}
+            {instituteSubTab === 'settings' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-shield-alt" style={{ color: 'var(--color-accent-gold)' }}></i> Jamia Profile & Waqf Affiliation Identity
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                      Official institution legal credentials, Waqf registry, Nazim-e-Ala seal, and banking details.
+                    </p>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setJamiaProfileModal({ ...jamiaProfileModal, isOpen: true })}>
+                    <i className="fas fa-edit"></i> Edit Jamia Profile Form
+                  </button>
+                </div>
+
+                <div className="glass-card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>JAMIA LEGAL NAME</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, marginTop: '2px' }}>{currentUser.name}</div>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>NAZIM-E-ALA / PRINCIPAL</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, marginTop: '2px' }}>{currentUser.principal}</div>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>WAQF REGISTRATION ID</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-emerald-light)', marginTop: '2px' }}>{currentUser.waqfRegId}</div>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>DEDICATED SUBDOMAIN</div>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-accent-gold)', marginTop: '2px' }}><code>{currentUser.subdomain}.alnoor.edu</code></div>
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px', marginBottom: '10px' }}>
-                    <div><strong>Sanad:</strong> {t.sanad}</div>
-                    <div><strong>Batches:</strong> {t.batches.join(', ')}</div>
+                  <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px', marginTop: '16px' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>MADRASA BANK ACCOUNT FOR CHANDA / DONATIONS</div>
+                    <div style={{ fontWeight: 700, marginTop: '4px' }}>{jamiaProfileModal.bankDetails}</div>
                   </div>
-                  <span className="badge badge-emerald">{t.studentsCount} Talaba Enrolled</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* =========================================================================
-            4. SCHOLAR REVIEW PIPELINE
+            4. SCHOLAR REVIEW PIPELINE (SHARIAH MODERATION WORKFLOW — BRD Flow 3)
            ========================================================================= */}
         {currentUser.role === 'admin' && activeNav === 'admin' && !activeCourse && (
           <div>
             <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
-              <span className="badge badge-gold">Shariah Board Pipeline</span>
+              <span className="badge badge-gold">Shariah Board Review Pipeline (BRD Flow 3)</span>
               <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: '6px 0' }}>
-                <i className="fas fa-user-shield" style={{ color: 'var(--color-accent-gold)' }}></i> Curriculum Moderation & Hawala Verification
+                <i className="fas fa-user-shield" style={{ color: 'var(--color-accent-gold)' }}></i> Curriculum Moderation & Shariah Compliance Check
               </h2>
-              <p style={{ color: 'var(--text-secondary)' }}>Reviewer: <strong>{currentUser.name}</strong> • {currentUser.designation}</p>
+              <p style={{ color: 'var(--text-secondary)' }}>
+                Head Scholar: <strong>{currentUser.name}</strong> • Designation: <strong>{currentUser.designation}</strong> • Sanad: <strong>{currentUser.sanad}</strong>
+              </p>
             </div>
 
             <div className="glass-card" style={{ padding: '24px' }}>
-              <table className="custom-table">
-                <thead>
-                  <tr>
-                    <th>Course Title</th>
-                    <th>Shoba</th>
-                    <th>Teacher</th>
-                    <th>Kitab Hawala / Citation</th>
-                    <th>Status</th>
-                    <th>Decision</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {courses.map(c => (
-                    <tr key={c.id}>
-                      <td><strong>{c.title}</strong></td>
-                      <td><span className="badge badge-teal">{c.dept}</span></td>
-                      <td>{c.instructor}</td>
-                      <td><code>{c.kitabHawala || "Classical Dars-e-Nizami Corpus"}</code></td>
-                      <td><span className="badge badge-gold">{c.status || "Published"}</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button className="btn btn-primary btn-sm" onClick={() => alert(`Approved "${c.title}"!`)}>Approve</button>
-                          <button className="btn btn-outline btn-sm" onClick={() => alert(`Requested revisions for "${c.title}"`)}>Changes</button>
-                        </div>
-                      </td>
+              <div className="table-responsive">
+                <table className="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Course Title</th>
+                      <th>Shoba</th>
+                      <th>Instructor</th>
+                      <th>Kitab Hawala / Citation</th>
+                      <th>Status</th>
+                      <th>Shariah Review Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {courses.map(c => (
+                      <tr key={c.id}>
+                        <td><strong>{c.title}</strong></td>
+                        <td><span className="badge badge-teal">{c.dept}</span></td>
+                        <td>{c.instructor}</td>
+                        <td><code>{c.kitabHawala || "Classical Dars-e-Nizami Corpus"}</code></td>
+                        <td>
+                          <span className={`badge ${c.status === 'Published' ? 'badge-emerald' : 'badge-gold'}`}>
+                            {c.status || "Under Review"}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn btn-gold btn-sm" onClick={() => setScholarReviewModal({ ...scholarReviewModal, isOpen: true, course: c })}>
+                            <i className="fas fa-clipboard-check"></i> Review & Shariah Checklist
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -3513,6 +4297,678 @@ function App() {
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
                 <i className="fas fa-save"></i> Save Academy Profile & Payout Settings
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MADRASA (INSTITUTE) HUB MODALS
+         ========================================================================= */}
+
+      {/* 14. ONBOARD USTAD / FACULTY MODAL */}
+      {addFacultyModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setAddFacultyModal({ ...addFacultyModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setAddFacultyModal({ ...addFacultyModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-teal">Jamia Faculty Onboarding</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-user-plus" style={{ color: 'var(--color-primary-light)' }}></i> Onboard Ustad / Alima to Faculty
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Add a verified scholar or teacher with academic designation, department, and monthly hadya record.
+            </p>
+
+            <form onSubmit={handleAddFacultySubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Full Name with Title (e.g. Maulana / Mufti / Aalima)</label>
+                  <input type="text" className="form-input" required placeholder="e.g. Maulana Muhammad Tariq" value={addFacultyModal.name} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, name: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Gender (BRD Women Rule)</label>
+                  <select className="form-select" value={addFacultyModal.gender} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, gender: e.target.value })}>
+                    <option value="Male">Male (Ulama / Asateza)</option>
+                    <option value="Female">Female (Muallimat / Banat)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Academic Designation</label>
+                  <input type="text" className="form-input" required value={addFacultyModal.designation} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, designation: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Department / Shoba</label>
+                  <select className="form-select" value={addFacultyModal.department} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, department: e.target.value })}>
+                    {departmentsList.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Sanad / Darul Uloom Ijazah Details</label>
+                <input type="text" className="form-input" required placeholder="e.g. Dars-e-Nizami Fazil (Darul Uloom Deoband / Karachi)" value={addFacultyModal.sanad} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, sanad: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Monthly Hadya / Salary</label>
+                  <input type="text" className="form-input" required value={addFacultyModal.hadya} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, hadya: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Initial Batch Assignment</label>
+                  <input type="text" className="form-input" required value={addFacultyModal.batch} onChange={(e) => setAddFacultyModal({ ...addFacultyModal, batch: e.target.value })} />
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check-circle"></i> Complete Faculty Onboarding
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 15. TALABA ADMISSION MODAL */}
+      {admissionModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setAdmissionModal({ ...admissionModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setAdmissionModal({ ...admissionModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">Madrasa Student Dakhila Form</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-user-graduate" style={{ color: 'var(--color-accent-gold)' }}></i> New Talib-e-Ilm Admission
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Enroll a new student with guardian contact, academic wing, class level, and fee structure.
+            </p>
+
+            <form onSubmit={handleAdmissionSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Talib-e-Ilm Full Name</label>
+                  <input type="text" className="form-input" required placeholder="e.g. Usman Ghani" value={admissionModal.name} onChange={(e) => setAdmissionModal({ ...admissionModal, name: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Father / Guardian Name</label>
+                  <input type="text" className="form-input" required placeholder="e.g. Haji Muhammad Ali" value={admissionModal.guardian} onChange={(e) => setAdmissionModal({ ...admissionModal, guardian: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Phone / WhatsApp Number</label>
+                  <input type="text" className="form-input" required placeholder="+91 98765 00000" value={admissionModal.phone} onChange={(e) => setAdmissionModal({ ...admissionModal, phone: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Department / Shoba</label>
+                  <select className="form-select" value={admissionModal.department} onChange={(e) => setAdmissionModal({ ...admissionModal, department: e.target.value })}>
+                    {departmentsList.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Darja / Class Level</label>
+                  <input type="text" className="form-input" required value={admissionModal.darja} onChange={(e) => setAdmissionModal({ ...admissionModal, darja: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Initial Fee Status</label>
+                  <select className="form-select" value={admissionModal.feeStatus} onChange={(e) => setAdmissionModal({ ...admissionModal, feeStatus: e.target.value })}>
+                    <option value="Paid">Paid (Current Month)</option>
+                    <option value="Due">Due / Pending</option>
+                    <option value="Scholarship">100% Waqf Scholarship / Yateem</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Monthly Fee / Chanda Amount</label>
+                <input type="text" className="form-input" required value={admissionModal.monthlyFee} onChange={(e) => setAdmissionModal({ ...admissionModal, monthlyFee: e.target.value })} />
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check"></i> Complete Admission & Generate Roll Number
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 16. RECORD CHANDA / WAQF DONATION MODAL */}
+      {chandaModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setChandaModal({ ...chandaModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setChandaModal({ ...chandaModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-teal">Madrasa Financial Ledger</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-hand-holding-usd" style={{ color: '#38bdf8' }}></i> Record Mahana Chanda / Waqf Receipt
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Record Ta'limi fees, Waqf donations, or Kifalah funds and issue an official authenticated receipt.
+            </p>
+
+            <form onSubmit={handleChandaSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Student / Donor Name</label>
+                  <input type="text" className="form-input" required placeholder="e.g. Ahmad Raza (Student) / Haji Farooq" value={chandaModal.donorStudent} onChange={(e) => setChandaModal({ ...chandaModal, donorStudent: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Fund Head / Category</label>
+                  <select className="form-select" value={chandaModal.category} onChange={(e) => setChandaModal({ ...chandaModal, category: e.target.value })}>
+                    <option value="Ta'limi Mahana Chanda">Ta'limi Mahana Chanda</option>
+                    <option value="Waqf Yateem Sponsorship">Waqf Yateem Sponsorship</option>
+                    <option value="Imdad-e-Kutub (Book Fund)">Imdad-e-Kutub (Book Fund)</option>
+                    <option value="Banat Wing Chanda">Banat Wing Chanda</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Amount (INR / PKR / SAR)</label>
+                  <input type="text" className="form-input" required placeholder="e.g. ₹1,500" value={chandaModal.amount} onChange={(e) => setChandaModal({ ...chandaModal, amount: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Payment Mode</label>
+                  <select className="form-select" value={chandaModal.mode} onChange={(e) => setChandaModal({ ...chandaModal, mode: e.target.value })}>
+                    <option value="Cash Handover">Cash Handover</option>
+                    <option value="Direct UPI QR">Direct UPI QR (GPay / PhonePe)</option>
+                    <option value="Bank NEFT/IMPS">Bank NEFT/IMPS Transfer</option>
+                    <option value="Madrasa Cheque">Madrasa Cheque</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Receipt Number (Auto Generated)</label>
+                <input type="text" className="form-input" readOnly value={chandaModal.receiptNo} />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-receipt"></i> Save Entry & Print Receipt
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 17. CREATE DEPARTMENT MODAL */}
+      {deptModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setDeptModal({ ...deptModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setDeptModal({ ...deptModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-teal">Academic Wing Setup</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-mosque" style={{ color: '#a855f7' }}></i> Create New Shoba / Academic Wing
+            </h3>
+
+            <form onSubmit={handleDeptSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Shoba Title (Urdu / English)</label>
+                  <input type="text" className="form-input" required placeholder="e.g. Shoba-e-Hadith & Usool" value={deptModal.name} onChange={(e) => setDeptModal({ ...deptModal, name: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Title in Arabic (الاسم بالعربية)</label>
+                  <input type="text" className="form-input" placeholder="e.g. شعبة الحديث الشريف" value={deptModal.nameArabic} onChange={(e) => setDeptModal({ ...deptModal, nameArabic: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Nazim-e-Shoba / Head</label>
+                  <input type="text" className="form-input" required placeholder="e.g. Mufti Salman Qasmi" value={deptModal.nazim} onChange={(e) => setDeptModal({ ...deptModal, nazim: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Gender & Attendance Policy</label>
+                  <select className="form-select" value={deptModal.genderPolicy} onChange={(e) => setDeptModal({ ...deptModal, genderPolicy: e.target.value })}>
+                    <option value="General (Separate Timings)">General (Separate Timings)</option>
+                    <option value="Male Only (Boys Campus)">Male Only (Boys Campus)</option>
+                    <option value="Female Only (Strict Pardah)">Female Only (Strict Pardah / Banat)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-check"></i> Create Department
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 18. RECORD EXAM & ISSUE SANAD MODAL */}
+      {examModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setExamModal({ ...examModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setExamModal({ ...examModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">Imtihanat & Sanad Register</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-file-signature" style={{ color: 'var(--color-accent-gold)' }}></i> Record Imtihan Marks & Issue Sanad
+            </h3>
+
+            <form onSubmit={handleExamSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Talib-e-Ilm Name</label>
+                  <input type="text" className="form-input" required value={examModal.studentName} onChange={(e) => setExamModal({ ...examModal, studentName: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Department</label>
+                  <select className="form-select" value={examModal.dept} onChange={(e) => setExamModal({ ...examModal, dept: e.target.value })}>
+                    {departmentsList.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Imtihan Title (e.g. Salana Imtihan 1447H)</label>
+                <input type="text" className="form-input" required value={examModal.examTitle} onChange={(e) => setExamModal({ ...examModal, examTitle: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Marks Obtained (Out of 100)</label>
+                  <input type="number" min="0" max="100" className="form-input" required value={examModal.marks} onChange={(e) => setExamModal({ ...examModal, marks: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Formal Grade</label>
+                  <select className="form-select" value={examModal.grade} onChange={(e) => setExamModal({ ...examModal, grade: e.target.value })}>
+                    <option value="Mumtaz (A+)">Mumtaz (A+)</option>
+                    <option value="Jayyid Jiddan (A)">Jayyid Jiddan (A)</option>
+                    <option value="Jayyid (B)">Jayyid (B)</option>
+                    <option value="Maqbool (C)">Maqbool (C)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Sanad Certificate Serial Number</label>
+                <input type="text" className="form-input" readOnly value={examModal.sanadNo} />
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-award"></i> Record Marks & Issue Official Sanad
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 19. EDIT JAMIA PROFILE MODAL */}
+      {jamiaProfileModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setJamiaProfileModal({ ...jamiaProfileModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setJamiaProfileModal({ ...jamiaProfileModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-teal">Jamia Identity & Waqf</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-shield-alt" style={{ color: 'var(--color-accent-gold)' }}></i> Edit Jamia Profile & Waqf Identity
+            </h3>
+
+            <form onSubmit={handleSaveJamiaProfile}>
+              <div className="form-group">
+                <label className="form-label">Jamia Official Legal Name</label>
+                <input type="text" className="form-input" required value={jamiaProfileModal.name} onChange={(e) => setJamiaProfileModal({ ...jamiaProfileModal, name: e.target.value })} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Nazim-e-Ala / Mohtamim</label>
+                  <input type="text" className="form-input" required value={jamiaProfileModal.principal} onChange={(e) => setJamiaProfileModal({ ...jamiaProfileModal, principal: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Waqf Board Registration ID</label>
+                  <input type="text" className="form-input" required value={jamiaProfileModal.waqfRegId} onChange={(e) => setJamiaProfileModal({ ...jamiaProfileModal, waqfRegId: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">City / Country</label>
+                  <input type="text" className="form-input" required value={jamiaProfileModal.city} onChange={(e) => setJamiaProfileModal({ ...jamiaProfileModal, city: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Subdomain Slug</label>
+                  <input type="text" className="form-input" required value={jamiaProfileModal.subdomain} onChange={(e) => setJamiaProfileModal({ ...jamiaProfileModal, subdomain: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Madrasa Official Bank Account Details</label>
+                <textarea className="form-textarea" rows="2" value={jamiaProfileModal.bankDetails} onChange={(e) => setJamiaProfileModal({ ...jamiaProfileModal, bankDetails: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
+                <i className="fas fa-save"></i> Save Jamia Credentials
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STUDENT PORTAL MODALS
+         ========================================================================= */}
+
+      {/* 20. COURSE ENROLLMENT & CHECKOUT MODAL (BRD Section 13) */}
+      {checkoutModal.isOpen && checkoutModal.course && (
+        <div className="auth-overlay" onClick={() => setCheckoutModal({ ...checkoutModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setCheckoutModal({ ...checkoutModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span className="badge badge-emerald">Shariah Compliant Admission</span>
+              <span className="escrow-badge"><i className="fas fa-shield-alt"></i> 7-Day Escrow Hold</span>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              Course Enrollment Checkout
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Enrolling in: <strong>{checkoutModal.course.title}</strong> • Ustad: <strong>{checkoutModal.course.instructor}</strong>
+            </p>
+
+            <form onSubmit={handleCheckoutSubmit}>
+              <div className="checkout-summary-box">
+                <div className="checkout-line-item">
+                  <span>Tuition Fee ({checkoutModal.feeModel === 'monthly' ? 'Monthly Madrasa Style' : 'One-Time'})</span>
+                  <strong>{checkoutModal.amount}</strong>
+                </div>
+                <div className="checkout-line-item">
+                  <span>Platform & Heartbeat Technology Cut (10%)</span>
+                  <span style={{ color: 'var(--color-emerald-light)' }}>Included in Fee</span>
+                </div>
+                <div className="checkout-line-item">
+                  <span>Madrasa Kifalah / Yateem Scholarship</span>
+                  <span>{checkoutModal.kifalahApplied ? "-100% (Waqf Funded)" : "No Coupon"}</span>
+                </div>
+                <div className="checkout-total-row">
+                  <span>Total Payable:</span>
+                  <span style={{ color: 'var(--color-emerald-light)' }}>{checkoutModal.kifalahApplied ? "₹0 (Free)" : checkoutModal.amount}</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Madrasa Kifalah Promo Code / Scholarship Voucher</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" className="form-input" placeholder="e.g. WAQF-100 or KIFALAH2026" value={checkoutModal.promoCode} onChange={(e) => setCheckoutModal({ ...checkoutModal, promoCode: e.target.value })} />
+                  <button type="button" className="btn btn-outline" onClick={() => {
+                    if (checkoutModal.promoCode.toLowerCase().includes('waqf') || checkoutModal.promoCode.toLowerCase().includes('kifalah')) {
+                      setCheckoutModal({ ...checkoutModal, kifalahApplied: true });
+                      alert("Waqf Kifalah Scholarship Applied: 100% fee waiver!");
+                    } else {
+                      alert("Invalid promo code. Try 'WAQF-100' for demo scholarship.");
+                    }
+                  }}>
+                    Apply
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Payment Method</label>
+                <select className="form-select" value={checkoutModal.paymentMethod} onChange={(e) => setCheckoutModal({ ...checkoutModal, paymentMethod: e.target.value })}>
+                  <option value="upi">Instant Direct UPI (GPay / PhonePe / Paytm / QR)</option>
+                  <option value="card">Debit / Credit Card (Interest-Free Processing)</option>
+                  <option value="cash_offline">Cash Handover directly to Madrasa / Ustad</option>
+                </select>
+              </div>
+
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: 1.4 }}>
+                <i className="fas fa-info-circle"></i> <strong>BRD Shariah Rule:</strong> 7-day refund policy applicable. Payments are held in secure escrow and released to the educator only after probation clearance.
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%' }}>
+                <i className="fas fa-lock"></i> Confirm Admission & Proceed
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 21. STUDENT TAJWEED RECITATION SUBMISSION MODAL */}
+      {recitationSubmitModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-emerald">Tajweed Studio Submission (BRD Section 11)</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-microphone-alt" style={{ color: 'var(--color-primary-light)' }}></i> Submit Audio Tilawat for Evaluation
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Record or attach your Quranic Tilawat. Your teacher will provide timestamped feedback on Makharij & Sifat.
+            </p>
+
+            <form onSubmit={handleRecitationSubmit}>
+              <div className="form-group">
+                <label className="form-label">Selected Surah & Aayat Passage</label>
+                <input type="text" className="form-input" required value={recitationSubmitModal.surah} onChange={(e) => setRecitationSubmitModal({ ...recitationSubmitModal, surah: e.target.value })} />
+              </div>
+
+              <div style={{ background: 'rgba(0,0,0,0.35)', border: '1px dashed var(--border-light)', borderRadius: '12px', padding: '18px', textAlign: 'center', marginBottom: '16px' }}>
+                <div style={{ fontSize: '2.4rem', color: recitationSubmitModal.isRecordingActive ? '#f43f5e' : 'var(--color-primary-light)', marginBottom: '8px' }}>
+                  <i className={`fas ${recitationSubmitModal.isRecordingActive ? 'fa-dot-circle fa-beat' : 'fa-microphone'}`}></i>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>
+                  {recitationSubmitModal.isRecordingActive ? "Recording Tilawat in Progress..." : "Ready to Record Audio"}
+                </div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 12px' }}>
+                  {recitationSubmitModal.audioDuration} recorded • WebRTC Audio Encoder
+                </div>
+                <button type="button" className={`btn ${recitationSubmitModal.isRecordingActive ? 'btn-ruby' : 'btn-primary'} btn-sm`} onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isRecordingActive: !recitationSubmitModal.isRecordingActive })}>
+                  <i className={`fas ${recitationSubmitModal.isRecordingActive ? 'fa-stop' : 'fa-circle'}`}></i>
+                  {recitationSubmitModal.isRecordingActive ? " Stop Recording" : " Start Tilawat Recording"}
+                </button>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Notes or Questions for Ustaad</label>
+                <textarea className="form-textarea" rows="2" value={recitationSubmitModal.notes} onChange={(e) => setRecitationSubmitModal({ ...recitationSubmitModal, notes: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
+                <i className="fas fa-paper-plane"></i> Submit Tilawat to Ustaad
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 22. MADRASA LEAVE (CHUTTI) APPLICATION MODAL */}
+      {leaveModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setLeaveModal({ ...leaveModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setLeaveModal({ ...leaveModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">Madrasa Attendance Engine</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-envelope-open-text" style={{ color: 'var(--color-accent-gold)' }}></i> Madrasa Chutti (Leave) Application
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Apply for excused absence to avoid auto-absent mark on the 30s Heartbeat SDK register.
+            </p>
+
+            <form onSubmit={handleLeaveSubmit}>
+              <div className="form-group">
+                <label className="form-label">Reason Category / Uzr</label>
+                <select className="form-select" value={leaveModal.leaveType} onChange={(e) => setLeaveModal({ ...leaveModal, leaveType: e.target.value })}>
+                  <option value="Uzr-e-Shar'i (Beemari)">Uzr-e-Shar'i (Medical / Illness)</option>
+                  <option value="Uzr-e-Shar'i (Safar)">Uzr-e-Shar'i (Emergency Travel / Safar)</option>
+                  <option value="Family Occasion / Shadi">Family Occasion / Shadi</option>
+                  <option value="Technical Outage / Net Glitch">Technical Outage / Electricity Cut</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">From Date</label>
+                  <input type="date" className="form-input" required value={leaveModal.fromDate} onChange={(e) => setLeaveModal({ ...leaveModal, fromDate: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">To Date</label>
+                  <input type="date" className="form-input" required value={leaveModal.toDate} onChange={(e) => setLeaveModal({ ...leaveModal, toDate: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Detailed Explanation for Nazim-e-Ta'limat</label>
+                <textarea className="form-textarea" rows="3" required value={leaveModal.reason} onChange={(e) => setLeaveModal({ ...leaveModal, reason: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
+                <i className="fas fa-paper-plane"></i> Submit Leave Request to Madrasa
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 23. COURSE RATING & FEEDBACK MODAL */}
+      {courseReviewModal.isOpen && courseReviewModal.course && (
+        <div className="auth-overlay" onClick={() => setCourseReviewModal({ ...courseReviewModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setCourseReviewModal({ ...courseReviewModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">Feedback & Shariah Rating</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-star" style={{ color: 'var(--color-accent-gold)' }}></i> Rate Course & Instructor
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              {courseReviewModal.course.title} • {courseReviewModal.course.instructor}
+            </p>
+
+            <form onSubmit={handleCourseReviewSubmit}>
+              <div className="form-group">
+                <label className="form-label">Overall Star Rating</label>
+                <select className="form-select" value={courseReviewModal.rating} onChange={(e) => setCourseReviewModal({ ...courseReviewModal, rating: Number(e.target.value) })}>
+                  <option value="5">⭐⭐⭐⭐⭐ 5 Stars (Mumtaz / Outstanding)</option>
+                  <option value="4">⭐⭐⭐⭐ 4 Stars (Jayyid Jiddan / Very Good)</option>
+                  <option value="3">⭐⭐⭐ 3 Stars (Good / Satisfactory)</option>
+                  <option value="2">⭐⭐ 2 Stars (Needs Improvement)</option>
+                  <option value="1">⭐ 1 Star (Unsatisfactory)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Authenticity & Teaching Clarity</label>
+                <select className="form-select" value={courseReviewModal.maslakAccuracy} onChange={(e) => setCourseReviewModal({ ...courseReviewModal, maslakAccuracy: e.target.value })}>
+                  <option value="Authentic & Verified">Authentic & Verified with Kitab Citations</option>
+                  <option value="High Clarity">High Audio & Video Clarity</option>
+                  <option value="Needs More Explanation">Needs More Explanation</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Your Honest Written Review</label>
+                <textarea className="form-textarea" rows="3" required value={courseReviewModal.feedback} onChange={(e) => setCourseReviewModal({ ...courseReviewModal, feedback: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '8px' }}>
+                <i className="fas fa-check-circle"></i> Submit Review & Rating
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SCHOLAR REVIEW PIPELINE MODAL
+         ========================================================================= */}
+
+      {/* 24. SCHOLAR SHARIAH MODERATION MODAL (BRD Flow 3 & Section 07) */}
+      {scholarReviewModal.isOpen && scholarReviewModal.course && (
+        <div className="auth-overlay" onClick={() => setScholarReviewModal({ ...scholarReviewModal, isOpen: false })}>
+          <div className="auth-modal" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setScholarReviewModal({ ...scholarReviewModal, isOpen: false })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <span className="badge badge-gold">Shariah Board Moderation Pipeline</span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              <i className="fas fa-clipboard-check" style={{ color: 'var(--color-accent-gold)' }}></i> Curriculum Religious Verification
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Course: <strong>{scholarReviewModal.course.title}</strong> • Instructor: <strong>{scholarReviewModal.course.instructor}</strong>
+            </p>
+
+            <form onSubmit={handleScholarReviewSubmit}>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 16px', borderRadius: '10px', marginBottom: '14px', border: '1px solid var(--border-light)' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>MANDATORY CITATION / KITAB KA HAWALA:</div>
+                <div style={{ fontWeight: 700, marginTop: '2px' }}><code>{scholarReviewModal.course.kitabHawala || "Al-Muqaddimah Al-Jazariyyah, Matn No. 9-18"}</code></div>
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ marginBottom: '8px' }}>BRD Flow 3 Shariah Compliance Checklist:</label>
+                
+                <label className="shariah-check-card">
+                  <input type="checkbox" checked={scholarReviewModal.kitabVerified} onChange={(e) => setScholarReviewModal({ ...scholarReviewModal, kitabVerified: e.target.checked })} />
+                  <div>
+                    <strong style={{ fontSize: '0.88rem' }}>Authentic Matn & Citation Verified</strong>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Kitab, Baab, Fasl, and Jild citations match canonical Sunni texts.</div>
+                  </div>
+                </label>
+
+                <label className="shariah-check-card">
+                  <input type="checkbox" checked={scholarReviewModal.noMusicVerified} onChange={(e) => setScholarReviewModal({ ...scholarReviewModal, noMusicVerified: e.target.checked })} />
+                  <div>
+                    <strong style={{ fontSize: '0.88rem' }}>Strict No-Music (Ghair-Mawzoon) Enforced</strong>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Zero background music or non-Shariah audio effects in video/audio lectures.</div>
+                  </div>
+                </label>
+
+                <label className="shariah-check-card">
+                  <input type="checkbox" checked={scholarReviewModal.consensusCompliant} onChange={(e) => setScholarReviewModal({ ...scholarReviewModal, consensusCompliant: e.target.checked })} />
+                  <div>
+                    <strong style={{ fontSize: '0.88rem' }}>Consensus (Ijma) & Aqeedah Compliance</strong>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>No deviations or controversial content violating Ahl-us-Sunnah consensus.</div>
+                  </div>
+                </label>
+
+                <label className="shariah-check-card">
+                  <input type="checkbox" checked={scholarReviewModal.femalePardahCompliant} onChange={(e) => setScholarReviewModal({ ...scholarReviewModal, femalePardahCompliant: e.target.checked })} />
+                  <div>
+                    <strong style={{ fontSize: '0.88rem' }}>Khawateen Wing Privacy Protection</strong>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Women's section courses adhere to strict modesty and verified female educators.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Review Decision</label>
+                <select className="form-select" value={scholarReviewModal.decision} onChange={(e) => setScholarReviewModal({ ...scholarReviewModal, decision: e.target.value })}>
+                  <option value="Approved">Approved for Public Release (Fatwa Cleared ✅)</option>
+                  <option value="Revisions">Revisions Required (Send back to Educator with notes)</option>
+                  <option value="Rejected">Rejected (Unorthodox or non-verifiable content)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Shariah Board Official Feedback / Seal Remarks</label>
+                <textarea className="form-textarea" rows="2" value={scholarReviewModal.fatwaRemarks} onChange={(e) => setScholarReviewModal({ ...scholarReviewModal, fatwaRemarks: e.target.value })}></textarea>
+              </div>
+
+              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '8px' }}>
+                <i className="fas fa-stamp"></i> Record Scholar Decision & Sign Off
               </button>
             </form>
           </div>

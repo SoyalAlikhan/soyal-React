@@ -1582,6 +1582,136 @@ body {
   padding: 18px;
 }
 
+/* ==========================================================================
+   INSTITUTE (MADRASA HUB) & STUDENT PORTAL FORMS SYSTEM
+   ========================================================================== */
 
+/* Institute Sub-Nav Tabs */
+.institute-subnav-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-light);
+  scrollbar-width: thin;
+}
 
+.institute-subnav-tab {
+  padding: 10px 18px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
 
+.institute-subnav-tab:hover {
+  background: rgba(16, 185, 129, 0.12);
+  color: #ffffff;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.institute-subnav-tab.active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.4));
+  color: #ffffff;
+  border-color: var(--color-emerald-light);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+}
+
+/* Department Grid & Cards */
+.dept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.dept-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 20px;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dept-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-emerald-light);
+}
+
+/* Student Course Checkout */
+.checkout-summary-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.checkout-line-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.checkout-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-light);
+  margin-top: 10px;
+}
+
+.escrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 99px;
+  color: var(--color-emerald-light);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* Shariah Review Checklist Card */
+.shariah-check-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.shariah-check-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.shariah-check-card input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--color-emerald-light);
+  cursor: pointer;
+}
