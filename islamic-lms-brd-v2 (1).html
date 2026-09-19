@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="ur-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Islamic Learning Platform — BRD v2.0 + Flow Charts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbf9f4;
+  --surface:#ffffff;
+  --surface-2:#f4f1e9;
+  --ink:#1b2320;
+  --ink-2:#4a5551;
+  --ink-3:#7c8783;
+  --line:#e3ded1;
+  --accent:#0f5132;
+  --accent-2:#157a4d;
+  --gold:#a8812a;
+  --gold-soft:#f6efdd;
+  --danger:#9b3232;
+  --info:#1f5f7a;
+  --code-bg:#f2efe6;
+  --radius:14px;
+  --maxw:1080px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11150f;
+    --surface:#181d17;
+    --surface-2:#1f251e;
+    --ink:#e9ebe4;
+    --ink-2:#b6bdb4;
+    --ink-3:#8b938a;
+    --line:#2c342b;
+    --accent:#55b98a;
+    --accent-2:#6fcf9f;
+    --gold:#d9b45f;
+    --gold-soft:#2a2418;
+    --danger:#e08a8a;
+    --info:#7fc2dd;
+    --code-bg:#1d231c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11150f;
+  --surface:#181d17;
+  --surface-2:#1f251e;
+  --ink:#e9ebe4;
+  --ink-2:#b6bdb4;
+  --ink-3:#8b938a;
+  --line:#2c342b;
+  --accent:#55b98a;
+  --accent-2:#6fcf9f;
+  --gold:#d9b45f;
+  --gold-soft:#2a2418;
+  --danger:#e08a8a;
+  --info:#7fc2dd;
+  --code-bg:#1d231c;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+
+/* ---------- Header ---------- */
+header.hero{
+  background:linear-gradient(160deg,var(--accent) 0%,#0a3a24 100%);
+  color:#f3f7f3;
+  padding:56px 0 44px;
+  border-bottom:4px solid var(--gold);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) header.hero{background:linear-gradient(160deg,#143b28 0%,#0a1c13 100%)}
+}
+:root[data-theme="dark"] header.hero{background:linear-gradient(160deg,#143b28 0%,#0a1c13 100%)}
+.hero .kicker{
+  font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:#e7d6a8;font-weight:600;margin-bottom:14px;
+}
+.hero h1{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:clamp(28px,5vw,46px);
+  line-height:1.12;margin:0 0 14px;font-weight:700;
+}
+.hero p{margin:0;max-width:66ch;color:#d6e3d9;font-size:17px}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  padding:6px 13px;border-radius:99px;font-size:13px;color:#eef3ee;
+}
+
+/* ---------- Layout ---------- */
+main{padding:40px 0 80px}
+section{margin:0 0 46px;scroll-margin-top:20px}
+h2{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:clamp(21px,3.2vw,29px);
+  line-height:1.25;margin:0 0 6px;color:var(--ink);
+  padding-top:10px;
+}
+h2 .num{color:var(--gold);font-size:.7em;display:block;letter-spacing:.12em;font-family:'Inter',sans-serif;font-weight:700;margin-bottom:4px}
+h3{font-size:18px;margin:26px 0 8px;color:var(--accent);font-weight:700}
+h4{font-size:15px;margin:18px 0 6px;color:var(--ink);font-weight:700}
+p{margin:0 0 12px;color:var(--ink-2)}
+ul,ol{margin:0 0 14px;padding-left:22px;color:var(--ink-2)}
+li{margin-bottom:6px}
+strong{color:var(--ink);font-weight:600}
+hr.sep{border:0;border-top:1px solid var(--line);margin:38px 0}
+
+/* ---------- Cards / callouts ---------- */
+.card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:20px 22px;margin:16px 0;
+}
+.card.new{border-left:4px solid var(--gold);background:var(--gold-soft)}
+.card.warn{border-left:4px solid var(--danger)}
+.card.note{border-left:4px solid var(--info)}
+.tag{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:3px 9px;border-radius:5px;margin-bottom:8px;
+}
+.tag.new{background:var(--gold);color:#2a2103}
+.tag.p1{background:var(--accent);color:#fff}
+.tag.p2{background:var(--info);color:#fff}
+.tag.p3{background:var(--ink-3);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:16px 0}
+.grid .card{margin:0}
+.grid h4{margin-top:0}
+
+/* ---------- Table ---------- */
+.table-wrap{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface-2);font-weight:700;color:var(--ink);font-size:13px;letter-spacing:.02em}
+tr:last-child td{border-bottom:0}
+td{color:var(--ink-2)}
+.yes{color:var(--accent-2);font-weight:700}
+.no{color:var(--ink-3)}
+
+/* ---------- Code ---------- */
+pre{
+  background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+  padding:16px;overflow-x:auto;font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:13px;line-height:1.6;color:var(--ink);margin:14px 0;
+}
+code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.9em;background:var(--code-bg);padding:1px 5px;border-radius:4px;color:var(--ink)}
+pre code{background:none;padding:0}
+
+/* ---------- Mermaid ---------- */
+pre.mermaid{
+  background:var(--surface);border:1px solid var(--line);
+  padding:20px;text-align:center;overflow-x:auto;
+}
+.fig-cap{font-size:13px;color:var(--ink-3);text-align:center;margin:-4px 0 22px;font-style:italic}
+
+/* ---------- TOC ---------- */
+nav.toc{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 22px;margin:0 0 40px;
+}
+nav.toc h3{margin:0 0 12px;color:var(--ink);font-size:15px;text-transform:uppercase;letter-spacing:.1em}
+nav.toc ol{columns:2;column-gap:28px;padding-left:20px;font-size:14px}
+@media(max-width:620px){nav.toc ol{columns:1}}
+nav.toc a{color:var(--ink-2);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+
+footer{border-top:1px solid var(--line);padding:26px 0 50px;color:var(--ink-3);font-size:13px}
+img{max-width:100%}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Business Requirements Document · Version 2.0</div>
+    <h1>Open Source Islamic Learning Platform</h1>
+    <p>Ek complete, open-source Islamic education marketplace — jahan koi bhi qualified teacher apna course bana sake, live classes le sake, auto-attendance ho, exams ho, fees manage ho aur students ko verified, scholar-reviewed Islamic ilm mile.</p>
+    <div class="meta-row">
+      <span class="pill">Roman Urdu Version</span>
+      <span class="pill">Marketplace + LMS + Live Class</span>
+      <span class="pill">Phase 1 → 2 → 3 Roadmap</span>
+      <span class="pill">12 Flow Charts included</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<nav class="toc">
+  <h3>Document Index</h3>
+  <ol>
+    <li><a href="#s1">Version 2.0 mein kya naya hai</a></li>
+    <li><a href="#s2">Project Overview &amp; Vision</a></li>
+    <li><a href="#s3">Business Model — Marketplace</a></li>
+    <li><a href="#s4">User Roles &amp; Permission Matrix</a></li>
+    <li><a href="#s5">Teacher Onboarding &amp; Verification</a></li>
+    <li><a href="#s6">Course Structure &amp; Catalogue</a></li>
+    <li><a href="#s7">Content Review Workflow</a></li>
+    <li><a href="#s8">Student Journey &amp; Dashboard</a></li>
+    <li><a href="#s9">Live Classes + Auto Attendance</a></li>
+    <li><a href="#s10">Assignments &amp; Homework</a></li>
+    <li><a href="#s11">Tajweed Audio Assessment</a></li>
+    <li><a href="#s12">Exams, Quiz &amp; Certificates</a></li>
+    <li><a href="#s13">Payments, Fees &amp; Teacher Payout</a></li>
+    <li><a href="#s14">Notification System</a></li>
+    <li><a href="#s15">Q&amp;A, Moderation &amp; Reporting</a></li>
+    <li><a href="#s16">Child Safety &amp; Data Privacy</a></li>
+    <li><a href="#s17">Digital Library &amp; Search</a></li>
+    <li><a href="#s17a">Multi-Language System 🆕</a></li>
+    <li><a href="#s19a">Mobile App Strategy 🆕</a></li>
+    <li><a href="#s18">Admin &amp; Analytics</a></li>
+    <li><a href="#s19">Technology Stack</a></li>
+    <li><a href="#s20">Database Schema</a></li>
+    <li><a href="#s21">Complete Flow Charts</a></li>
+    <li><a href="#s22">Phase-wise Roadmap</a></li>
+    <li><a href="#s23">Non-Functional Requirements</a></li>
+    <li><a href="#s24">Risks &amp; Open Questions</a></li>
+  </ol>
+</nav>
+
+<!-- ============ 1 ============ -->
+<section id="s1">
+  <h2><span class="num">Section 01</span>Version 2.0 mein kya naya hai</h2>
+  <p>Aapka original BRD structure aur Islamic curriculum ke lehaz se bohat strong tha. Is version mein woh sab as-is rakha gaya hai, aur 10 missing pieces add kiye gaye hain jo ek <strong>open marketplace</strong> chalane ke liye zaroori hain:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Naya Addition</th><th>Kyun zaroori hai</th><th>Phase</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Teacher Onboarding &amp; Verification</td><td>Open platform hai — bina verification ke koi bhi religious content padha dega. Trust ka sawaal hai.</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>2</td><td>Live Class + Auto Attendance Engine</td><td>Aapki core demand — join/exit time, duration, auto Present/Absent.</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>3</td><td>Payments + Teacher Payout (Split)</td><td>Paid courses hain toh revenue share, settlement aur invoices chahiye.</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>4</td><td>Fee Management Module</td><td>Excel/notebook replace karne ke liye — due, pending, reminders, receipts.</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>5</td><td>Notification System</td><td>WhatsApp replace karne ke liye — in-app + email + WhatsApp/SMS fallback.</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>6</td><td>Homework Submission Cycle</td><td>Submit → review → marks → resubmit ka proper loop.</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>7</td><td>Child Safety &amp; Consent</td><td>Bohat se students bachche hain — guardian consent, recording consent, no off-platform contact.</td><td><span class="tag p1">P1</span></td></tr>
+      <tr><td>8</td><td>Report &amp; Moderation Tools</td><td>Galat masla/content report karne ka raasta.</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>9</td><td>Multi-tenant "Mini Academy" Model</td><td>Har teacher ka apna branded space, apne students, apni fees.</td><td><span class="tag p2">P2</span></td></tr>
+      <tr><td>10</td><td>Non-Functional Requirements + KPIs</td><td>Performance, uptime, backup, success metrics — professional site ke liye must.</td><td><span class="tag p1">P1</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="s2">
+  <h2><span class="num">Section 02</span>Project Overview &amp; Vision</h2>
+
+  <h3>Problem Statement</h3>
+  <p>Aaj ek Islamic teacher ka pura workflow bikhra hua hai. Har kaam alag tool par:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Kaam</th><th>Abhi (Current)</th><th>Platform ke baad</th></tr></thead>
+    <tbody>
+      <tr><td>Student Information</td><td>WhatsApp groups</td><td>Student Directory + Batch Management</td></tr>
+      <tr><td>Class lena</td><td>Google Meet / Zoom</td><td>Built-in Live Class (Jitsi / 100ms)</td></tr>
+      <tr><td>Attendance</td><td>Notebook / Excel</td><td>Auto Attendance Engine (join/exit tracking)</td></tr>
+      <tr><td>Homework</td><td>WhatsApp messages</td><td>Assignment module + submission tracking</td></tr>
+      <tr><td>Audio (Tilawat)</td><td>WhatsApp voice notes</td><td>Audio Recorder + Tajweed feedback markers</td></tr>
+      <tr><td>Fees</td><td>Excel / Notebook</td><td>Fee Module + auto invoice + reminders</td></tr>
+      <tr><td>Tests</td><td>Google Forms</td><td>Quiz/Exam engine + auto grading</td></tr>
+      <tr><td>Progress</td><td>Personal notes</td><td>Progress Dashboard + analytics + report card</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Vision Statement</h3>
+  <div class="card">
+    <p style="margin:0"><strong>"Ek hi platform par pura Islamic madrasa/academy operate ho — teacher sirf padhaye, baaqi sab system sambhale."</strong></p>
+  </div>
+
+  <h3>Target Users</h3>
+  <ul>
+    <li><strong>Learners:</strong> Kids (5–17), Teens, Women, Adults, Aalim/Aalima students, Researchers</li>
+    <li><strong>Educators:</strong> Individual Quran teachers, Madrasa teachers, Aalim/Mufti sahiban, Institutes</li>
+    <li><strong>Institutions:</strong> Chhote madaris jo online jaana chahte hain</li>
+    <li><strong>Contributors:</strong> Open-source developers, translators, content authors, scholar reviewers</li>
+  </ul>
+
+  <h3>Success Criteria — Pehle 12 Mahine</h3>
+  <div class="grid">
+    <div class="card"><h4>500+</h4><p style="margin:0">Registered students</p></div>
+    <div class="card"><h4>50+</h4><p style="margin:0">Verified teachers</p></div>
+    <div class="card"><h4>200+</h4><p style="margin:0">Published courses</p></div>
+    <div class="card"><h4>70%+</h4><p style="margin:0">Live class attendance rate</p></div>
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="s3">
+  <h2><span class="num">Section 03</span>Business Model — Marketplace, na ke simple LMS</h2>
+  <div class="card new">
+    <span class="tag new">Naya</span>
+    <p>Yeh point poori architecture badal deta hai. Jab "koi bhi apna course bana sake" — tab yeh Moodle jaisa single-institution LMS nahi raha, yeh <strong>Udemy + Zoom + Google Classroom</strong> ka Islamic version ban gaya. Iska matlab: multi-tenancy, payments split, aur per-teacher isolation day one se design mein honi chahiye.</p>
+  </div>
+
+  <h3>Revenue Model</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Stream</th><th>Tafseel</th><th>Suggested Rate</th></tr></thead>
+    <tbody>
+      <tr><td>Platform Commission</td><td>Har paid course/fee par platform ka cut</td><td>10–20% (Udemy se kam rakhein — goodwill)</td></tr>
+      <tr><td>Free Courses</td><td>Sadaqah-jariyah model, 0% commission</td><td>Free</td></tr>
+      <tr><td>Institute Plan</td><td>Madrasa apna branded sub-domain le</td><td>Monthly subscription</td></tr>
+      <tr><td>Donations / Waqf</td><td>Platform sustainability ke liye</td><td>Optional</td></tr>
+      <tr><td>Certificate Verification</td><td>Verified certificate issuance</td><td>Optional nominal</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="card note">
+    <strong>Shariah consideration:</strong> Payment gateway, late fee, aur refund policy interest-free (riba-free) honi chahiye. Late fee "penalty interest" ke bajaye simple cancellation/re-enrollment rule rakhein. Yeh baat documentation mein likhna important hai kyunki target audience Islamic hai.
+  </div>
+
+  <h3>Mini Academy Concept</h3>
+  <p>Har teacher ko apna isolated workspace milega:</p>
+  <ul>
+    <li>Apna public profile page — <code>/academy/mufti-abdullah</code></li>
+    <li>Apne courses, apne batches, apne students</li>
+    <li>Apni fee structure aur payout account</li>
+    <li>Apni attendance reports aur analytics</li>
+    <li>Ek teacher dusre teacher ka data <strong>kabhi</strong> na dekh sake (row-level isolation)</li>
+  </ul>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="s4">
+  <h2><span class="num">Section 04</span>User Roles &amp; Permission Matrix</h2>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Permission</th><th>Super Admin</th><th>Academic Admin</th><th>Scholar Reviewer</th><th>Teacher</th><th>TA</th><th>Student</th><th>Parent</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Course create/edit</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="yes">✔ (apna)</td><td class="yes">✔ (draft)</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Course publish approve</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔ (religious check)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Teacher verify</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Live class host</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="yes">✔</td><td class="yes">✔ (co-host)</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Attendance override</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="yes">✔ (apni class)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Marks / grading</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Fee collect / payout</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="yes">✔ (apna)</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Content moderate</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>View child progress</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔ (apna)</td><td class="yes">✔</td></tr>
+      <tr><td>Platform settings</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Additional roles: <strong>Content Author</strong> (sirf lesson content likhe, publish na kar sake), <strong>Moderator</strong> (Q&amp;A aur discussion moderate kare), <strong>Support</strong> (tickets handle kare, data edit na kare).</p>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="s5">
+  <h2><span class="num">Section 05</span>Teacher Onboarding &amp; Verification</h2>
+  <span class="tag new">Naya Section</span>
+
+  <h3>Verification Levels</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Level</th><th>Kya milta hai</th><th>Restrictions</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unverified</strong></td><td>Profile bana sakta hai, draft course bana sakta hai</td><td>Publish nahi kar sakta, paid course nahi, live class nahi</td></tr>
+      <tr><td><strong>Basic Verified</strong><br><span style="font-size:12px">ID + phone + email verified</span></td><td>Free courses publish, live class le sakta hai</td><td>Paid course abhi nahi; max 2 courses</td></tr>
+      <tr><td><strong>Verified Teacher</strong> ✅<br><span style="font-size:12px">Qualification/Ijazah + demo lesson review</span></td><td>Paid courses, unlimited courses, payout enabled, badge</td><td>Religious content phir bhi scholar review se guzarta hai</td></tr>
+      <tr><td><strong>Scholar / Mufti</strong> 🏅<br><span style="font-size:12px">Sanad verified by review board</span></td><td>Fatwa-level Q&amp;A answer, doosron ka content review</td><td>—</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Onboarding Requirements</h3>
+  <ul>
+    <li>Full name, photo, city/country, languages spoken</li>
+    <li>Government ID (masked storage, sirf verification team dekhe)</li>
+    <li>Qualification: Aalim/Alima, Qari, Hafiz, Ijazah scan, Darul Uloom name + sanad year</li>
+    <li>Teaching experience aur specialization (Tajweed / Fiqh / Arabic / Hifz…)</li>
+    <li><strong>Demo lesson</strong> — 5–10 min video ya recorded lesson (quality check)</li>
+    <li>Gender field <strong>mandatory</strong> — Women's Section ke courses sirf female teachers ko assign honge</li>
+    <li>Bank / UPI details (payout ke liye, paid teacher banne par)</li>
+    <li>Agreement: content authenticity undertaking + child safety policy acceptance</li>
+  </ul>
+
+  <div class="card warn">
+    <strong>Probation Rule:</strong> Naye Verified Teacher ke pehle 3 courses aur pehli 5 live classes "monitored" honge — admin recordings aur student feedback review karega. Rating 3.5 se kam ya 2+ valid complaints → verification suspend.
+  </div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="s6">
+  <h2><span class="num">Section 06</span>Course Structure &amp; Catalogue</h2>
+
+  <h3>Content Hierarchy</h3>
+  <pre><code>Course
+ └── Level (Beginner / Intermediate / Advanced)
+      └── Module
+           └── Lesson
+                ├── Video / Audio / PDF / Text
+                ├── Activity (practice)
+                ├── Quiz (5–10 Q)
+                └── Assignment
+      └── Module Test (20–30 Q)
+ ├── Mid-Term Exam
+ ├── Final Exam
+ └── Certificate</code></pre>
+
+  <h3>Course Types</h3>
+  <div class="grid">
+    <div class="card"><h4>Self-Paced</h4><p style="margin:0">Recorded lessons, student apni speed se kare. Koi live class nahi.</p></div>
+    <div class="card"><h4>Live Batch</h4><p style="margin:0">Fixed batch, scheduled live classes, attendance tracked. Ek-to-one ya group.</p></div>
+    <div class="card"><h4>Hybrid</h4><p style="margin:0">Recorded content + weekly live doubt sessions.</p></div>
+    <div class="card"><h4>1-on-1 Tutoring</h4><p style="margin:0">Hifz/Nazra ke liye — personal slot booking, per-session ya monthly fee.</p></div>
+  </div>
+
+  <h3>Departments (original BRD se — as-is)</h3>
+  <ul>
+    <li><strong>Quran:</strong> Noorani Qaida, Nazra Beginner/Intermediate, Tajweed Foundation/Intermediate/Advanced, Hifz-ul-Quran, Quran Revision, Waqf-o-Ibtida, Rasm-ul-Khat, Qira'at Foundation</li>
+    <li><strong>Aqeedah:</strong> Beginner → Intermediate → Advanced, Usool-e-Aqeedah, Ilm-ul-Kalam</li>
+    <li><strong>Fiqh:</strong> Basic Fiqh, Fiqh-e-Ibadat, Intermediate, Advanced, Usool-e-Fiqh, Contemporary Fiqhi Issues</li>
+    <li><strong>Hadith:</strong> 40 Ahadith, Selected Ahadith, Hadith Memorization, Mustalah-ul-Hadith, Usool-e-Hadith, Takhrij Foundation</li>
+    <li><strong>Seerah &amp; History:</strong> Seerah B/I/A, Shamail, Akhlaq-e-Mustafa ﷺ, Khulafa-e-Rashideen, Ahl-e-Bait, Sahaba, Sahabiyat, Islamic Civilization, Muslim Scholars</li>
+    <li><strong>Arabic (6 Levels):</strong> Huroof &amp; basics → Ism/Fi'l/Harf → Sarf → Nahw → Balaghat → Advanced Reading</li>
+    <li><strong>Tafseer:</strong> Basic Translation, Selected Surahs, Usool-e-Tafseer, Uloom-ul-Quran, Classical Tafseer, Methodology, Comparative Tafseer</li>
+    <li><strong>Kids Academy:</strong> Age 5–7, 8–10, 11–13, 14–17 age-appropriate tracks</li>
+    <li><strong>Women's Section:</strong> Fiqh-e-Niswan, Taharat, Haiz, Nifas, Istihaza, Salah, Roza, Nikah, Islamic Parenting, Seerah of Sahabiyat</li>
+    <li><strong>Aalim/Aalima Program:</strong> Foundation → Arabic → Sarf &amp; Nahw → Fiqh &amp; Aqeedah → Hadith → Tafseer → Usool → Advanced → Aalamiyat → Takhassus</li>
+  </ul>
+
+  <div class="card warn">
+    <strong>Important legal/religious note:</strong> "Aalim/Aalima" ki formal degree ka claim sirf tab jab accreditation/authorization ho. Platform ka certificate <strong>"Course Completion Certificate"</strong> kehlaye — degree nahi. Yeh certificate par bhi clearly print ho.
+  </div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="s7">
+  <h2><span class="num">Section 07</span>Content Review Workflow</h2>
+  <p>Har religious lesson par yeh metadata mandatory hai: <strong>Source/Reference, Reviewer Name, Review Date, Version Number, Maslak/School of thought (agar applicable)</strong>.</p>
+
+  <h3>Review Routing Rules</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Content Type</th><th>Review Path</th><th>SLA</th></tr></thead>
+    <tbody>
+      <tr><td>Arabic language, general skills</td><td>Academic Reviewer only</td><td>48 hrs</td></tr>
+      <tr><td>Seerah, History, Kids stories</td><td>Academic Reviewer → Admin</td><td>72 hrs</td></tr>
+      <tr><td>Aqeedah, Fiqh, Hadith, Tafseer</td><td>Academic → <strong>Scholar Review</strong> → Admin</td><td>5–7 days</td></tr>
+      <tr><td>Fiqh-e-Niswan / Sensitive topics</td><td>Academic → Female Scholar Review → Admin</td><td>7 days</td></tr>
+      <tr><td>Fatwa-style Q&amp;A</td><td>Mufti-level reviewer mandatory</td><td>Case by case</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Reviewer ke options: <strong>Approve</strong>, <strong>Approve with edits</strong>, <strong>Request changes</strong> (comment ke saath), <strong>Reject</strong> (reason mandatory). Har change par version number increment ho aur purana version archive mein rahe.</p>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="s8">
+  <h2><span class="num">Section 08</span>Student Journey &amp; Dashboard</h2>
+
+  <h3>Onboarding Flow</h3>
+  <p>Create Account → Age/Gender select → Goal choose (Quran padhna / Hifz / Aalim banna / Arabic seekhna) → Level Assessment quiz → Recommended courses → Enroll (free/paid) → Learn.</p>
+
+  <h3>Student Dashboard Widgets</h3>
+  <div class="grid">
+    <div class="card"><h4>Continue Learning</h4><p style="margin:0">Last lesson se resume, progress bar</p></div>
+    <div class="card"><h4>Aaj ki Classes</h4><p style="margin:0">Live class countdown + Join button</p></div>
+    <div class="card"><h4>Pending Work</h4><p style="margin:0">Homework due, quiz pending, audio resubmit</p></div>
+    <div class="card"><h4>Meri Attendance</h4><p style="margin:0">Month-wise %, present/absent calendar</p></div>
+    <div class="card"><h4>Results</h4><p style="margin:0">Quiz scores, test marks, teacher feedback</p></div>
+    <div class="card"><h4>Fees</h4><p style="margin:0">Paid/due status, next due date, receipts</p></div>
+    <div class="card"><h4>Certificates</h4><p style="margin:0">Earned certificates + verification QR</p></div>
+    <div class="card"><h4>Notes &amp; Bookmarks</h4><p style="margin:0">Personal notes per lesson</p></div>
+  </div>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="s9">
+  <h2><span class="num">Section 09</span>Live Classes + Auto Attendance Engine</h2>
+  <span class="tag new">Aapki Core Requirement</span>
+
+  <h3>9.1 Class Scheduling</h3>
+  <p>Teacher live class banata hai in fields ke saath:</p>
+  <ul>
+    <li>Course + Batch select (batch ke sab enrolled students auto-invite)</li>
+    <li>Title, Date, Start Time, <strong>Duration</strong> (yeh attendance calculation ka base hai)</li>
+    <li><strong>Recurring option</strong> — "Daily", "Mon-Fri", "Weekly", ya custom days</li>
+    <li>Recurring class ki end date = <strong>course ki duration tak automatic</strong> (aapki requirement ke mutabiq)</li>
+    <li>Recording on/off, Chat on/off, Waiting room on/off</li>
+    <li>Attendance threshold % (default 75%, teacher change kar sakta hai)</li>
+  </ul>
+  <p>System pura series generate kar deta hai — agar course 3 mahine ka hai aur daily class hai, toh ~90 class instances ban jaate hain aur sab calendar mein dikhte hain.</p>
+
+  <h3>9.2 Attendance Kaise Calculate Hogi</h3>
+  <p>Yeh pura <strong>automatic</strong> hai — teacher ko kuch mark nahi karna. Video SDK ke join/leave events se hota hai:</p>
+  <ol>
+    <li>Student "Join" dabata hai → backend <code>joinTime</code> record karta hai (ek naya session object)</li>
+    <li>Student nikalta hai (ya net chala gaya) → <code>leaveTime</code> record hota hai, us session ka duration calculate hota hai</li>
+    <li>Wapas aaya? → naya session object add hota hai. Ek student ke multiple sessions ho sakte hain</li>
+    <li>Class khatam → sab sessions ka <code>totalDuration</code> sum hota hai</li>
+    <li><code>attendancePercentage = totalDuration / classDuration × 100</code></li>
+    <li>Status auto-set: <strong>Present</strong> (≥75%), <strong>Partial</strong> (30–74%), <strong>Absent</strong> (&lt;30%)</li>
+  </ol>
+
+  <div class="card note">
+    <strong>Edge cases jo handle karne hain:</strong>
+    <ul style="margin-bottom:0">
+      <li><strong>Browser crash / tab band:</strong> SDK ka <code>disconnect</code> webhook aayega — leaveTime set ho jayega. Agar webhook na aaye toh class end par pending sessions ko auto-close karo (leaveTime = classEndTime ya lastHeartbeat).</li>
+      <li><strong>Heartbeat:</strong> Har 30 second client ek ping bheje. 90 sec tak ping na aaye = disconnected maano.</li>
+      <li><strong>Late join:</strong> Agar student 40 min ki class mein 35 min baad aaya — duration kam hoga, auto Absent. Teacher manual override kar sakta hai (reason ke saath, audit log mein save).</li>
+      <li><strong>Teacher late/absent:</strong> Agar teacher join hi nahi hua, class "Not Conducted" mark ho — kisi student ki attendance affect na ho.</li>
+      <li><strong>Frequent disconnects:</strong> Agar 5+ sessions hain toh flag "Network Unstable" — teacher ko dikhe ke ye jaan-bujh kar nahi gaya tha.</li>
+      <li><strong>Multi-device:</strong> Ek student ka ek hi active session — dusre device se join kare toh pehla disconnect ho.</li>
+    </ul>
+  </div>
+
+  <h3>9.3 Teacher ki Live Attendance View</h3>
+  <p>Class ke dauraan teacher ko real-time table dikhega:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Student</th><th>Status</th><th>Join Time</th><th>Exit Time</th><th>Total</th><th>%</th><th>Flag</th></tr></thead>
+    <tbody>
+      <tr><td>Ahmed Raza</td><td class="yes">🟢 In class</td><td>18:00</td><td>—</td><td>42 min</td><td>100%</td><td>—</td></tr>
+      <tr><td>Fatima Bano</td><td>🟡 Rejoined ×2</td><td>18:02, 18:19</td><td>18:14, —</td><td>35 min</td><td>83%</td><td>Network unstable</td></tr>
+      <tr><td>Bilal Khan</td><td>🔴 Left</td><td>18:00</td><td>18:12</td><td>12 min</td><td>28%</td><td>Early exit</td></tr>
+      <tr><td>Zainab Ali</td><td class="no">⚫ Never joined</td><td>—</td><td>—</td><td>0</td><td>0%</td><td>Absent</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>9.4 Attendance Reports</h3>
+  <ul>
+    <li>Per-student monthly attendance % (report card mein include)</li>
+    <li>Per-class summary — kitne present/partial/absent</li>
+    <li>Batch-level trend graph</li>
+    <li><strong>Export to Excel/PDF</strong> — kyunki madaris ko physical record chahiye hota hai</li>
+    <li>Auto-alert: agar student ki attendance 3 class lagataar absent → parent aur teacher ko notification</li>
+    <li>Attendance certificate/record ko final certificate ki eligibility se link kiya ja sakta hai (min 70% attendance rule)</li>
+  </ul>
+
+  <h3>9.5 Video SDK Options</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Option</th><th>Cost</th><th>Join/Leave Events</th><th>Recommendation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Jitsi (self-hosted)</strong></td><td>Free (server cost only)</td><td>✔ <code>participantJoined</code> / <code>participantLeft</code> via IFrame API + Prosody webhooks</td><td class="yes">Phase 2 start — open-source spirit ke mutabiq</td></tr>
+      <tr><td><strong>100ms</strong></td><td>Free tier 10k min/mo</td><td>✔ Server webhooks, reliable</td><td>Scale par best, India-based</td></tr>
+      <tr><td><strong>LiveKit (self-hosted)</strong></td><td>Free / open-source</td><td>✔ Room events + webhooks</td><td>Strong open-source alternative</td></tr>
+      <tr><td><strong>Agora / Zoom SDK</strong></td><td>Paid</td><td>✔</td><td>Enterprise phase</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="card">
+    <strong>Suggestion:</strong> Attendance logic ko SDK se <em>decouple</em> rakhein. Ek <code>AttendanceService</code> banayein jo sirf <code>onParticipantJoin(classId, userId, time)</code> aur <code>onParticipantLeave(...)</code> events consume kare. Phir SDK badalna ho toh sirf adapter badlega, business logic waisi ki waisi rahegi.
+  </div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="s10">
+  <h2><span class="num">Section 10</span>Assignments &amp; Homework</h2>
+  <span class="tag new">Naya Detail</span>
+  <ul>
+    <li>Teacher assignment banaye: title, instructions, attachment, due date, max marks, submission type (text / file / audio / photo)</li>
+    <li>Student submit kare — file upload (PDF/JPG/DOCX/MP3), size limit 25MB</li>
+    <li>Late submission allowed/blocked — teacher decide kare; late submissions flagged</li>
+    <li>Teacher review kare: marks + written feedback + inline comments + <strong>voice note feedback</strong> (Urdu mein samjhana aasan)</li>
+    <li>Status: <code>Assigned → Submitted → Under Review → Graded</code> ya <code>Resubmit Required</code></li>
+    <li>Resubmission cycle — teacher "Resubmit" bhej sakta hai, attempts count hote rahen</li>
+    <li>Plagiarism/duplicate detection (Phase 3) — same file hash detect ho</li>
+  </ul>
+</section>
+
+<!-- ============ 11 ============ -->
+<section id="s11">
+  <h2><span class="num">Section 11</span>Tajweed Audio Assessment</h2>
+  <p>Yeh platform ki sabse distinctive feature hai — isse achhe se banana competitive advantage hoga.</p>
+  <ul>
+    <li>In-browser recorder (WebRTC / MediaRecorder) — app install ki zaroorat nahi</li>
+    <li>Assigned passage dikhe (Arabic text) — student parhte hue record kare</li>
+    <li>Retry before submit — student khud sun kar dobara record kar sake</li>
+    <li>Teacher waveform player par <strong>timestamp par comment</strong> laga sake — "0:42 par Madd chhoti ho gayi"</li>
+    <li>Structured mistake tags: <span class="tag p2">Makharij</span> <span class="tag p2">Madd</span> <span class="tag p2">Ghunnah</span> <span class="tag p2">Qalqalah</span> <span class="tag p2">Waqf</span> <span class="tag p2">Ikhfa</span> <span class="tag p2">Idgham</span></li>
+    <li>Teacher apni correct recitation ka <strong>model audio</strong> reply mein bhej sake</li>
+    <li>Progress tracking: kaunsi mistake bar bar aa rahi hai — analytics mein dikhe</li>
+    <li>Hifz mode: Sabaq / Sabqi / Manzil ka daily record (madrasa terminology use karein — teachers ko familiar lagega)</li>
+  </ul>
+</section>
+
+<!-- ============ 12 ============ -->
+<section id="s12">
+  <h2><span class="num">Section 12</span>Exams, Quiz &amp; Certificates</h2>
+  <h3>Question Types</h3>
+  <p>MCQ, True/False, Fill in the blanks, Match the following, Short answer (manual grading), Long answer/essay (manual), Arabic text input (Arabic keyboard support), Audio answer (recitation).</p>
+
+  <h3>Exam Controls</h3>
+  <ul>
+    <li>Time limit, question randomization, option shuffling, question bank se random selection</li>
+    <li>Attempt limits, negative marking on/off, passing percentage</li>
+    <li>Result show: immediately / after teacher review / on a scheduled date</li>
+    <li>Anti-cheat (basic): tab-switch detection, copy-paste disable, full-screen enforce — Phase 3 mein proctoring</li>
+  </ul>
+
+  <h3>Certificate</h3>
+  <p>Fields: Student Name, Course, Duration, Completion Date, Grade, <strong>Certificate ID</strong>, Verification QR, Issuing Teacher/Academy, Platform logo. Public verification URL: <code>/verify/CERT-2026-00123</code>.</p>
+  <p><strong>Eligibility rule:</strong> Lessons ≥90% complete + Final exam pass + Attendance ≥70% (live batch ke liye) + Fees cleared.</p>
+</section>
+
+<!-- ============ 13 ============ -->
+<section id="s13">
+  <h2><span class="num">Section 13</span>Payments, Fees &amp; Teacher Payout</h2>
+  <span class="tag new">Naya Section</span>
+
+  <h3>13.1 Fee Models (teacher choose kare)</h3>
+  <div class="grid">
+    <div class="card"><h4>Free</h4><p style="margin:0">Sadaqah jariyah, 0% commission</p></div>
+    <div class="card"><h4>One-time</h4><p style="margin:0">Pura course ek baar mein kharida</p></div>
+    <div class="card"><h4>Monthly</h4><p style="margin:0">Madrasa style — har mahine fees</p></div>
+    <div class="card"><h4>Per Session</h4><p style="margin:0">1-on-1 Hifz/Nazra tutoring</p></div>
+    <div class="card"><h4>Installments</h4><p style="margin:0">Lambe Aalim course ke liye</p></div>
+    <div class="card"><h4>Scholarship</h4><p style="margin:0">Teacher/admin waiver de sake — zakat/sponsor based</p></div>
+  </div>
+
+  <h3>13.2 Split Payment Architecture</h3>
+  <p>Student ka paisa direct teacher ke account mein nahi jayega — platform escrow mein aayega, phir split hoga. <strong>Razorpay Route</strong> ya <strong>Stripe Connect</strong> is ke liye designed hain.</p>
+  <pre><code>Student pays ₹1000
+   ↓
+Payment Gateway (Razorpay Route)
+   ↓
+Escrow hold — 7 days (refund window)
+   ↓
+Auto Split:
+   ₹850  →  Teacher's linked account   (85%)
+   ₹150  →  Platform account           (15%)
+   ↓
+Payout to teacher bank/UPI — weekly settlement cycle</code></pre>
+
+  <h3>13.3 Teacher Payout Dashboard</h3>
+  <ul>
+    <li>Total earnings, this month, pending clearance, available for payout, paid out</li>
+    <li>Transaction-wise breakdown (kaunse student ne kab pay kiya)</li>
+    <li>Settlement schedule + payout history + downloadable statement</li>
+    <li>KYC status, bank/UPI management, TDS/tax info field (India ke liye)</li>
+    <li>Minimum payout threshold (e.g. ₹500)</li>
+  </ul>
+
+  <h3>13.4 Fee Management (Excel replacement)</h3>
+  <ul>
+    <li>Student-wise fee ledger — kitna due, kitna paid, next due date</li>
+    <li>Auto invoice + receipt generation (PDF, downloadable)</li>
+    <li>Payment reminders: 5 days before, on due date, 3 days after</li>
+    <li>Offline payment entry — teacher cash/UPI-direct receive kare toh manually mark kar sake</li>
+    <li>Defaulter list + optional access restriction after X days overdue</li>
+    <li>Bulk fee report export (month-wise, batch-wise)</li>
+  </ul>
+
+  <h3>13.5 Refund Policy (system-enforced)</h3>
+  <ul>
+    <li>First 7 days aur &lt;20% content consumed → full refund</li>
+    <li>Iske baad → pro-rata ya no refund (course page par clearly likha ho)</li>
+    <li>Live class cancel by teacher → us session ka credit ya reschedule</li>
+    <li>Dispute case → admin manual review</li>
+  </ul>
+</section>
+
+<!-- ============ 14 ============ -->
+<section id="s14">
+  <h2><span class="num">Section 14</span>Notification System</h2>
+  <span class="tag new">Naya Section</span>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Event</th><th>Kisko</th><th>Channel</th><th>Timing</th></tr></thead>
+    <tbody>
+      <tr><td>Live class reminder</td><td>Student, Parent</td><td>In-app + Push + WhatsApp</td><td>1 din pehle + 15 min pehle</td></tr>
+      <tr><td>Class started</td><td>Student</td><td>Push</td><td>Turant</td></tr>
+      <tr><td>Class cancelled/rescheduled</td><td>Student, Parent</td><td>All channels</td><td>Turant</td></tr>
+      <tr><td>New homework assigned</td><td>Student</td><td>In-app + Email</td><td>Turant</td></tr>
+      <tr><td>Homework due</td><td>Student</td><td>Push</td><td>24 hrs pehle</td></tr>
+      <tr><td>Graded / feedback mila</td><td>Student, Parent</td><td>In-app + Email</td><td>Turant</td></tr>
+      <tr><td>Audio feedback ready</td><td>Student</td><td>Push</td><td>Turant</td></tr>
+      <tr><td>Fee due reminder</td><td>Student, Parent</td><td>Email + WhatsApp</td><td>5 din pehle, due date, +3 din</td></tr>
+      <tr><td>Payment received</td><td>Student, Teacher</td><td>Email (receipt)</td><td>Turant</td></tr>
+      <tr><td>3 classes absent</td><td>Parent, Teacher</td><td>Email + WhatsApp</td><td>Auto trigger</td></tr>
+      <tr><td>Course approved/rejected</td><td>Teacher</td><td>In-app + Email</td><td>Turant</td></tr>
+      <tr><td>New enrollment</td><td>Teacher</td><td>In-app</td><td>Turant</td></tr>
+      <tr><td>Payout processed</td><td>Teacher</td><td>Email + SMS</td><td>Turant</td></tr>
+      <tr><td>Certificate issued</td><td>Student, Parent</td><td>Email</td><td>Turant</td></tr>
+      <tr><td>Weekly progress digest</td><td>Parent</td><td>Email</td><td>Har Sunday</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Zaroori:</strong> Har user ke paas notification preferences page ho — kaunsa channel on/off. Quiet hours support. WhatsApp ke liye official Business API use karein (personal numbers nahi).</p>
+</section>
+
+<!-- ============ 15 ============ -->
+<section id="s15">
+  <h2><span class="num">Section 15</span>Q&amp;A, Moderation &amp; Reporting</h2>
+  <ul>
+    <li>Lesson-level "Ask a Question" — teacher reply kare, dusre students bhi dekh sakein</li>
+    <li>General Q&amp;A forum — subject-wise categorized</li>
+    <li><strong>Scholar Review Required</strong> flag — Aqeedah/Fiqh ke serious sawalaat pehle scholar ke paas jaayein, phir public ho</li>
+    <li><strong>Report button</strong> (naya) — har question, answer, comment, course aur teacher par. Reasons: Galat masla / Gair-mustanad hawala / Abusive / Spam / Sectarian attack / Child safety concern</li>
+    <li>Moderation queue admin panel mein — pending reports, action history</li>
+    <li>Actions: Hide content, warn user, suspend, ban, escalate to scholar board</li>
+    <li>Auto-filter: abusive words, phone numbers/emails (off-platform contact rokne ke liye), external links</li>
+    <li><strong>Sectarian conflict policy:</strong> Platform ek clear policy page rakhe — differences of opinion respectfully present ho, takfeeri/abusive content strictly banned</li>
+  </ul>
+</section>
+
+<!-- ============ 16 ============ -->
+<section id="s16">
+  <h2><span class="num">Section 16</span>Child Safety &amp; Data Privacy</h2>
+  <span class="tag new">Naya Section — Critical</span>
+  <ul>
+    <li><strong>Under-13:</strong> Guardian email mandatory, account guardian ke through create ho, verifiable consent</li>
+    <li><strong>Under-18:</strong> Parent dashboard access, contact details hidden from other users</li>
+    <li><strong>Live class recording consent</strong> — enrollment ke waqt explicit checkbox; recording notice class start par dikhe</li>
+    <li><strong>No private DM</strong> between teacher and minor student — sab communication course/class context mein, logged aur parent-visible</li>
+    <li>Phone number / email masking — platform ke bahar contact share karna auto-detect aur block ho</li>
+    <li>1-on-1 classes with minors → recording mandatory + parent ko access</li>
+    <li>Teacher background check declaration + child safety policy signature</li>
+    <li><strong>Female students/teachers:</strong> gender-based class filtering option, camera-off allowed policy, female-only batches</li>
+    <li>Data: encryption at rest &amp; in transit, right to delete account + data, data export (GDPR-style), minimal data collection</li>
+    <li>Audit log — kaun kis data ko kab access kiya</li>
+  </ul>
+</section>
+
+<!-- ============ 17 ============ -->
+<section id="s17">
+  <h2><span class="num">Section 17</span>Digital Library &amp; Search</h2>
+  <ul>
+    <li>Categories: Quran, Tafseer, Hadith, Fiqh, Aqeedah, Arabic, Seerah, History, Urdu Books, Research Papers</li>
+    <li>Har resource ke saath: Author, Language, Subject, Edition, Source, <strong>Copyright/License</strong>, Upload date, Uploader</li>
+    <li><strong>Copyright gate:</strong> Upload ke waqt license declare karna mandatory. Har kitab open-source nahi hoti — copyrighted material bina permission upload na ho. DMCA-style takedown process ho.</li>
+    <li>Search: Course, Lesson, Article, Book, Video, Quiz sab mein — filters: Subject, Level, Language, Format, Author/Scholar, Price (Free/Paid), Rating, Live/Self-paced</li>
+    <li>Arabic-aware search (diacritics ignore kare, root-word matching — Phase 3)</li>
+    <li>Multi-language: Phase 1 mein Urdu + Roman Urdu + English. Phase 3: Hindi, Arabic, Bengali, Gujarati, Malayalam, Tamil</li>
+  </ul>
+</section>
+
+<!-- ============ 17A ============ -->
+<section id="s17a">
+  <h2><span class="num">Section 17A</span>Multi-Language System</h2>
+  <span class="tag new">Naya Section</span>
+  <p>User ko shuruaat mein hi apni zaban chunne ka option milega, aur woh kabhi bhi header ke language switcher se badal sakta hai. Lekin ek cheez samajhna zaroori hai — "language" ke yahan <strong>teen alag alag layers</strong> hain, aur teenon ko mila dena sabse badi galti hoti hai.</p>
+
+  <h3>17A.1 Teen Layers</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Layer</th><th>Matlab</th><th>Misaal</th><th>Kaise handle hoga</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. UI Language</strong></td><td>Website ke buttons, menu, labels, error messages</td><td>"Enroll Now" → "داخلہ لیں" → "Dakhla Lein"</td><td>i18n JSON locale files — ek baar translate, sab jagah chale</td></tr>
+      <tr><td><strong>2. Content Language</strong></td><td>Course ka title, description, lesson notes, quiz questions</td><td>Ek hi Tajweed course Urdu aur English dono mein</td><td>Database mein per-language translation rows</td></tr>
+      <tr><td><strong>3. Teaching Language</strong></td><td>Teacher live class ya video mein kaunsi zaban bol raha hai</td><td>Video Urdu mein hai, subtitles English mein</td><td>Course par tag + subtitle files</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="card note">
+    <strong>Zaroori baat:</strong> UI Hindi mein ho sakti hai lekin course ki video Urdu mein hi rahegi — dono alag hain. Isiliye course catalogue mein <strong>"Taught in: Urdu"</strong> filter alag se hona chahiye, warna Hindi user Urdu course mein enroll kar ke pareshan hoga.
+  </div>
+
+  <h3>17A.2 Supported Languages — Phase-wise</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Phase</th><th>Languages</th><th>Script / Direction</th><th>Kyun</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag p1">P1</span></td><td><strong>English</strong></td><td>Latin, LTR</td><td>Default fallback — jo translate na ho, English dikhe</td></tr>
+      <tr><td><span class="tag p1">P1</span></td><td><strong>Roman Urdu</strong></td><td>Latin, LTR</td><td>India/Pak ke zyada tar users isi mein comfortable hain</td></tr>
+      <tr><td><span class="tag p1">P1</span></td><td><strong>Urdu (اردو)</strong></td><td>Nastaliq, <strong>RTL</strong></td><td>Core audience ki zaban</td></tr>
+      <tr><td><span class="tag p2">P2</span></td><td><strong>Hindi (हिन्दी)</strong></td><td>Devanagari, LTR</td><td>India mein bohat bada base — khaas kar non-madrasa background</td></tr>
+      <tr><td><span class="tag p2">P2</span></td><td><strong>Arabic (العربية)</strong></td><td>Naskh, <strong>RTL</strong></td><td>Gulf + original texts</td></tr>
+      <tr><td><span class="tag p2">P2</span></td><td><strong>Bengali (বাংলা)</strong></td><td>Bengali, LTR</td><td>Bangladesh + West Bengal — huge Muslim population</td></tr>
+      <tr><td><span class="tag p3">P3</span></td><td><strong>Tamil (தமிழ்)</strong></td><td>Tamil, LTR</td><td>Tamil Nadu + Sri Lanka Muslim community</td></tr>
+      <tr><td><span class="tag p3">P3</span></td><td><strong>Telugu (తెలుగు)</strong></td><td>Telugu, LTR</td><td>Hyderabad/Andhra — bohat strong Islamic education base</td></tr>
+      <tr><td><span class="tag p3">P3</span></td><td><strong>Malayalam (മലയാളം)</strong></td><td>Malayalam, LTR</td><td>Kerala — India ka sabse active Islamic learning region</td></tr>
+      <tr><td><span class="tag p3">P3</span></td><td><strong>Gujarati (ગુજરાતી)</strong></td><td>Gujarati, LTR</td><td>Gujarat + Bohra/Memon community</td></tr>
+      <tr><td><span class="tag p3">P3</span></td><td>Marathi, Kannada, Assamese</td><td>LTR</td><td>Regional expansion</td></tr>
+      <tr><td><span class="tag p3">P3</span></td><td>Turkish, Indonesian, French, Swahili</td><td>LTR</td><td>Global ummah — agar international jaana ho</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>17A.3 Language Kaise Select Hogi</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["User pehli baar site par aaya"]) --> B["Browser language detect karo<br/>Accept-Language header"]
+    B --> C{"Supported language hai?"}
+    C -->|Haan| D["Wahi language default set karo"]
+    C -->|Nahi| E["English default"]
+    D --> F["Welcome screen par language chooser dikhao<br/>flags + native script mein naam"]
+    E --> F
+
+    F --> G["User select kare: Urdu / Roman Urdu / English /<br/>Hindi / Arabic / Bengali / Tamil / Telugu ..."]
+    G --> H{"Logged in hai?"}
+    H -->|Haan| I["users.preferred_language mein save"]
+    H -->|Nahi| J["Cookie + localStorage mein save"]
+
+    I --> K{"RTL language hai?<br/>Urdu / Arabic"}
+    J --> K
+    K -->|Haan| L["dir=rtl lagao + Nastaliq/Naskh font load<br/>+ layout mirror"]
+    K -->|Nahi| M["dir=ltr + normal font"]
+
+    L --> N["UI strings us locale se load ho"]
+    M --> N
+    N --> O{"Course content us language mein maujood hai?"}
+    O -->|Haan| P["Translated content dikhao"]
+    O -->|Nahi| Q["Fallback: English/Urdu dikhao<br/>+ badge: 'Is language mein available nahi'"]
+
+    P --> R["Course catalogue filter:<br/>'Taught in' language ke hisaab se"]
+    Q --> R
+    R --> S(["User apni zaban mein seekh raha hai"])
+
+    T["Header ka language switcher"] --> G
+</pre>
+  <p class="fig-cap">Fig 16 — Language detection, selection aur fallback ka pura flow</p>
+
+  <h3>17A.4 Technical Requirements</h3>
+  <ul>
+    <li><strong>i18n library:</strong> <code>next-intl</code> ya <code>i18next</code> — har string JSON locale file mein (<code>/locales/ur.json</code>, <code>/locales/hi.json</code>…). Code mein koi hardcoded text na ho.</li>
+    <li><strong>URL structure:</strong> <code>/ur/courses/tajweed</code>, <code>/hi/courses/tajweed</code> — SEO ke liye har language ka apna URL, aur <code>hreflang</code> tags lagein.</li>
+    <li><strong>RTL support:</strong> Urdu/Arabic ke liye <code>dir="rtl"</code>, CSS logical properties use karein (<code>margin-inline-start</code> na ke <code>margin-left</code>) — warna layout ulta ho jayega.</li>
+    <li><strong>Fonts:</strong> Noto Nastaliq Urdu (Urdu), Amiri / KFGQPC Uthmanic (Quranic text), Noto Sans Devanagari/Bengali/Tamil/Telugu/Malayalam. Font subsetting karein warna page bhari ho jayega.</li>
+    <li><strong>Quranic text hamesha Arabic mein hi rahega</strong> — sirf tarjuma aur tafseer translate honge. Ye rule system mein enforce ho.</li>
+    <li><strong>Numbers &amp; dates:</strong> Arabic-Indic numerals option (١٢٣) + <strong>Hijri calendar</strong> support ke saath Gregorian.</li>
+    <li><strong>Video subtitles:</strong> Har lesson video ke saath multiple <code>.vtt</code> subtitle files attach ho sakein.</li>
+    <li><strong>Search:</strong> Har language ka apna text-search index; Arabic mein diacritics ignore karna.</li>
+  </ul>
+
+  <h3>17A.5 Content Translation Policy</h3>
+  <div class="card warn">
+    <strong>Bohat zaroori rule:</strong> Religious content <strong>machine translation se kabhi publish na ho</strong>. Google Translate "Sunnah" ka tarjuma kuch bhi kar sakta hai. Har translation scholar review se guzre — ya kam az kam ek native speaker Islamic reviewer se.
+  </div>
+  <ul>
+    <li>Teacher apna course ek primary language mein banaye</li>
+    <li>Translation ek alag workflow ho: <strong>Translator → Reviewer → Publish</strong> (content review jaisa hi)</li>
+    <li>AI se <em>draft</em> translation ban sakti hai (time bachane ke liye), lekin human review ke bina publish nahi</li>
+    <li><strong>Open-source community translation:</strong> Weblate/Crowdin jaisa setup — volunteers UI translate karein, maintainer approve kare. Ye aapke open-source model ke saath perfect fit hai.</li>
+    <li>Har translation par credit: "Translated by ___, Reviewed by ___"</li>
+  </ul>
+
+  <h3>17A.6 Database Design</h3>
+  <pre><code>languages
+  code (ur, en, ur-Latn, hi, ar, bn, ta, te, ml, gu),
+  name_native, name_english, direction (ltr|rtl),
+  font_family, is_active, phase
+
+users
+  ... preferred_language, secondary_languages[]
+
+courses
+  ... primary_language, taught_in_language,
+      available_languages[]        -- kis kis mein translated hai
+
+course_translations              -- ek course ke multiple language versions
+  id, course_id, language_code,
+  title, description, learning_outcomes,
+  translated_by, reviewed_by, status, updated_at
+
+lesson_translations
+  id, lesson_id, language_code, title, content_text,
+  notes_pdf_url, subtitle_vtt_url,
+  translated_by, reviewed_by, status
+
+quiz_translations
+  id, question_id, language_code, question_text, options(jsonb)</code></pre>
+  <div class="card">
+    <strong>Practical suggestion:</strong> Phase 1 mein sirf <strong>English + Roman Urdu + Urdu</strong> karein, lekin database aur code din-1 se multi-language ready banayein (translation tables, i18n files, RTL CSS). Baad mein language add karna sirf data entry ka kaam rahega — code dobara likhna nahi padega. Agar ye shuru mein nahi kiya toh baad mein pura refactor karna padta hai, aur wo mahino ka kaam ban jaata hai.
+  </div>
+</section>
+
+<!-- ============ 18 ============ -->
+<section id="s18">
+  <h2><span class="num">Section 18</span>Admin Dashboard &amp; Analytics</h2>
+  <ul>
+    <li><strong>Users:</strong> Students, Teachers (verification queue), Reviewers, Moderators, Parents — search, filter, suspend, impersonate (audit-logged)</li>
+    <li><strong>Courses:</strong> Draft / In Review / Published / Archived / Rejected — bulk actions</li>
+    <li><strong>Finance:</strong> GMV, commission earned, pending payouts, refunds, failed payments</li>
+    <li><strong>Academic Analytics:</strong> Enrollments, active students, completion rate, quiz performance, drop-off points (kaunse lesson par students chhod dete hain)</li>
+    <li><strong>Live Class Analytics:</strong> classes conducted, avg attendance %, avg duration, no-show rate</li>
+    <li><strong>Moderation:</strong> open reports, resolved, avg resolution time</li>
+    <li><strong>System health:</strong> errors, uptime, storage usage, video minutes consumed</li>
+  </ul>
+</section>
+
+<!-- ============ 19 ============ -->
+<section id="s19">
+  <h2><span class="num">Section 19</span>Technology Stack</h2>
+
+  <h3>Build vs Customize</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th></th><th>Moodle / Open edX customize</th><th>Custom build</th></tr></thead>
+    <tbody>
+      <tr><td>Speed to MVP</td><td class="yes">Fast (weeks)</td><td>Slow (months)</td></tr>
+      <tr><td>Marketplace + split payments</td><td class="no">Bohat mushkil — Moodle single-institution ke liye bana hai</td><td class="yes">Natural fit</td></tr>
+      <tr><td>Auto attendance custom logic</td><td class="no">Plugin fight</td><td class="yes">Full control</td></tr>
+      <tr><td>Tajweed audio workflow</td><td class="no">Custom plugin banana hi padega</td><td class="yes">Native</td></tr>
+      <tr><td>Modern UI/UX + mobile</td><td class="no">Legacy feel</td><td class="yes">Full control</td></tr>
+      <tr><td>Long-term maintenance</td><td>Upgrade conflicts</td><td class="yes">Aapka code</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="card">
+    <strong>Recommendation:</strong> <strong>Custom build</strong> karein. Aapke 3 core differentiators (marketplace payments, auto-attendance, Tajweed audio) — teenon Moodle mein fight hain. Lekin components open-source use karein (Jitsi/LiveKit, Postgres, Next.js) taaki wheel reinvent na ho.
+  </div>
+
+  <h3>Suggested Stack</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Layer</th><th>Choice</th><th>Kyun</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>Next.js (React) + TypeScript + Tailwind</td><td>SEO (courses Google par aayein), fast, PWA-ready</td></tr>
+      <tr><td>Backend</td><td>Node.js (NestJS) ya Django</td><td>NestJS agar full-TS chahiye; Django agar admin panel fast chahiye</td></tr>
+      <tr><td>Database</td><td><strong>PostgreSQL</strong></td><td>Relational data (enrollments, attendance, payments) — transactions zaroori hain. Mongo yahan risky hai.</td></tr>
+      <tr><td>Cache / Queue</td><td>Redis + BullMQ</td><td>Notifications, attendance finalization, video processing jobs</td></tr>
+      <tr><td>Realtime</td><td>Socket.io / Pusher</td><td>Live attendance board, in-class chat</td></tr>
+      <tr><td>Video (Live)</td><td>Jitsi self-hosted → 100ms/LiveKit</td><td>Cost control + join/leave webhooks</td></tr>
+      <tr><td>Video (Recorded)</td><td>Cloudflare Stream / Bunny.net</td><td>Sasta, DRM-ish protection, India CDN</td></tr>
+      <tr><td>Storage</td><td>S3-compatible (Cloudflare R2)</td><td>Audio/PDF — egress free</td></tr>
+      <tr><td>Payments</td><td>Razorpay Route (+ Stripe Connect global)</td><td>Split payment native support</td></tr>
+      <tr><td>Auth</td><td>JWT + refresh, OTP login</td><td>Phone-based OTP — India mein easiest</td></tr>
+      <tr><td>Search</td><td>Postgres full-text → Meilisearch</td><td>Shuru mein simple, baad mein upgrade</td></tr>
+      <tr><td>Notifications</td><td>FCM (push) + Resend/SES (email) + WhatsApp Business API</td><td>—</td></tr>
+      <tr><td>Hosting</td><td>VPS (Hetzner/DigitalOcean) + Docker</td><td>Cost-effective, open-source friendly</td></tr>
+      <tr><td>Monitoring</td><td>Sentry + Uptime Kuma + Grafana</td><td>Sab open-source</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 19A ============ -->
+<section id="s19a">
+  <h2><span class="num">Section 19A</span>Mobile App Strategy</h2>
+  <span class="tag new">Naya Section</span>
+  <p><strong>Seedha jawab: haan, bilkul ban sakta hai</strong> — YouTube/Facebook ki tarah Play Store aur App Store dono par. Aur ye koi alag project nahi hoga, wahi backend aur wahi API use hoga. Sirf frontend naya banega.</p>
+
+  <div class="card note">
+    Isi liye Section 19 mein backend ko <strong>API-first</strong> rakha gaya hai. Jab website API se baat karti hai, toh mobile app bhi usi API se baat kar leta hai. Agar backend aur frontend ko mila diya jaye (jaise purane PHP sites mein hota tha), toh app banane ke liye poora backend dobara likhna padta hai.
+  </div>
+
+  <h3>19A.1 Teen Raste — Kaunsa Kab</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th></th><th>PWA</th><th>React Native</th><th>Native (Kotlin/Swift)</th></tr></thead>
+    <tbody>
+      <tr><td>Kaam kitna</td><td class="yes">Website hi app ban jaati hai — ~1 hafta</td><td>Ek codebase, dono platform — 2-3 mahine</td><td class="no">Android + iOS alag alag — 5-6 mahine</td></tr>
+      <tr><td>Play Store / App Store</td><td>Play Store par ja sakta hai (TWA), App Store mushkil</td><td class="yes">Dono par</td><td class="yes">Dono par</td></tr>
+      <tr><td>Push notifications</td><td>Android ✔ / iOS limited</td><td class="yes">Dono full</td><td class="yes">Dono full</td></tr>
+      <tr><td>Offline lesson download</td><td>Basic</td><td class="yes">Full</td><td class="yes">Full</td></tr>
+      <tr><td>Background audio<br/><span style="font-size:12px">screen off kar ke tilawat sunna</span></td><td class="no">Nahi chalega</td><td class="yes">Chalega</td><td class="yes">Chalega</td></tr>
+      <tr><td>Live class video quality</td><td>Theek</td><td class="yes">Behtar</td><td class="yes">Best</td></tr>
+      <tr><td>Cost</td><td class="yes">Almost zero</td><td>Medium</td><td class="no">High</td></tr>
+      <tr><td><strong>Kab karein</strong></td><td><span class="tag p2">Phase 2</span></td><td><span class="tag p3">Phase 3</span></td><td>Zaroorat nahi</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>19A.2 Recommended Plan</h3>
+  <ol>
+    <li><strong>Phase 1–2: PWA</strong> — website ko installable banao. User "Add to Home Screen" kare toh icon aa jayega, app jaisa khulega. Bohat kam mehnat, foran result.</li>
+    <li><strong>Phase 2 end: Play Store par TWA</strong> — PWA ko ek wrapper mein daal kar Play Store par list kar do. Log "app download" kar sakenge, trust bhi badhega. 2-3 din ka kaam.</li>
+    <li><strong>Phase 3: React Native app</strong> — jab 2,000+ active users ho jayein aur log offline download, background audio, better notifications maangne lagein — tab proper app banao, Play Store + App Store dono par.</li>
+  </ol>
+  <div class="card">
+    <strong>Mera mashwara:</strong> Pehle din se app banane ki koshish mat karein. Pehle website chalao, real users lao, dekho log kya maang rahe hain — phir app banao. App pehle banane wale zyada tar projects isi liye ruk jaate hain ke do cheezein ek saath maintain karna mushkil ho jaata hai.
+  </div>
+
+  <h3>19A.3 App mein kya extra hoga</h3>
+  <ul>
+    <li><strong>Offline lessons</strong> — video/audio download kar ke bina internet dekhna (village/low-data users ke liye game changer)</li>
+    <li><strong>Background tilawat</strong> — phone jeb mein, screen band, audio chalta rahe</li>
+    <li><strong>Reliable push</strong> — "Aapki class 15 min mein shuru" wala reminder WhatsApp se behtar pahunchega</li>
+    <li><strong>Namaz timings + Qibla</strong> (optional but users ko bohat pasand aata hai)</li>
+    <li><strong>Hifz tracker widget</strong> — home screen par aaj ka sabaq</li>
+    <li><strong>Biometric login</strong> — fingerprint se</li>
+    <li><strong>Voice recording</strong> native quality mein — Tajweed submission ke liye behtar</li>
+  </ul>
+
+  <h3>19A.4 Ek Bohat Zaroori Warning — App Store Commission</h3>
+  <div class="card warn">
+    <p><strong>Google Play aur Apple App Store digital course ki sale par 15–30% commission lete hain</strong> agar payment app ke andar ho. Aapka platform khud 15% le raha hai — agar upar se Apple 30% le le, toh teacher ke paas kuch nahi bachega.</p>
+    <p style="margin-bottom:0"><strong>Solution (jo Udemy, Netflix, Spotify sab karte hain):</strong> App ke andar course "kharidne" ka button mat rakho. App sirf <em>consumption</em> ke liye ho — jo course already kharida hua hai wo dekho, live class join karo, homework do. Purchase website par ho. App mein sirf itna likho ke "aap website par enroll kar sakte hain" — lekin direct link mat do (Apple ki policy strict hai is par).</p>
+  </div>
+  <p>Free courses aur live classes app mein bilkul kaam karenge — sirf paid enrollment ka checkout web par rahega.</p>
+
+  <h3>19A.4A Ye Commission Lagta Kyun Hai — Aur Bachne Ka Tareeqa</h3>
+  <span class="tag new">Naya — Clarification</span>
+  <p>Sawaal uthta hai: database, server, app — sab kuch apna hai, toh Google/Apple beech mein commission kyun le rahe hain? Wajah simple hai — <strong>woh backend ka nahi, apne Distribution Store (App Store/Play Store) ka commission lete hain.</strong></p>
+  <ul>
+    <li><strong>Distribution channel unka hai:</strong> iPhone/Android user sirf unke store se app install kar sakta hai. List hona hai toh unke rules maanne padenge.</li>
+    <li><strong>In-App Purchase (IAP) rule:</strong> Agar koi <em>digital content/service</em> (course, subscription) app ke andar khareeda jaata hai, toh transaction unke apne payment system (Apple IAP / Google Play Billing) se guzarna mandatory hai — Razorpay/Stripe seedha app ke andar allowed nahi. Unka payment system use karne ka matlab unka 15–30% commission automatic kat jaata hai.</li>
+    <li><strong>Rule sirf digital goods par hai, physical par nahi:</strong> Isiliye Uber/Zomato/Amazon commission nahi dete (physical delivery hai), lekin Netflix/Spotify/Udemy jaisi digital content company ko dena padta hai.</li>
+  </ul>
+
+  <h4>Netflix/Spotify jaisa "Reader App" tareeqa — bachne ka solution</h4>
+  <p>Apple ne 2022 mein kuch categories (video, music, magazines, aur <strong>education/EdTech</strong> bhi) ko chhoot di thi — woh account/purchase external website par manage karne ka mention kar sakti hain, bas app ke andar seedha "Buy" button ya external payment link nahi de sakti.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>App mein kya karna hai</th><th>Allowed / Not Allowed</th></tr></thead>
+    <tbody>
+      <tr><td>Free course dekhna, live class join karna, homework submit, attendance/progress dekhna</td><td class="yes">✔ Allowed — koi commission nahi</td></tr>
+      <tr><td>App ke andar seedha "₹1000 pay karo" button + Razorpay/UPI checkout</td><td class="no">✘ Not Allowed — app reject/remove ho sakti hai</td></tr>
+      <tr><td>App mein sirf itna likhna: "Naya course lena hai? Humari website par enroll karein" (bina direct clickable payment link ke)</td><td class="yes">✔ Allowed — "Reader App" exemption</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="card new">
+    <span class="tag new">Strategy — Commission se bachne ka plan</span>
+    <ul style="margin-bottom:0">
+      <li><strong>Website/PWA par koi restriction nahi</strong> — seedha Razorpay Route use karo, apna 100% control, koi third-party cut nahi. Isiliye pehle website se shuru karna sahi decision hai.</li>
+      <li><strong>Native app sirf "consumption" ke liye</strong> banayein — jo already khareeda hua hai wahi dekhna, live class, homework, attendance. Purchase flow app mein bilkul na rakhein.</li>
+      <li><strong>Paid enrollment ka checkout hamesha website/browser mein</strong> ho — app se "Continue on website" par tap kare, browser khule, wahan pay kare, wapas app mein aaye.</li>
+      <li>Free courses, live classes, aur pehle se enroll kiye hue paid courses — sab app ke andar bina kisi restriction ke chalte rahenge.</li>
+      <li>Architecture din-1 se aisi banayein ke <strong>payment logic app se independent</strong> ho (sirf website/API se trigger ho) — taaki baad mein app store rejection ka risk na aaye.</li>
+    </ul>
+  </div>
+
+  <h3>19A.5 App Store Approval ke liye dhyan rakhne wali baatein</h3>
+  <ul>
+    <li><strong>User-generated content</strong> hai (koi bhi course bana sakta hai) — Apple ko report/block mechanism chahiye. Achhi baat ye hai ke Section 15 mein wo already hai.</li>
+    <li><strong>Kids ke liye app</strong> — agar 13 se kam age ke users hain toh "Kids Category" ke strict rules apply honge (no ads, no external links, parental gate)</li>
+    <li>Account deletion app ke andar se possible hona chahiye (Apple mandatory requirement)</li>
+    <li>Privacy policy aur data usage disclosure — dono stores par mandatory</li>
+    <li>Religious content par dono stores generally theek hain, lekin content policy page rakhna zaroori hai</li>
+  </ul>
+
+  <h3>19A.6 Mobile Roadmap</h3>
+<pre class="mermaid">
+flowchart LR
+    A["Phase 1<br/>Mobile-responsive<br/>website"] --> B["Phase 2<br/>PWA installable<br/>+ push notifications"]
+    B --> C["Phase 2 end<br/>Play Store par TWA<br/>'app' list ho gayi"]
+    C --> D{"2000+ active users?<br/>Offline demand?"}
+    D -->|Nahi| E["PWA hi kaafi hai<br/>website par focus karo"]
+    D -->|Haan| F["Phase 3<br/>React Native app"]
+    F --> G["Android + iOS<br/>offline download<br/>background audio"]
+    G --> H(["Full app ecosystem"])
+</pre>
+  <p class="fig-cap">Fig 17 — App tab banaein jab demand real ho, pehle nahi</p>
+</section>
+
+<!-- ============ 20 ============ -->
+<section id="s20">
+  <h2><span class="num">Section 20</span>Database Schema (Core Tables)</h2>
+
+  <h4>Users &amp; Teachers</h4>
+  <pre><code>users
+  id, name, email, phone, password_hash, role, gender, dob,
+  language, country, avatar_url, status, guardian_id (nullable),
+  email_verified_at, phone_verified_at, created_at
+
+teacher_profiles
+  id, user_id, bio, specializations[], qualifications[],
+  ijazah_docs[], demo_video_url, verification_level,
+  verified_by, verified_at, rating_avg, students_count,
+  payout_account_id, kyc_status, probation_until
+
+guardian_consents
+  id, guardian_user_id, child_user_id, consent_type,
+  consented_at, ip_address, document_url</code></pre>
+
+  <h4>Courses &amp; Content</h4>
+  <pre><code>courses
+  id, teacher_id, title, slug, description, department,
+  level, language, course_type (self_paced|live|hybrid|one_to_one),
+  price, currency, fee_model, duration_weeks, thumbnail,
+  status (draft|in_review|published|archived|rejected),
+  gender_restriction, min_age, max_age, rating_avg, version
+
+modules        id, course_id, title, order_index
+lessons        id, module_id, title, type, content_url,
+               duration_min, order_index, is_free_preview
+lesson_reviews id, lesson_id, reviewer_id, reviewer_type,
+               status, comments, review_date, version
+
+enrollments
+  id, student_id, course_id, batch_id, enrolled_at,
+  status, progress_percent, completed_at, source (paid|free|scholarship)</code></pre>
+
+  <h4>Live Classes &amp; Attendance ⭐</h4>
+  <pre><code>batches
+  id, course_id, teacher_id, name, start_date, end_date,
+  max_students, schedule_rule (e.g. "DAILY", "MON,WED,FRI"),
+  default_start_time, default_duration_min
+
+live_classes
+  id, course_id, batch_id, teacher_id, title,
+  scheduled_start, scheduled_end, duration_min,
+  recurrence_parent_id, meeting_room_id, meeting_provider,
+  attendance_threshold (default 75),
+  status (scheduled|live|completed|cancelled|not_conducted),
+  actual_start, actual_end, recording_url, created_at
+
+attendance_records          -- ek student, ek class
+  id, live_class_id, student_id,
+  first_join_at, last_leave_at,
+  total_duration_sec,          -- sab sessions ka sum
+  attendance_percent,          -- total/class duration * 100
+  status (present|partial|absent|excused),
+  session_count,               -- kitni baar join hua
+  is_manually_overridden, overridden_by, override_reason,
+  flags[]                      -- ["network_unstable","late_join"]
+
+attendance_sessions         -- har join/leave ka pair
+  id, attendance_record_id, live_class_id, student_id,
+  join_at, leave_at, duration_sec,
+  device_info, ip_address, leave_reason (manual|timeout|kicked|class_end)</code></pre>
+
+  <div class="card note">
+    <strong>Design note:</strong> <code>attendance_sessions</code> ko alag table rakhna zaroori hai (JSON array ke bajaye) — isse "kaun kitni baar disconnect hua", "peak concurrent students", aur dispute resolution sab query kar sakenge. <code>attendance_records</code> sirf rolled-up summary hai jo fast reporting ke liye hai.
+  </div>
+
+  <h4>Assignments, Audio &amp; Exams</h4>
+  <pre><code>assignments        id, course_id, lesson_id, teacher_id, title,
+                   instructions, attachment_url, due_at, max_marks,
+                   submission_type, allow_late
+
+submissions        id, assignment_id, student_id, attempt_no,
+                   content_text, file_url, submitted_at, is_late,
+                   status, marks, feedback_text, feedback_audio_url,
+                   graded_by, graded_at
+
+audio_submissions  id, student_id, lesson_id, surah, ayah_from, ayah_to,
+                   audio_url, duration_sec, status, attempt_no, submitted_at
+
+audio_feedback     id, audio_submission_id, teacher_id,
+                   timestamp_sec, mistake_type, comment,
+                   model_audio_url, created_at
+
+quizzes            id, course_id, module_id, type, title, time_limit_min,
+                   passing_percent, max_attempts, randomize, negative_marking
+questions          id, quiz_id, type, text, options(jsonb), correct_answer,
+                   marks, explanation
+quiz_attempts      id, quiz_id, student_id, attempt_no, started_at,
+                   submitted_at, score, percent, passed, answers(jsonb)</code></pre>
+
+  <h4>Payments &amp; Fees</h4>
+  <pre><code>orders             id, student_id, course_id, amount, currency,
+                   platform_fee, teacher_amount, gateway_order_id,
+                   status, created_at
+
+payments           id, order_id, gateway_payment_id, method, amount,
+                   status, paid_at, refunded_amount
+
+fee_schedules      id, enrollment_id, due_date, amount, status,
+                   paid_at, payment_id, reminder_sent_at
+
+payouts            id, teacher_id, amount, period_start, period_end,
+                   status, gateway_payout_id, processed_at
+
+invoices           id, order_id, invoice_number, pdf_url, issued_at</code></pre>
+
+  <h4>Notifications, Reports, Certificates</h4>
+  <pre><code>notifications      id, user_id, type, title, body, data(jsonb),
+                   channels[], read_at, sent_at
+
+reports            id, reporter_id, target_type, target_id, reason,
+                   details, status, reviewed_by, action_taken, created_at
+
+certificates       id, student_id, course_id, certificate_no,
+                   grade, issued_at, pdf_url, verification_hash
+
+audit_logs         id, actor_id, action, target_type, target_id,
+                   before(jsonb), after(jsonb), ip, created_at</code></pre>
+</section>
+
+<!-- ============ 21 FLOWCHARTS ============ -->
+<section id="s21">
+  <h2><span class="num">Section 21</span>Complete Flow Charts</h2>
+  <p>Neeche pura system flow-wise diya gaya hai — high level se lekar har critical workflow tak.</p>
+
+  <h3>Flow 1 — Platform Overview (Master Flow)</h3>
+<pre class="mermaid">
+flowchart TB
+    Start(["Visitor website par aaya"]) --> Role{"Kaun hai?"}
+
+    Role -->|Seekhna hai| S1["Student Signup"]
+    Role -->|Padhana hai| T1["Teacher Signup"]
+    Role -->|Bachche ka account| P1["Parent Signup"]
+
+    S1 --> S2["Goal + Age + Gender select"]
+    S2 --> S3["Level Assessment Quiz"]
+    S3 --> S4["Recommended Courses"]
+    S4 --> S5{"Free ya Paid?"}
+    S5 -->|Free| S7["Enroll ho gaya"]
+    S5 -->|Paid| S6["Payment Flow"]
+    S6 --> S7
+    S7 --> S8["Learning Dashboard"]
+    S8 --> S9["Lessons + Live Class + Homework + Quiz"]
+    S9 --> S10["Final Exam"]
+    S10 --> S11["Certificate"]
+
+    T1 --> T2["Verification Process"]
+    T2 --> T3["Course Create"]
+    T3 --> T4["Content Review Workflow"]
+    T4 --> T5["Course Published"]
+    T5 --> T6["Batch banao + Live Class schedule"]
+    T6 --> T7["Padhao + Attendance auto + Grading"]
+    T7 --> T8["Earnings + Payout"]
+
+    P1 --> P2["Child account link karo"]
+    P2 --> P3["Parent Dashboard: progress, attendance, fees"]
+
+    S9 -.-> T7
+    T5 -.-> S4
+</pre>
+  <p class="fig-cap">Fig 1 — Teeno primary actors ka end-to-end journey</p>
+
+  <h3>Flow 2 — Teacher Onboarding &amp; Verification</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Teacher signup"]) --> B["Email + Phone OTP verify"]
+    B --> C["Profile bharo: bio, specialization, languages"]
+    C --> D["Documents upload: ID, Ijazah/Sanad, Qualification"]
+    D --> E["Demo lesson video upload"]
+    E --> F["Child Safety Policy + Content Undertaking sign"]
+    F --> G["Application submitted"]
+    G --> H["Admin Verification Queue"]
+
+    H --> I{"Documents sahi hain?"}
+    I -->|Nahi| J["Reject - reason bhejo"]
+    J --> K["Teacher dobara apply kar sakta hai"]
+    K --> D
+
+    I -->|Haan| L{"Demo lesson quality theek?"}
+    L -->|Nahi| M["Basic Verified only<br/>Free courses allowed"]
+    L -->|Haan| N["Verified Teacher badge"]
+
+    N --> O{"Paid course chahiye?"}
+    O -->|Haan| P["KYC + Bank/UPI add"]
+    P --> Q["Payout account create"]
+    Q --> R["Full access unlocked"]
+    O -->|Nahi| R
+
+    R --> S["PROBATION: pehle 3 courses<br/>+ 5 live classes monitored"]
+    S --> T{"Rating 3.5+ aur koi<br/>valid complaint nahi?"}
+    T -->|Haan| U(["Full Verified Teacher"])
+    T -->|Nahi| V["Warning ya Suspension"]
+
+    M --> W(["Basic Teacher"])
+</pre>
+  <p class="fig-cap">Fig 2 — Verification levels aur probation gate</p>
+
+  <h3>Flow 3 — Course Creation &amp; Review</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Teacher: Create Course"]) --> B["Basic info: title, department,<br/>level, language, age group, gender"]
+    B --> C["Course type: Self-paced / Live / Hybrid / 1-on-1"]
+    C --> D["Pricing: Free / One-time / Monthly / Per-session"]
+    D --> E["Curriculum banao: Modules"]
+    E --> F["Har module mein Lessons add karo"]
+    F --> G["Content upload: video, audio, PDF, text"]
+    G --> H["Quiz + Assignment attach"]
+    H --> I["Source / Reference / Kitab ka hawala add karo"]
+    I --> J["Submit for Review"]
+
+    J --> K{"Content category?"}
+    K -->|"Arabic / Skills"| L["Academic Reviewer<br/>48 hrs"]
+    K -->|"Seerah / History / Kids"| M["Academic Reviewer<br/>72 hrs"]
+    K -->|"Aqeedah / Fiqh / Hadith / Tafseer"| N["Academic Reviewer"]
+    K -->|"Fiqh-e-Niswan"| O["Academic Reviewer"]
+
+    N --> P["SCHOLAR REVIEW<br/>5-7 days"]
+    O --> Q["Female Scholar Review<br/>7 days"]
+
+    L --> R{"Decision"}
+    M --> R
+    P --> R
+    Q --> R
+
+    R -->|"Request Changes"| S["Teacher ko comments ke saath wapas"]
+    S --> G
+    R -->|Reject| T["Rejected - reason mandatory"]
+    R -->|Approve| U["Admin Final Approval"]
+    U --> V["PUBLISHED - version 1.0"]
+    V --> W["Course catalogue mein live"]
+    W --> X["Teacher edit kare? → naya version → dobara review"]
+</pre>
+  <p class="fig-cap">Fig 3 — Content ki authenticity ka gate. Religious content bina scholar review ke publish nahi hota.</p>
+
+  <h3>Flow 4 — Student Enrollment &amp; Payment</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Student ne course dekha"]) --> B{"Logged in?"}
+    B -->|Nahi| C["Signup / Login"]
+    C --> D
+    B -->|Haan| D{"Age / Gender<br/>restriction pass?"}
+    D -->|Nahi| E["Access denied - suitable courses suggest karo"]
+    D -->|Haan| F{"Under 13?"}
+    F -->|Haan| G["Guardian consent required"]
+    G --> H["Guardian ko email → approve"]
+    H --> I
+    F -->|Nahi| I{"Free ya Paid?"}
+
+    I -->|Free| P["Enrollment create"]
+    I -->|Paid| J["Fee model select:<br/>one-time / monthly / installment"]
+    J --> K{"Scholarship apply kiya?"}
+    K -->|Haan| L["Teacher/Admin approval"]
+    L -->|Approved| P
+    L -->|Rejected| M
+    K -->|Nahi| M["Checkout → Razorpay"]
+
+    M --> N{"Payment success?"}
+    N -->|Fail| O["Retry / dusra method"]
+    O --> M
+    N -->|Success| Q["Order created + Escrow hold 7 din"]
+    Q --> R["Invoice + Receipt generate"]
+    R --> P
+
+    P --> S["Batch assign - agar live course hai"]
+    S --> T["Welcome notification + class schedule bhejo"]
+    T --> U["Teacher ko 'naya student' notification"]
+    U --> V(["Dashboard mein course aa gaya"])
+</pre>
+  <p class="fig-cap">Fig 4 — Enrollment ke saath age-gate, consent aur payment integrated</p>
+
+  <h3>Flow 5 — Live Class Scheduling (Recurring)</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Teacher: Schedule Live Class"]) --> B["Course + Batch select"]
+    B --> C["Title, Date, Start time, Duration"]
+    C --> D{"Recurring class?"}
+
+    D -->|"Nahi - single class"| E["Ek class instance banao"]
+    D -->|Haan| F["Pattern: Daily / Mon-Fri / Weekly / Custom"]
+    F --> G["End date = COURSE DURATION tak auto"]
+    G --> H["System saare class instances generate karta hai<br/>e.g. 3 mahine daily = ~90 classes"]
+
+    E --> I["Settings: recording on/off, chat on/off,<br/>attendance threshold %"]
+    H --> I
+    I --> J["Meeting room create - Jitsi/100ms"]
+    J --> K["Batch ke saare students ko invite + calendar entry"]
+    K --> L["Notification: 1 din pehle + 15 min pehle"]
+    L --> M(["Class schedule ho gayi"])
+
+    M --> N{"Teacher ne badla?"}
+    N -->|"Reschedule"| O["Sab students ko turant alert"]
+    N -->|"Cancel"| P["Alert + agar paid session tha to credit"]
+    N -->|Nahi| Q["Class time par LIVE ho jaayegi"]
+</pre>
+  <p class="fig-cap">Fig 5 — Course duration tak daily class auto-generate hoti hai</p>
+
+  <h3>Flow 6 — Auto Attendance Engine ⭐</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Class time ho gaya"]) --> B["Teacher joins → class status = LIVE<br/>actual_start record"]
+    B --> C["Student 'Join' button dabata hai"]
+    C --> D{"Enrolled + fees clear?"}
+    D -->|Nahi| E["Join blocked - message dikhao"]
+    D -->|Haan| F["Meeting room mein enter"]
+
+    F --> G["SDK event: participantJoined"]
+    G --> H["Backend: naya attendance_session banao<br/>join_at = NOW"]
+    H --> I["Heartbeat shuru - har 30 sec ping"]
+
+    I --> J{"Student ka kya hua?"}
+    J -->|"Manually exit kiya"| K["SDK event: participantLeft"]
+    J -->|"Net gaya / tab band"| L["Heartbeat 90 sec se rukka"]
+    J -->|"Class chal rahi hai"| I
+
+    K --> M["Session close: leave_at = NOW<br/>duration = leave_at - join_at"]
+    L --> N["Session close: leave_at = last_heartbeat<br/>leave_reason = timeout"]
+
+    M --> O{"Wapas join kiya?"}
+    N --> O
+    O -->|Haan| H
+    O -->|Nahi| P["Session closed rehta hai"]
+
+    P --> Q["CLASS END - teacher ne end kiya ya time over"]
+    Q --> R["Koi bhi open session force-close karo"]
+    R --> S["CALCULATE:<br/>total_duration = SUM all sessions<br/>percent = total / class_duration x 100"]
+
+    S --> T{"Percent kitna?"}
+    T -->|">= 75%"| U["Status: PRESENT"]
+    T -->|"30% - 74%"| V["Status: PARTIAL"]
+    T -->|"< 30%"| W["Status: ABSENT"]
+
+    U --> X["Flags lagao: late_join, network_unstable<br/>agar 5+ sessions the"]
+    V --> X
+    W --> X
+    X --> Y["Attendance record save + teacher dashboard update"]
+    Y --> Z{"Teacher override karna chahta hai?"}
+    Z -->|Haan| AA["Manual change + reason + audit log"]
+    Z -->|Nahi| AB["Final"]
+    AA --> AB
+    AB --> AC{"Student 3 class lagataar absent?"}
+    AC -->|Haan| AD["Parent + Teacher ko alert"]
+    AC -->|Nahi| AE(["Attendance finalized"])
+    AD --> AE
+</pre>
+  <p class="fig-cap">Fig 6 — Yeh pura automatic hai. Teacher ko kuch mark nahi karna padta.</p>
+
+  <h3>Flow 7 — Attendance Session Timeline (Example)</h3>
+<pre class="mermaid">
+sequenceDiagram
+    participant S as Student
+    participant V as Video SDK
+    participant B as Backend
+    participant D as Database
+
+    Note over S,D: Class: 18:00 - 18:40 (40 min), threshold 75%
+
+    S->>V: Join (18:00)
+    V->>B: participantJoined event
+    B->>D: session_1 { join_at: 18:00 }
+
+    loop Har 30 sec
+        S->>B: heartbeat ping
+    end
+
+    Note over S: Net chala gaya (18:14)
+    V--xB: heartbeat rukk gaya
+    B->>D: session_1 { leave_at: 18:14, duration: 14 min,<br/>leave_reason: timeout }
+
+    S->>V: Rejoin (18:19)
+    V->>B: participantJoined event
+    B->>D: session_2 { join_at: 18:19 }
+
+    S->>V: Exit (18:40 - class end)
+    V->>B: participantLeft event
+    B->>D: session_2 { leave_at: 18:40, duration: 21 min }
+
+    Note over B,D: Class ended - calculate
+    B->>D: total = 14 + 21 = 35 min
+    B->>D: percent = 35/40 = 87.5%
+    B->>D: status = PRESENT, flag = network_unstable
+    B->>S: Notification: "Aaj ki attendance: Present (87.5%)"
+</pre>
+  <p class="fig-cap">Fig 7 — Ek real example: student beech mein disconnect hua, phir bhi Present</p>
+
+  <h3>Flow 8 — Homework / Assignment Cycle</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Teacher: Assignment banaye"]) --> B["Title, instructions, attachment,<br/>due date, max marks, submission type"]
+    B --> C["Publish → batch ke students ko assign"]
+    C --> D["Notification: naya homework mila"]
+    D --> E["Reminder: 24 ghante pehle"]
+
+    E --> F{"Student ne submit kiya?"}
+    F -->|Nahi, due nikal gaya| G{"Late allowed?"}
+    G -->|Nahi| H["Submission closed - Absent/Zero"]
+    G -->|Haan| I["Late submission - flagged"]
+    F -->|Haan| J["Upload: text / file / audio / photo"]
+    I --> J
+
+    J --> K["Status: SUBMITTED"]
+    K --> L["Teacher ko notification"]
+    L --> M["Teacher review kare"]
+    M --> N{"Kaam theek hai?"}
+
+    N -->|"Nahi - dobara karo"| O["Status: RESUBMIT REQUIRED<br/>+ feedback comment/voice note"]
+    O --> P["Student ko notification"]
+    P --> J
+
+    N -->|Haan| Q["Marks + written feedback + voice note"]
+    Q --> R["Status: GRADED"]
+    R --> S["Student + Parent ko notification"]
+    S --> T["Gradebook aur progress % update"]
+    T --> U(["Done"])
+</pre>
+  <p class="fig-cap">Fig 8 — Resubmission loop ke saath complete cycle</p>
+
+  <h3>Flow 9 — Tajweed Audio Assessment</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Teacher ne recitation assign ki<br/>Surah + Ayah range"]) --> B["Student ko notification"]
+    B --> C["Student lesson kholta hai - Arabic text dikhta hai"]
+    C --> D["In-browser recorder se tilawat record kare"]
+    D --> E{"Khud sun kar theek laga?"}
+    E -->|Nahi| D
+    E -->|Haan| F["Submit - audio upload"]
+
+    F --> G["Status: SUBMITTED - teacher queue mein"]
+    G --> H["Teacher waveform player par sunta hai"]
+    H --> I["Timestamp par marker lagaye"]
+    I --> J["Mistake type tag kare:<br/>Makharij / Madd / Ghunnah / Qalqalah / Waqf / Ikhfa"]
+    J --> K["Comment likhe ya voice note de"]
+    K --> L{"Model audio bhejna hai?"}
+    L -->|Haan| M["Teacher apni sahi tilawat record kare"]
+    L -->|Nahi| N
+    M --> N{"Overall assessment"}
+
+    N -->|"Pass - accha hai"| O["Approved + marks + next passage unlock"]
+    N -->|"Improve karna hai"| P["REATTEMPT - specific mistakes ke saath"]
+    P --> Q["Student ko notification + feedback dikhe"]
+    Q --> D
+
+    O --> R["Mistake analytics update:<br/>kaunsi ghalti baar baar aa rahi hai"]
+    R --> S(["Progress recorded"])
+</pre>
+  <p class="fig-cap">Fig 9 — Platform ka sabse distinctive feature</p>
+
+  <h3>Flow 10 — Payment Split &amp; Teacher Payout</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Student payment kare - Rs 1000"]) --> B["Razorpay Route"]
+    B --> C{"Payment success?"}
+    C -->|Fail| D["Retry / dusra method"]
+    D --> B
+    C -->|Success| E["Order record + Invoice PDF"]
+
+    E --> F["ESCROW HOLD - 7 din refund window"]
+    F --> G{"Refund request aayi?"}
+
+    G -->|"Haan - 7 din ke andar,<br/>content < 20% dekha"| H["Full refund process"]
+    H --> I["Student ko paisa wapas + enrollment cancel"]
+
+    G -->|"Haan - lekin window nikal gaya"| J["Admin manual review"]
+    J --> K{"Genuine case?"}
+    K -->|Haan| H
+    K -->|Nahi| L["Decline + reason"]
+
+    G -->|"Nahi - 7 din nikal gaye"| M["SPLIT EXECUTE"]
+    L --> M
+    M --> N["Teacher: Rs 850 (85%)<br/>Platform: Rs 150 (15%)"]
+    N --> O["Teacher ka 'Available Balance' badha"]
+
+    O --> P{"Weekly settlement cycle"}
+    P --> Q{"Balance >= minimum Rs 500?"}
+    Q -->|Nahi| R["Agle cycle tak wait"]
+    R --> P
+    Q -->|Haan| S{"KYC complete hai?"}
+    S -->|Nahi| T["Payout hold - KYC reminder"]
+    S -->|Haan| U["Bank/UPI par payout initiate"]
+    U --> V["Teacher ko notification + statement"]
+    V --> W(["Payout complete"])
+</pre>
+  <p class="fig-cap">Fig 10 — Escrow ke saath split payment, taaki refund aur trust dono handle hon</p>
+
+  <h3>Flow 11 — Fee Management (Monthly Model)</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Student monthly course mein enroll hua"]) --> B["System fee schedule banata hai<br/>har mahine ki due date"]
+    B --> C["Due date se 5 din pehle: reminder"]
+    C --> D{"Payment ho gayi?"}
+    D -->|Haan| E["Receipt generate + ledger update"]
+    E --> F["Teacher ko credit + notification"]
+    F --> G(["Next month schedule"])
+    G --> C
+
+    D -->|Nahi| H["Due date par reminder"]
+    H --> I{"Payment ho gayi?"}
+    I -->|Haan| E
+    I -->|Nahi| J["+3 din: overdue reminder<br/>Parent ko bhi"]
+    J --> K{"Payment ho gayi?"}
+    K -->|Haan| E
+    K -->|Nahi| L{"Grace period khatam?<br/>default 10 din"}
+    L -->|Nahi| J
+    L -->|Haan| M["Defaulter list mein add"]
+    M --> N{"Teacher ka setting kya hai?"}
+    N -->|"Access restrict"| O["Live class join block<br/>+ new lesson lock"]
+    N -->|"Sirf remind"| P["Access chalu, sirf flag"]
+    O --> Q["Teacher scholarship/waiver de sakta hai"]
+    P --> Q
+    Q --> R{"Waiver diya?"}
+    R -->|Haan| S["Fee waived - access restore"]
+    R -->|Nahi| T["Pending rehta hai"]
+
+    U["Teacher ne cash/UPI direct liya?"] --> V["Manual 'Mark as Paid' entry"]
+    V --> E
+</pre>
+  <p class="fig-cap">Fig 11 — Excel/notebook ka complete replacement</p>
+
+  <h3>Flow 12 — Report &amp; Moderation</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Koi user Report button dabaye"]) --> B["Reason select: galat masla /<br/>gair-mustanad hawala / abusive /<br/>spam / sectarian / child safety"]
+    B --> C["Details likhe + evidence"]
+    C --> D["Moderation Queue mein aaya"]
+
+    D --> E{"Priority kya hai?"}
+    E -->|"Child Safety"| F["URGENT - turant escalate<br/>content auto-hide"]
+    E -->|"Religious content issue"| G["Scholar Review Board ko bhejo"]
+    E -->|"Abusive / Spam"| H["Moderator review"]
+
+    F --> I["Admin + legal review within 24 hrs"]
+    G --> J{"Scholar ka faisla"}
+    H --> K{"Moderator ka faisla"}
+
+    J -->|"Content galat hai"| L["Content hide + teacher ko correction note"]
+    J -->|"Content theek hai"| M["Report close - reporter ko explain karo"]
+    K -->|"Violation hai"| N["Warning / content remove"]
+    K -->|"Violation nahi"| M
+
+    I --> O{"Serious violation?"}
+    O -->|Haan| P["Account suspend + authorities agar zaroori"]
+    O -->|Nahi| N
+
+    L --> Q["Strike count badhao"]
+    N --> Q
+    Q --> R{"3 strikes ho gaye?"}
+    R -->|Haan| S["Teacher verification suspend<br/>Courses unpublish"]
+    R -->|Nahi| T["Warning record"]
+    P --> U(["Case closed - audit log"])
+    S --> U
+    T --> U
+    M --> U
+</pre>
+  <p class="fig-cap">Fig 12 — Open platform ka safety net</p>
+
+  <h3>Flow 13 — Certificate Issuance</h3>
+<pre class="mermaid">
+flowchart TB
+    A(["Student ne final exam diya"]) --> B{"Eligibility check"}
+    B --> C{"Lessons >= 90% complete?"}
+    C -->|Nahi| D["Pending lessons dikhao"]
+    C -->|Haan| E{"Final exam pass?"}
+    E -->|Nahi| F{"Attempts bache hain?"}
+    F -->|Haan| G["Retake allow"]
+    F -->|Nahi| H["Course fail - dobara enroll karna hoga"]
+    E -->|Haan| I{"Live batch tha?"}
+    I -->|Haan| J{"Attendance >= 70%?"}
+    J -->|Nahi| K["Teacher ka discretion - manual approve ya deny"]
+    J -->|Haan| L
+    I -->|Nahi| L{"Fees clear hain?"}
+    K -->|Approved| L
+    L -->|Nahi| M["Pending fee clear karo"]
+    L -->|Haan| N["Grade calculate: quiz + exam + assignment weightage"]
+    N --> O["Certificate generate:<br/>ID, QR, teacher name, academy"]
+    O --> P["PDF + public verification URL"]
+    P --> Q["Student + Parent ko email"]
+    Q --> R(["Certificate issued"])
+
+    R --> S["Next level course recommend karo"]
+</pre>
+  <p class="fig-cap">Fig 13 — Certificate = Course Completion, Aalim degree nahi</p>
+
+  <h3>Flow 14 — System Architecture</h3>
+<pre class="mermaid">
+flowchart TB
+    subgraph Client["Client Layer"]
+        W["Web App - Next.js"]
+        M["Mobile PWA"]
+    end
+
+    subgraph Gateway["API Gateway"]
+        AG["REST API + Auth JWT + Rate Limit"]
+    end
+
+    subgraph Services["Backend Services"]
+        US["User &amp; Auth Service"]
+        CS["Course &amp; Content Service"]
+        LS["Live Class Service"]
+        AS["Attendance Service ⭐"]
+        PS["Payment &amp; Payout Service"]
+        NS["Notification Service"]
+        MS["Moderation Service"]
+        RS["Reporting &amp; Analytics"]
+    end
+
+    subgraph Data["Data Layer"]
+        PG[("PostgreSQL")]
+        RD[("Redis - cache + queue")]
+        S3[("Object Storage - R2/S3")]
+    end
+
+    subgraph External["External"]
+        VID["Jitsi / 100ms"]
+        PAY["Razorpay Route"]
+        CDN["Cloudflare Stream"]
+        WA["WhatsApp API / FCM / Email"]
+    end
+
+    W --> AG
+    M --> AG
+    AG --> US
+    AG --> CS
+    AG --> LS
+    AG --> PS
+    AG --> RS
+
+    LS <--> VID
+    VID -->|"join/leave webhooks"| AS
+    AS --> PG
+    PS <--> PAY
+    CS --> CDN
+    CS --> S3
+    NS --> WA
+
+    US --> PG
+    CS --> PG
+    LS --> PG
+    PS --> PG
+    MS --> PG
+    RS --> PG
+
+    AS --> RD
+    NS --> RD
+    LS --> RD
+</pre>
+  <p class="fig-cap">Fig 14 — Attendance Service alag rakhi gayi hai taaki video SDK badalne par business logic na toote</p>
+
+  <h3>Flow 15 — Development Roadmap</h3>
+<pre class="mermaid">
+flowchart LR
+    subgraph P1["PHASE 1 — Foundation (3-4 mahine)"]
+        A1["Auth + Roles"] --> A2["Teacher verification"]
+        A2 --> A3["Course + Lesson CRUD"]
+        A3 --> A4["Content review workflow"]
+        A4 --> A5["Student dashboard + progress"]
+        A5 --> A6["Quiz engine"]
+        A6 --> A7["Payments + fee module"]
+        A7 --> A8["Notifications"]
+        A8 --> A9["Admin panel"]
+    end
+
+    subgraph P2["PHASE 2 — Live &amp; Practice (3-4 mahine)"]
+        B1["Live class scheduling"] --> B2["Video SDK integration"]
+        B2 --> B3["AUTO ATTENDANCE ⭐"]
+        B3 --> B4["Assignments + submissions"]
+        B4 --> B5["Tajweed audio workflow"]
+        B5 --> B6["Q&amp;A + moderation"]
+        B6 --> B7["Parent dashboard"]
+        B7 --> B8["Teacher payout"]
+        B8 --> B9["PWA / Mobile"]
+    end
+
+    subgraph P3["PHASE 3 — Ecosystem (6+ mahine)"]
+        C1["Aalim/Aalima pathway"] --> C2["Digital library"]
+        C2 --> C3["Research portal"]
+        C3 --> C4["Multi-language"]
+        C4 --> C5["Teacher training"]
+        C5 --> C6["Scholar network"]
+        C6 --> C7["Public API"]
+        C7 --> C8["Open-source community"]
+    end
+
+    A9 --> B1
+    B9 --> C1
+</pre>
+  <p class="fig-cap">Fig 15 — Step-by-step, flow-wise development order</p>
+</section>
+
+<!-- ============ 22 ============ -->
+<section id="s22">
+  <h2><span class="num">Section 22</span>Phase-wise Roadmap — Detail</h2>
+
+  <h3><span class="tag p1">Phase 1</span> Foundation MVP — 3 se 4 mahine</h3>
+  <p><strong>Goal:</strong> Ek teacher apna course bana kar bech sake, student padh sake, paisa aaye. Live class abhi nahi.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Sprint</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td>1–2</td><td>Auth (OTP + email), roles, user profiles, guardian linking</td></tr>
+      <tr><td>3</td><td>Teacher onboarding + document upload + admin verification queue</td></tr>
+      <tr><td>4–5</td><td>Course builder: modules, lessons, video/audio/PDF upload</td></tr>
+      <tr><td>6</td><td>Content review workflow (academic + scholar routing)</td></tr>
+      <tr><td>7</td><td>Course catalogue, search, filters, course detail page</td></tr>
+      <tr><td>8</td><td>Enrollment + Razorpay integration + escrow + invoices</td></tr>
+      <tr><td>9</td><td>Student dashboard, lesson player, progress tracking</td></tr>
+      <tr><td>10</td><td>Quiz engine + auto grading + results</td></tr>
+      <tr><td>11</td><td>Fee module (monthly/installment) + reminders</td></tr>
+      <tr><td>12</td><td>Notification service, basic certificates, admin panel</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3><span class="tag p2">Phase 2</span> Live &amp; Practice — 3 se 4 mahine</h3>
+  <p><strong>Goal:</strong> WhatsApp + Zoom + Excel pura replace ho jaaye.</p>
+  <ul>
+    <li>Batch management + live class scheduling (recurring, course duration tak)</li>
+    <li>Video SDK integration (Jitsi self-hosted se start)</li>
+    <li><strong>Auto Attendance Engine</strong> — sessions, heartbeat, auto status, reports, export</li>
+    <li>Assignment module + submission + grading + voice feedback</li>
+    <li>Tajweed audio recorder + timestamped feedback + mistake tagging</li>
+    <li>Q&amp;A, discussion, report &amp; moderation tools</li>
+    <li>Parent dashboard + weekly digest</li>
+    <li>Teacher payout dashboard + KYC + settlements</li>
+    <li>PWA / mobile-optimised experience</li>
+  </ul>
+
+  <h3><span class="tag p3">Phase 3</span> Full Ecosystem — 6+ mahine</h3>
+  <ul>
+    <li>Aalim/Aalima structured pathway + Takhassus tracks</li>
+    <li>Digital library with licensing metadata + DMCA process</li>
+    <li>Research portal, referencing tools, Arabic text analysis</li>
+    <li>Multi-language expansion (Hindi, Arabic, Bengali, Gujarati, Malayalam, Tamil)</li>
+    <li>Teacher training academy</li>
+    <li>Scholar review network (distributed reviewers)</li>
+    <li>Public API + integration ecosystem + native mobile apps</li>
+    <li>Open-source contributor community, docs, self-host guide</li>
+  </ul>
+
+  <div class="card">
+    <strong>Ek suggestion:</strong> Phase 1 khatam hone ka intezaar mat karo — Sprint 8 ke baad hi 2-3 real teachers ko pilot par le aao. Unse feedback milega toh Phase 2 kaafi sahi direction mein banega. Islamic teachers ka workflow kitaabon mein nahi, unke saath baith kar samajh aata hai.
+  </div>
+</section>
+
+<!-- ============ 23 ============ -->
+<section id="s23">
+  <h2><span class="num">Section 23</span>Non-Functional Requirements</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Area</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>Performance</td><td>Page load &lt;2.5s (3G India), API p95 &lt;400ms, video start &lt;3s</td></tr>
+      <tr><td>Scale target</td><td>Year 1: 5,000 concurrent users, 200 concurrent live classes</td></tr>
+      <tr><td>Uptime</td><td>99.5% — class timings (evening IST) par zero downtime deploy</td></tr>
+      <tr><td>Low bandwidth</td><td>Audio-only mode live class mein — India ke small towns ke liye zaroori</td></tr>
+      <tr><td>Offline</td><td>Downloaded lessons PWA mein offline play hon (Phase 2)</td></tr>
+      <tr><td>Security</td><td>HTTPS, bcrypt/argon2, rate limiting, OWASP Top 10, RBAC on every endpoint</td></tr>
+      <tr><td>Backup</td><td>Daily DB backup, 30-day retention, quarterly restore drill</td></tr>
+      <tr><td>Accessibility</td><td>WCAG 2.1 AA, keyboard navigation, screen-reader friendly, RTL support Urdu/Arabic ke liye</td></tr>
+      <tr><td>Browser</td><td>Chrome/Safari/Firefox latest 2 versions, Android 8+, iOS 14+</td></tr>
+      <tr><td>Licensing</td><td>Code: AGPL-3.0 ya MIT (decide karein). Content: separate license per resource.</td></tr>
+      <tr><td>Localization</td><td>All strings in i18n files — hardcoded text kahin na ho</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 24 ============ -->
+<section id="s24">
+  <h2><span class="num">Section 24</span>Risks &amp; Open Questions</h2>
+
+  <h3>Risks</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Scope bohat bada — solo/small team</td><td>High</td><td>Strict phase discipline. Phase 1 mein live class bilkul nahi.</td></tr>
+      <tr><td>Maslak/sectarian conflict content par</td><td>High</td><td>Clear content policy + maslak tagging + scholar board + strict moderation</td></tr>
+      <tr><td>Galat ilm phail jaana</td><td>Critical</td><td>Verification + scholar review + report system + version control</td></tr>
+      <tr><td>Video hosting cost</td><td>Medium</td><td>Self-hosted Jitsi shuru mein, Bunny/R2 storage (sasta egress)</td></tr>
+      <tr><td>Teacher platform bypass kar ke direct fees le le</td><td>Medium</td><td>Contact masking + platform value (attendance, certificates) + fair commission</td></tr>
+      <tr><td>Child safety incident</td><td>Critical</td><td>Recording, no private DM, parent visibility, background declaration</td></tr>
+      <tr><td>Payment/tax compliance (India)</td><td>Medium</td><td>CA se consult, GST/TDS handling day one se plan</td></tr>
+      <tr><td>Open-source par competitors copy kar lein</td><td>Low</td><td>Value community aur content network mein hai, code mein nahi</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Decisions jo aapko lena hai</h3>
+  <ol>
+    <li><strong>Maslak policy:</strong> Platform sab maslak ko allow karega (tagging ke saath) ya ek specific maslak follow karega? Yeh sabse bada strategic decision hai — isse content policy, reviewer selection aur user base sab decide hota hai.</li>
+    <li><strong>Commission rate:</strong> Kitna % — 10, 15, ya 20?</li>
+    <li><strong>Open-source license:</strong> AGPL (koi closed fork na kare) ya MIT (maximum adoption)?</li>
+    <li><strong>Scholar board:</strong> Kaun log honge? Unko paid karenge ya voluntary?</li>
+    <li><strong>Geography:</strong> Sirf India, ya Pakistan/Bangladesh/Gulf bhi day one se? (Currency, language, payment gateway isse affect hoga.)</li>
+    <li><strong>Team:</strong> Akele bana rahe hain ya team hai? Iske hisaab se timeline realistic karna hoga.</li>
+  </ol>
+</section>
+
+<footer class="wrap" style="max-width:var(--maxw)">
+  <p><strong>Open Source Islamic Learning Platform — BRD v2.0</strong><br>
+  Roman Urdu Version · Updated with marketplace, live class auto-attendance, payments, notifications, child safety aur complete flow charts.<br>
+  Yeh document living hai — jaise jaise decisions final hon, sections update karte rahein aur version number badhate rahein.</p>
+</footer>
+
+</main>
+</body>
+</html>
