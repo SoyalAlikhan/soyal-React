@@ -1756,7 +1756,7 @@ function App() {
 
           {/* Database Explorer Direct Button */}
           <a 
-            href="/db-explorer" 
+            href="./db-explorer.html" 
             target="_blank" 
             rel="noopener noreferrer"
             className="nav-db-btn"

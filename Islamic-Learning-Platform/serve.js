@@ -16,11 +16,13 @@ const server = http.createServer((req, res) => {
   const query = Object.fromEntries(reqUrl.searchParams.entries());
 
   // 1. Database Explorer GUI View
-  if (pathname === '/db-explorer' || pathname === '/admin/database') {
-    const explorerPath = path.join(__dirname, 'backend', 'views', 'dbExplorer.html');
-    if (fs.existsSync(explorerPath)) {
+  if (pathname === '/db-explorer' || pathname === '/db-explorer/' || pathname === '/db-explorer.html' || pathname === '/admin/database') {
+    const explorerPath = path.join(__dirname, 'db-explorer.html');
+    const fallbackPath = path.join(__dirname, 'backend', 'views', 'dbExplorer.html');
+    const targetPath = fs.existsSync(explorerPath) ? explorerPath : fallbackPath;
+    if (fs.existsSync(targetPath)) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return fs.createReadStream(explorerPath).pipe(res);
+      return fs.createReadStream(targetPath).pipe(res);
     }
   }
 

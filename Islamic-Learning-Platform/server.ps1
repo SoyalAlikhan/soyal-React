@@ -40,6 +40,9 @@ try {
         if ([string]::IsNullOrWhiteSpace($relPath)) {
             $relPath = "index.html"
         }
+        if ($relPath -eq "db-explorer" -or $relPath -eq "db-explorer/") {
+            $relPath = "db-explorer.html"
+        }
 
         $localPath = Join-Path $baseDir $relPath
 

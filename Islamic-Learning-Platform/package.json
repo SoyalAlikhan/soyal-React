@@ -4,7 +4,8 @@
   "description": "Open Source Islamic Learning Ecosystem based on BRD",
   "main": "index.html",
   "scripts": {
-    "start": "powershell -ExecutionPolicy Bypass -File server.ps1"
+    "start": "node serve.js",
+    "server": "powershell -ExecutionPolicy Bypass -File server.ps1"
   },
   "keywords": [
     "islamic-studies",

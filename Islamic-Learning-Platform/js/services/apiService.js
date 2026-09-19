@@ -3,7 +3,9 @@
 // Seamlessly reads and writes to SQLite backend with silent fallback to memory
 // ============================================================================
 
-const API_BASE = window.location.origin ? `${window.location.origin}/api/v1` : 'http://localhost:8085/api/v1';
+const API_BASE = (typeof window !== 'undefined' && window.location.port === '8085') 
+  ? `${window.location.origin}/api/v1` 
+  : 'http://localhost:8085/api/v1';
 
 const apiService = {
   // 1. Health & Status
