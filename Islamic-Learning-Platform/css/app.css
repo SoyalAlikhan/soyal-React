@@ -1223,3 +1223,121 @@ body {
   margin: 14px 0;
 }
 
+/* ==========================================================================
+   BRD Multi-Step Form Steppers & Modern UI Enhancements
+   ========================================================================== */
+
+/* Multi-Step Stepper Bar */
+.form-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  flex: 1;
+}
+
+.step-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(14, 28, 44, 0.9);
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+
+.step-item.active .step-circle {
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  border-color: var(--color-primary-light);
+  color: #ffffff;
+  box-shadow: 0 0 16px var(--color-primary-glow);
+  transform: scale(1.08);
+}
+
+.step-item.completed .step-circle {
+  background: #10b981;
+  border-color: #34d399;
+  color: #ffffff;
+}
+
+.step-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: center;
+}
+
+.step-item.active .step-label {
+  color: var(--color-primary-light);
+}
+
+.step-item.completed .step-label {
+  color: #34d399;
+}
+
+.stepper-connector {
+  position: absolute;
+  top: 19px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.stepper-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent-gold));
+  transition: width 0.3s ease;
+}
+
+/* File Upload Drag-and-Drop Area */
+.file-drop-zone {
+  border: 2px dashed var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(6, 16, 26, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-drop-zone:hover {
+  border-color: var(--color-primary-light);
+  background: rgba(13, 148, 136, 0.05);
+}
+
+.file-drop-icon {
+  font-size: 2rem;
+  color: var(--color-primary-light);
+  margin-bottom: 8px;
+}
+
+/* Modal Expansion for Wizard */
+.auth-modal.modal-wizard {
+  max-width: 720px;
+}
+
+/* Modern Card Shadows and Transitions */
+.glass-card {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+
