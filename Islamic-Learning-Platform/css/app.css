@@ -1340,4 +1340,53 @@ body {
   transform: translateZ(0);
 }
 
+/* Course Builder Studio Styles */
+.auth-modal.modal-large {
+  max-width: 860px;
+}
+
+.module-builder-box {
+  background: rgba(4, 12, 22, 0.7);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.lesson-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.range-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.range-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--color-primary-light);
+}
+
+.routing-card {
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(13, 148, 136, 0.08);
+  border: 1px solid var(--border-accent);
+  margin-top: 14px;
+}
+
+
 
