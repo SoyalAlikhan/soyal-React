@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -601,15 +601,76 @@ function App() {
   const [leaveModal, setLeaveModal] = useState({
     isOpen: false,
     leaveType: "Uzr-e-Shar'i (Beemari)",
+    courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+    assignedTeacher: "Qari Abdul Basit Siddiqui",
+    approverRole: "Assigned Ustad (Qari Abdul Basit) & Nazim",
     fromDate: new Date().toISOString().split('T')[0],
     toDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
     reason: 'Shadeed bukhar aur sardi ki wajah se kal ki class me hazir nahi ho sakunga. Ijazat inayat farmayein.'
   });
 
-  // Student Leave Applications
+  // Student Leave Applications with Course & Teacher Routing
   const [leaveApplications, setLeaveApplications] = useState([
-    { id: "LV-101", leaveType: "Uzr-e-Shar'i (Safar)", fromDate: "2026-09-12", toDate: "2026-09-14", reason: "Umrah safar ki wajah se 2 din rukhsaat.", status: "Approved ✅", remarks: "Manzoor shuda ba-hukm Nazim-e-Ta'limat." }
+    {
+      id: "LV-101",
+      studentName: "Ahmad Raza",
+      courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+      assignedTeacher: "Qari Abdul Basit Siddiqui",
+      approverRole: "Qari Abdul Basit (Ustad)",
+      leaveType: "Uzr-e-Shar'i (Safar)",
+      fromDate: "2026-09-12",
+      toDate: "2026-09-14",
+      reason: "Umrah safar ki wajah se 2 din rukhsaat.",
+      status: "Approved ✅",
+      remarks: "Manzoor shuda ba-hukm Ustaad wa Nazim-e-Ta'limat."
+    },
+    {
+      id: "LV-102",
+      studentName: "Muhammad Bilal",
+      courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
+      assignedTeacher: "Qari Abdul Basit Siddiqui",
+      approverRole: "Qari Abdul Basit (Ustad)",
+      leaveType: "Uzr-e-Shar'i (Beemari)",
+      fromDate: "2026-09-20",
+      toDate: "2026-09-21",
+      reason: "Bukhar aur gala kharab hone ki wajah se tilawat me dushwari.",
+      status: "Pending Ustad Review ⏳",
+      remarks: "Awaiting approval from Ustad"
+    }
   ]);
+
+  // 15-Minute Class Notification Alert State
+  const [class15MinAlert, setClass15MinAlert] = useState({
+    isVisible: true,
+    classTitle: "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah",
+    teacher: "Qari Abdul Basit Siddiqui",
+    scheduledTime: "08:30 PM IST",
+    remainingMins: 15,
+    courseTitle: "Ahkam-e-Tajweed & Makharij Foundation"
+  });
+
+  // Interactive Live Classroom State (WebRTC Simulation)
+  const [liveRoomModal, setLiveRoomModal] = useState({
+    isOpen: false,
+    classTitle: "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah",
+    instructor: "Qari Abdul Basit Siddiqui",
+    course: "Ahkam-e-Tajweed & Makharij Foundation",
+    isMicOn: true,
+    isCameraOn: true,
+    isScreenSharing: false,
+    isHandRaised: false,
+    isChatOpen: true,
+    activeReaction: null,
+    inClassSeconds: 1250, // ~20 mins duration
+    attendancePercent: 88,
+    chatMessages: [
+      { id: 1, sender: "Qari Abdul Basit Siddiqui", text: "Assalamu Alaikum wa Rahmatullah. Tamam talaba Surah Al-Mulk Safha 562 nikal lein.", time: "08:30 PM", isTeacher: true },
+      { id: 2, sender: "Ahmad Raza (You)", text: "Wa Alaikum Assalam Ustad Ji, page open kar liya hai.", time: "08:31 PM", isTeacher: false },
+      { id: 3, sender: "Muhammad Zaid", text: "Ustad ji, kya aaj Aayat 1 se 14 tak sabaq sunana hai?", time: "08:32 PM", isTeacher: false },
+      { id: 4, sender: "Qari Abdul Basit Siddiqui", text: "Jee bilkul Zaid, pehle Ahmad tilawat shuru karein, baqi sab dhyan se sunein.", time: "08:33 PM", isTeacher: true }
+    ],
+    chatInput: ""
+  });
 
   // Form 10: Course Rating & Feedback Modal
   const [courseReviewModal, setCourseReviewModal] = useState({
@@ -1465,21 +1526,102 @@ function App() {
     alert(`Audio Tilawat (${recitationSubmitModal.surah}) submitted to Ustaad for structured review!`);
   };
 
-  // Submit Leave Application
+  // Submit Leave Application with Course & Teacher Routing
   const handleLeaveSubmit = (e) => {
     e.preventDefault();
     const newLeave = {
       id: "LV-" + (100 + leaveApplications.length + 1),
+      studentName: currentUser.name,
+      courseTitle: leaveModal.courseTitle,
+      assignedTeacher: leaveModal.assignedTeacher,
+      approverRole: leaveModal.approverRole,
       leaveType: leaveModal.leaveType,
       fromDate: leaveModal.fromDate,
       toDate: leaveModal.toDate,
       reason: leaveModal.reason,
-      status: "Under Review ⏳",
-      remarks: "Nazim-e-Ta'limat review in progress"
+      status: "Pending Ustad Review ⏳",
+      remarks: `Submitted to ${leaveModal.assignedTeacher} for approval`
     };
     setLeaveApplications([newLeave, ...leaveApplications]);
     setLeaveModal({ ...leaveModal, isOpen: false });
-    alert("Madrasa Leave Application submitted to Nazim-e-Ta'limat for approval!");
+    alert(`Leave application submitted to Ustad (${newLeave.assignedTeacher}) for course "${newLeave.courseTitle}"!`);
+  };
+
+  // Teacher Approve / Reject Leave Decision Handler
+  const handleTeacherLeaveDecision = (leaveId, decision, teacherRemarks) => {
+    setLeaveApplications(leaveApplications.map(l => {
+      if (l.id === leaveId) {
+        return {
+          ...l,
+          status: decision === 'Approved' ? 'Approved ✅' : 'Rejected ❌',
+          remarks: teacherRemarks || (decision === 'Approved' ? 'Ustaad ne uzr qubool farmaya. Ijazat di gayi.' : 'Imtihan qareeb hone ki wajah se chutti manzoor nahi hui.')
+        };
+      }
+      return l;
+    }));
+    alert(`Leave request ${leaveId} has been ${decision} by Ustaad!`);
+  };
+
+  // Live Classroom Room Handlers
+  const handleOpenLiveRoom = (classInfo) => {
+    setLiveRoomModal(prev => ({
+      ...prev,
+      isOpen: true,
+      classTitle: classInfo ? classInfo.title : "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah",
+      instructor: classInfo ? classInfo.instructor : "Qari Abdul Basit Siddiqui"
+    }));
+  };
+
+  const handleToggleMic = () => {
+    setLiveRoomModal(prev => ({ ...prev, isMicOn: !prev.isMicOn }));
+  };
+
+  const handleToggleCamera = () => {
+    setLiveRoomModal(prev => ({ ...prev, isCameraOn: !prev.isCameraOn }));
+  };
+
+  const handleRaiseHand = () => {
+    const nextState = !liveRoomModal.isHandRaised;
+    setLiveRoomModal(prev => ({ ...prev, isHandRaised: nextState }));
+    if (nextState) {
+      setLiveRoomModal(prev => ({
+        ...prev,
+        activeReaction: { emoji: "✋", label: "Ahmad Raza raised hand for Ijazat!" }
+      }));
+      setTimeout(() => setLiveRoomModal(prev => ({ ...prev, activeReaction: null })), 2500);
+    }
+  };
+
+  const handleSendEmoji = (emoji, label) => {
+    setLiveRoomModal(prev => ({
+      ...prev,
+      activeReaction: { emoji, label }
+    }));
+    setTimeout(() => {
+      setLiveRoomModal(prev => ({ ...prev, activeReaction: null }));
+    }, 2500);
+  };
+
+  const handleSendLiveChat = (e) => {
+    e.preventDefault();
+    if (!liveRoomModal.chatInput.trim()) return;
+    const newMsg = {
+      id: Date.now(),
+      sender: `${currentUser.name} (You)`,
+      text: liveRoomModal.chatInput.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isTeacher: false
+    };
+    setLiveRoomModal(prev => ({
+      ...prev,
+      chatMessages: [...prev.chatMessages, newMsg],
+      chatInput: ""
+    }));
+  };
+
+  const handleLeaveRoom = () => {
+    setLiveRoomModal(prev => ({ ...prev, isOpen: false }));
+    alert(`Class left. Total duration recorded: ${Math.floor(liveRoomModal.inClassSeconds / 60)} mins. Attendance recorded: ${liveRoomModal.attendancePercent}% (Present ✅) via 30s Heartbeat SDK.`);
   };
 
   // Submit Course Rating & Review
@@ -1568,6 +1710,16 @@ function App() {
         </ul>
 
         <div className="nav-actions">
+          {/* Notification Bell with 15-min Alert Badge */}
+          <div 
+            onClick={() => alert(`🔔 Live Notification (BRD Section 14):\n\n"${class15MinAlert.classTitle}" by ${class15MinAlert.teacher} shuru hone me sirf ${class15MinAlert.remainingMins} minute baqi hain!\n\nWudhu aur Mushaf tayyar rakhein.`)}
+            style={{ position: 'relative', cursor: 'pointer', padding: '8px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Class Reminders & Notifications"
+          >
+            <i className="fas fa-bell" style={{ color: '#f59e0b' }}></i>
+            <span className="notif-badge">1</span>
+          </div>
+
           <div 
             onClick={() => setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 })}
             style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 14px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px', cursor: 'pointer', border: '1px solid var(--border-light)' }}
@@ -1627,6 +1779,38 @@ function App() {
            ========================================================================= */}
         {currentUser.role === 'student' && activeNav === 'dashboard' && !activeCourse && (
           <div>
+            {/* 15-MIN CLASS NOTIFICATION ALERT BANNER */}
+            {class15MinAlert.isVisible && (
+              <div className="live-alert-banner">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
+                  <div style={{ fontSize: '2rem', color: '#ef4444' }}>
+                    <i className="fas fa-video fa-beat"></i>
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span className="live-alert-pulse"></span>
+                      <strong style={{ color: '#ffffff', fontSize: '1rem' }}>Live Class Starting in {class15MinAlert.remainingMins} Minutes!</strong>
+                      <span className="badge badge-ruby" style={{ fontSize: '0.72rem' }}>Scheduled: {class15MinAlert.scheduledTime}</span>
+                    </div>
+                    <div style={{ fontSize: '0.88rem', color: '#f1f5f9', marginTop: '3px' }}>
+                      <strong>{class15MinAlert.classTitle}</strong> • Teacher: <em>{class15MinAlert.teacher}</em>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '2px' }}>
+                      <i className="fas fa-info-circle"></i> Wudhu kar ke ba-wazu baithein aur Mushaf-e-Kareem khol kar tayyar rahein. 30s Heartbeat SDK auto attendance mark karega.
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button className="btn btn-ruby" style={{ padding: '8px 18px', fontWeight: 800 }} onClick={() => handleOpenLiveRoom({ title: class15MinAlert.classTitle, instructor: class15MinAlert.teacher })}>
+                    <i className="fas fa-door-open"></i> 🔴 Join Live Class Room Now
+                  </button>
+                  <button className="btn btn-outline btn-sm" title="Dismiss Alert" onClick={() => setClass15MinAlert({ ...class15MinAlert, isVisible: false })}>
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
               <div>
                 <span className="badge badge-teal" style={{ marginBottom: '6px' }}>Student Learning Portal</span>
@@ -1636,6 +1820,9 @@ function App() {
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button className="btn btn-ruby" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
+                  <i className="fas fa-video"></i> 🔴 Enter Live Classroom
+                </button>
                 <button className="btn btn-primary" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
                   <i className="fas fa-microphone"></i> Submit Tajweed Audio Form
                 </button>
@@ -1650,6 +1837,9 @@ function App() {
 
             {/* Quick Action Strip for Student */}
             <div className="quick-action-strip" style={{ marginBottom: '20px' }}>
+              <button className="btn btn-ruby btn-sm" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
+                <i className="fas fa-broadcast-tower"></i> 🔴 Join Live Halaqah (Video + Audio + Chat + Reactions)
+              </button>
               <button className="btn btn-outline btn-sm" onClick={() => handleOpenCheckout(courses[0])}>
                 <i className="fas fa-shopping-cart"></i> Course Enrollment Checkout
               </button>
@@ -1682,6 +1872,45 @@ function App() {
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>4. MERI ATTENDANCE</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-emerald-light)', marginTop: '4px' }}>88%</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>Eligible for Sanad (Req 75%)</div>
+              </div>
+            </div>
+
+            {/* LIVE CLASSES & INTERACTIVE HALAQAH SECTION */}
+            <div className="glass-card" style={{ padding: '24px', marginBottom: '28px', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="badge badge-ruby"><i className="fas fa-broadcast-tower"></i> Live Halaqah Sessions</span>
+                    <span className="badge badge-emerald">30s Heartbeat SDK Active</span>
+                  </div>
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '6px 0 2px' }}>
+                    Interactive Video & Recitation Halaqahs (BRD Section 09)
+                  </h3>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
+                    Join live recitation circles with high-def video, two-way audio, real-time chat, hand-raising for Ijazat, and emoji reactions.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                {liveClasses.map(lc => (
+                  <div key={lc.id} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', padding: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <span className="badge badge-ruby" style={{ fontSize: '0.72rem' }}>{lc.status}</span>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '6px 0 2px' }}>{lc.title}</h4>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)' }}>Ustad: {lc.instructor}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '10px 0 14px' }}>
+                      <div><i className="fas fa-clock" style={{ color: 'var(--color-primary-light)', marginRight: '6px' }}></i> {lc.date}</div>
+                      <div><i className="fas fa-user-friends" style={{ color: 'var(--color-primary-light)', marginRight: '6px' }}></i> {lc.enrolled} Talaba In Class</div>
+                    </div>
+                    <button className="btn btn-ruby" style={{ width: '100%', fontWeight: 700 }} onClick={() => handleOpenLiveRoom(lc)}>
+                      <i className="fas fa-video"></i> 🔴 Join Live Halaqah Room (Video + Audio + Chat)
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1797,22 +2026,31 @@ function App() {
                   <thead>
                     <tr>
                       <th>Ref ID</th>
+                      <th>Target Course</th>
+                      <th>Assigned Ustad / Approver</th>
                       <th>Reason / Uzr</th>
-                      <th>From Date</th>
-                      <th>To Date</th>
+                      <th>Leave Dates</th>
                       <th>Status</th>
-                      <th>Nazim Remarks</th>
+                      <th>Ustad / Nazim Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
                     {leaveApplications.map(l => (
                       <tr key={l.id}>
                         <td><code>{l.id}</code></td>
-                        <td><strong>{l.leaveType}</strong> — <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{l.reason}</span></td>
-                        <td>{l.fromDate}</td>
-                        <td>{l.toDate}</td>
-                        <td><span className="badge badge-emerald">{l.status}</span></td>
-                        <td style={{ fontSize: '0.85rem', color: 'var(--color-accent-gold)' }}>{l.remarks}</td>
+                        <td><span className="badge badge-teal">{l.courseTitle}</span></td>
+                        <td>
+                          <strong>{l.assignedTeacher}</strong>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Role: {l.approverRole}</div>
+                        </td>
+                        <td><strong>{l.leaveType}</strong> — <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{l.reason}</span></td>
+                        <td style={{ fontSize: '0.82rem' }}>{l.fromDate} to {l.toDate}</td>
+                        <td>
+                          <span className={`badge ${l.status.includes('Approved') ? 'badge-emerald' : l.status.includes('Rejected') ? 'badge-ruby' : 'badge-gold'}`}>
+                            {l.status}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: '0.84rem', color: 'var(--color-accent-gold)' }}>{l.remarks}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -2196,6 +2434,77 @@ function App() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Talaba Leave Applications Approval Queue (Teacher Review) */}
+                <div className="glass-card" style={{ padding: '20px', marginTop: '24px', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="badge badge-gold"><i className="fas fa-user-clock"></i> Leave Approval Queue</span>
+                        <span className="badge badge-ruby">{leaveApplications.filter(l => l.status.includes('Pending')).length} Pending Actions</span>
+                      </div>
+                      <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 2px' }}>
+                        Talaba Madrasa Chutti (Leave) Applications
+                      </h4>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                        Review reasons, verify medical or travel uzr, and approve or reject to adjust the 30s Heartbeat SDK auto-attendance.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="custom-table">
+                      <thead>
+                        <tr>
+                          <th>Ref ID</th>
+                          <th>Student Name</th>
+                          <th>Course Name</th>
+                          <th>Reason / Uzr Category</th>
+                          <th>Leave Dates</th>
+                          <th>Current Status</th>
+                          <th>Ustad Review Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaveApplications.map(l => (
+                          <tr key={l.id}>
+                            <td><code>{l.id}</code></td>
+                            <td><strong>{l.studentName}</strong></td>
+                            <td><span className="badge badge-teal">{l.courseTitle}</span></td>
+                            <td>
+                              <strong>{l.leaveType}</strong>
+                              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{l.reason}</div>
+                            </td>
+                            <td style={{ fontSize: '0.82rem' }}>{l.fromDate} to {l.toDate}</td>
+                            <td>
+                              <span className={`badge ${l.status.includes('Approved') ? 'badge-emerald' : l.status.includes('Rejected') ? 'badge-ruby' : 'badge-gold'}`}>
+                                {l.status}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button 
+                                  className="btn btn-primary btn-sm" 
+                                  style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                                  onClick={() => handleTeacherLeaveDecision(l.id, 'Approved', 'Ustaad ne uzr-e-shar\'i qubool farmaya. Chutti manzoor shuda.')}
+                                >
+                                  <i className="fas fa-check"></i> Approve
+                                </button>
+                                <button 
+                                  className="btn btn-ruby btn-sm" 
+                                  style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                                  onClick={() => handleTeacherLeaveDecision(l.id, 'Rejected', 'Dars aur Sabaq ke nuqsaan ki wajah se chutti manzoor nahi hui.')}
+                                >
+                                  <i className="fas fa-times"></i> Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -4845,6 +5154,55 @@ function App() {
 
             <form onSubmit={handleLeaveSubmit}>
               <div className="form-group">
+                <label className="form-label"><i className="fas fa-book-open" style={{ color: 'var(--color-primary-light)', marginRight: '6px' }}></i> Target Course / Sabaq for Leave</label>
+                <select 
+                  className="form-select" 
+                  value={leaveModal.courseTitle} 
+                  onChange={(e) => {
+                    const selectedCourse = e.target.value;
+                    let teacher = "Qari Abdul Basit Siddiqui";
+                    let role = "Assigned Ustad & Nazim";
+                    if (selectedCourse.includes("Dars-e-Nizami")) {
+                      teacher = "Mufti Tariq Masood";
+                      role = "Senior Ustad & Jamia Nazim";
+                    } else if (selectedCourse.includes("Hifz")) {
+                      teacher = "Hafiz Muhammad Bilal";
+                      role = "Hifz Nazim-e-Ala";
+                    } else if (selectedCourse.includes("Fard 'Ayn")) {
+                      teacher = "Shaykh Dr. Ismail Badawi";
+                      role = "Course Instructor";
+                    }
+                    setLeaveModal({
+                      ...leaveModal,
+                      courseTitle: selectedCourse,
+                      assignedTeacher: teacher,
+                      approverRole: role
+                    });
+                  }}
+                >
+                  <option value="Ahkam-e-Tajweed & Makharij Foundation">Ahkam-e-Tajweed & Makharij Foundation (Ustad: Qari Abdul Basit)</option>
+                  <option value="Dars-e-Nizami Aalimiyyah Program">Dars-e-Nizami Aalimiyyah Program (Ustad: Mufti Tariq Masood)</option>
+                  <option value="Hifz-ul-Quran Memorization Halaqah">Hifz-ul-Quran Memorization Halaqah (Ustad: Hafiz Muhammad Bilal)</option>
+                  <option value="Fard 'Ayn Islamic Essentials">Fard 'Ayn Islamic Essentials (Ustad: Shaykh Dr. Ismail Badawi)</option>
+                </select>
+              </div>
+
+              {/* Destination Ustad & Approver Notice */}
+              <div style={{ background: 'rgba(217, 119, 6, 0.12)', border: '1px solid var(--border-gold)', borderRadius: '10px', padding: '12px', marginBottom: '16px', fontSize: '0.84rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}><i className="fas fa-paper-plane" style={{ marginRight: '6px' }}></i> Destination Ustad:</span>
+                  <strong style={{ color: 'var(--color-accent-gold)' }}>{leaveModal.assignedTeacher}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}><i className="fas fa-user-shield" style={{ marginRight: '6px' }}></i> Approver Authority:</span>
+                  <span className="badge badge-emerald" style={{ fontSize: '0.74rem' }}>{leaveModal.approverRole}</span>
+                </div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem', marginTop: '6px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '6px' }}>
+                  <i className="fas fa-info-circle" style={{ color: 'var(--color-primary-light)', marginRight: '4px' }}></i> Application will be routed directly to this Ustad's verification queue. Once approved, the 30s Heartbeat SDK will register your days as "Excused (Chutti Manzoor)".
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Reason Category / Uzr</label>
                 <select className="form-select" value={leaveModal.leaveType} onChange={(e) => setLeaveModal({ ...leaveModal, leaveType: e.target.value })}>
                   <option value="Uzr-e-Shar'i (Beemari)">Uzr-e-Shar'i (Medical / Illness)</option>
@@ -5006,6 +5364,365 @@ function App() {
                 <i className="fas fa-stamp"></i> Record Scholar Decision & Sign Off
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 25. INTERACTIVE LIVE CLASSROOM (VIDEO, AUDIO, CHAT, REACTIONS, ATTENDANCE HEARTBEAT) */}
+      {liveRoomModal.isOpen && (
+        <div className="live-room-overlay" onClick={handleLeaveRoom}>
+          <div className="live-room-container" onClick={(e) => e.stopPropagation()}>
+            {/* Live Room Header */}
+            <div className="live-room-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="badge badge-ruby" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="live-alert-pulse" style={{ width: '8px', height: '8px', margin: 0 }}></span> LIVE HALAQAH
+                </span>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                    {liveRoomModal.classTitle}
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-accent-gold)' }}>
+                    <i className="fas fa-chalkboard-teacher" style={{ marginRight: '5px' }}></i> Ustad: <strong>{liveRoomModal.instructor}</strong> • <span style={{ color: 'var(--text-muted)' }}>Room ID: #HLQ-8821</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Heartbeat Attendance SDK HUD */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <div style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', padding: '6px 14px', textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-emerald-light)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <i className="fas fa-heartbeat" style={{ animation: 'pulse-red 1.5s infinite' }}></i> 30s Heartbeat SDK Active
+                  </div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>
+                    In Class: {Math.floor(liveRoomModal.inClassSeconds / 60)}m {liveRoomModal.inClassSeconds % 60}s • {liveRoomModal.attendancePercent}% Score
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 12px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  <i className="fas fa-users" style={{ color: 'var(--color-primary-light)', marginRight: '6px' }}></i> <strong>24</strong> Talaba Online
+                </div>
+
+                <button 
+                  className="btn btn-ruby btn-sm" 
+                  style={{ padding: '6px 14px', borderRadius: '8px', fontWeight: 700 }}
+                  onClick={handleLeaveRoom}
+                >
+                  <i className="fas fa-phone-slash"></i> Leave Halaqah
+                </button>
+              </div>
+            </div>
+
+            {/* Live Room Body */}
+            <div className="live-room-body">
+              {/* Left & Center: Main Video Stage */}
+              <div className="live-video-stage">
+                {/* Main Instructor Video Feed */}
+                <div className="video-main-speaker">
+                  {/* Floating Reaction Animation Badge */}
+                  {liveRoomModal.activeReaction && (
+                    <div className="floating-reaction-badge">
+                      <span style={{ fontSize: '1.6rem' }}>{liveRoomModal.activeReaction.emoji}</span>
+                      <span>{liveRoomModal.activeReaction.label}</span>
+                    </div>
+                  )}
+
+                  {/* Spiritual Ustad Feed Backdrop */}
+                  <div style={{ textAlign: 'center', zIndex: 1, padding: '20px' }}>
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <div 
+                        style={{ 
+                          width: '130px', 
+                          height: '130px', 
+                          borderRadius: '50%', 
+                          background: 'linear-gradient(135deg, #10b981, #047857)', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          fontSize: '3.5rem', 
+                          color: '#ffffff',
+                          boxShadow: '0 0 40px rgba(16, 185, 129, 0.4)',
+                          border: '3px solid rgba(245, 158, 11, 0.6)'
+                        }}
+                      >
+                        <i className="fas fa-user-tie"></i>
+                      </div>
+                      <div style={{ 
+                        position: 'absolute', 
+                        bottom: '4px', 
+                        right: '4px', 
+                        background: '#10b981', 
+                        width: '24px', 
+                        height: '24px', 
+                        borderRadius: '50%', 
+                        border: '3px solid #050911',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.65rem'
+                      }}>
+                        <i className="fas fa-microphone" style={{ color: '#ffffff' }}></i>
+                      </div>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '14px 0 4px', color: '#ffffff' }}>
+                      {liveRoomModal.instructor}
+                    </h3>
+                    <div style={{ fontSize: '0.88rem', color: 'var(--color-accent-gold)' }}>
+                      <i className="fas fa-certificate" style={{ marginRight: '6px' }}></i> Shariah Verified Senior Mudarris • Live Audio-Video Feed
+                    </div>
+
+                    {/* Surah / Dars Status HUD Banner on Screen */}
+                    <div style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '99px', padding: '6px 18px', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                      <span className="live-alert-pulse" style={{ width: '8px', height: '8px', margin: 0 }}></span>
+                      <span>Now Reciting: <strong>Surah Al-Mulk (Ayat 1-14)</strong></span>
+                      <span style={{ color: 'rgba(255,255,255,0.2)' }}>•</span>
+                      <span style={{ color: 'var(--color-primary-light)' }}>Huroof-e-Musta'liyah Rules Focus</span>
+                    </div>
+                  </div>
+
+                  {/* Speaker Bottom Tag */}
+                  <div className="video-speaker-tag">
+                    <span style={{ color: '#10b981' }}>●</span>
+                    <span>{liveRoomModal.instructor} (Active Speaker)</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--color-accent-gold)', marginLeft: '8px', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '8px' }}>
+                      HD 1080p 60fps
+                    </span>
+                  </div>
+
+                  {/* Student Picture-in-Picture (PiP) Video Tile */}
+                  <div className="video-pip-student">
+                    {liveRoomModal.isCameraOn ? (
+                      <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', color: '#ffffff' }}>
+                          <i className="fas fa-user-graduate"></i>
+                        </div>
+                        <div style={{ position: 'absolute', bottom: '6px', left: '6px', right: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', background: 'rgba(0,0,0,0.7)', padding: '2px 6px', borderRadius: '4px' }}>
+                          <span style={{ color: '#ffffff', fontWeight: 600 }}>You (Student)</span>
+                          <i className={`fas ${liveRoomModal.isMicOn ? 'fa-microphone' : 'fa-microphone-slash'}`} style={{ color: liveRoomModal.isMicOn ? '#10b981' : '#ef4444' }}></i>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '10px' }}>
+                        <i className="fas fa-video-slash" style={{ fontSize: '1.5rem', color: '#ef4444', marginBottom: '6px' }}></i>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Camera Muted</div>
+                        <div style={{ fontSize: '0.68rem', color: '#ffffff', fontWeight: 600 }}>{currentUser.name}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Call Controls Strip (Mic, Camera, Screen, Hand Raise, Emoji Reactions, Leave) */}
+                <div className="call-controls-strip">
+                  {/* Mic Toggle Button */}
+                  <button 
+                    className={`ctrl-btn ${liveRoomModal.isMicOn ? 'active' : 'off'}`} 
+                    title={liveRoomModal.isMicOn ? 'Audio Call: Mute Mic' : 'Audio Call: Unmute Mic'}
+                    onClick={handleToggleMic}
+                  >
+                    <i className={`fas ${liveRoomModal.isMicOn ? 'fa-microphone' : 'fa-microphone-slash'}`}></i>
+                  </button>
+
+                  {/* Camera Toggle Button */}
+                  <button 
+                    className={`ctrl-btn ${liveRoomModal.isCameraOn ? 'active' : 'off'}`} 
+                    title={liveRoomModal.isCameraOn ? 'Video Call: Turn Camera Off' : 'Video Call: Turn Camera On'}
+                    onClick={handleToggleCamera}
+                  >
+                    <i className={`fas ${liveRoomModal.isCameraOn ? 'fa-video' : 'fa-video-slash'}`}></i>
+                  </button>
+
+                  {/* Screen Share Button */}
+                  <button 
+                    className={`ctrl-btn ${liveRoomModal.isScreenSharing ? 'active' : ''}`} 
+                    title="Screen Share Dars Content"
+                    onClick={() => {
+                      const next = !liveRoomModal.isScreenSharing;
+                      setLiveRoomModal({ ...liveRoomModal, isScreenSharing: next });
+                      alert(next ? "Screen sharing initiated (Mushaf page / Lesson slides)" : "Screen sharing stopped");
+                    }}
+                  >
+                    <i className="fas fa-desktop"></i>
+                  </button>
+
+                  {/* Raise Hand for Ijazat Button */}
+                  <button 
+                    className={`ctrl-btn ${liveRoomModal.isHandRaised ? 'active' : ''}`} 
+                    style={{ 
+                      background: liveRoomModal.isHandRaised ? '#f59e0b' : 'rgba(255, 255, 255, 0.08)',
+                      borderColor: liveRoomModal.isHandRaised ? '#f59e0b' : 'rgba(255, 255, 255, 0.15)',
+                      color: liveRoomModal.isHandRaised ? '#000000' : '#ffffff'
+                    }}
+                    title="Raise Hand for Ijazat / Question"
+                    onClick={handleRaiseHand}
+                  >
+                    <i className="fas fa-hand-paper"></i>
+                  </button>
+
+                  {/* Emoji Quick Reactions Dock */}
+                  <div className="reaction-btn-group">
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginRight: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Reactions:
+                    </span>
+                    <button 
+                      className="reaction-btn" 
+                      title="Thumbs Up / Like" 
+                      onClick={() => handleSendEmoji('👍', 'Ahmad Raza gave Thumbs Up!')}
+                    >
+                      👍
+                    </button>
+                    <button 
+                      className="reaction-btn" 
+                      title="Raise Hand (Ijazat)" 
+                      onClick={() => handleSendEmoji('✋', 'Ijazat Talab Ki (Hand Raised)!')}
+                    >
+                      ✋
+                    </button>
+                    <button 
+                      className="reaction-btn" 
+                      title="Ameen / Dua" 
+                      onClick={() => handleSendEmoji('🤲', 'Ameen! Dua Qabool Ho')}
+                    >
+                      🤲
+                    </button>
+                    <button 
+                      className="reaction-btn" 
+                      title="JazakAllah Khair" 
+                      onClick={() => handleSendEmoji('❤️', 'JazakAllah Khair Ustad Ji!')}
+                    >
+                      ❤️
+                    </button>
+                    <button 
+                      className="reaction-btn" 
+                      title="MashaAllah" 
+                      onClick={() => handleSendEmoji('👏', 'MashaAllah!')}
+                    >
+                      👏
+                    </button>
+                  </div>
+
+                  {/* Leave Halaqah Button */}
+                  <button 
+                    className="ctrl-btn leave" 
+                    title="Leave Live Halaqah"
+                    onClick={handleLeaveRoom}
+                  >
+                    <i className="fas fa-sign-out-alt"></i> Leave
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Live Chat Drawer */}
+              <div className="live-chat-panel">
+                {/* Chat Panel Header */}
+                <div style={{ padding: '14px 16px', background: '#080e18', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="fas fa-comments" style={{ color: 'var(--color-primary-light)' }}></i>
+                    <strong style={{ fontSize: '0.92rem', color: '#ffffff' }}>Live Halaqah Chat</strong>
+                  </div>
+                  <span className="badge badge-teal" style={{ fontSize: '0.72rem' }}>
+                    {liveRoomModal.chatMessages.length} Messages
+                  </span>
+                </div>
+
+                {/* Hand Raised Notification Banner */}
+                {liveRoomModal.isHandRaised && (
+                  <div style={{ background: 'rgba(245, 158, 11, 0.15)', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--color-accent-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="fas fa-hand-paper"></i> Your hand is raised for Ijazat!
+                    </div>
+                    <button 
+                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.72rem', cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={handleRaiseHand}
+                    >
+                      Lower
+                    </button>
+                  </div>
+                )}
+
+                {/* Chat Messages List */}
+                <div className="chat-msg-list">
+                  {liveRoomModal.chatMessages.map(msg => (
+                    <div 
+                      key={msg.id} 
+                      className={`chat-msg-bubble ${msg.sender.includes('(You)') ? 'self' : ''}`}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <strong style={{ fontSize: '0.82rem', color: msg.isTeacher ? 'var(--color-accent-gold)' : msg.sender.includes('(You)') ? 'var(--color-emerald-light)' : '#ffffff' }}>
+                            {msg.sender}
+                          </strong>
+                          {msg.isTeacher && (
+                            <span className="badge badge-gold" style={{ fontSize: '0.64rem', padding: '1px 5px' }}>
+                              Ustad
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{msg.time}</span>
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Quick Phrases Bar */}
+                <div style={{ padding: '6px 12px', background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '6px', overflowX: 'auto' }}>
+                  {["JazakAllah", "MashaAllah", "Ameen", "Dobara Samjha Dein"].map((phrase, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      style={{ 
+                        background: 'rgba(255,255,255,0.06)', 
+                        border: '1px solid rgba(255,255,255,0.1)', 
+                        borderRadius: '99px', 
+                        padding: '2px 8px', 
+                        fontSize: '0.72rem', 
+                        color: 'var(--text-secondary)', 
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                      onClick={() => {
+                        const newMsg = {
+                          id: Date.now(),
+                          sender: `${currentUser.name} (You)`,
+                          text: phrase,
+                          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                          isTeacher: false
+                        };
+                        setLiveRoomModal(prev => ({
+                          ...prev,
+                          chatMessages: [...prev.chatMessages, newMsg]
+                        }));
+                      }}
+                    >
+                      {phrase}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Chat Input Form */}
+                <form className="chat-input-bar" onSubmit={handleSendLiveChat}>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="Sawal ya Tabsera likhein..." 
+                    style={{ padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px' }}
+                    value={liveRoomModal.chatInput}
+                    onChange={(e) => setLiveRoomModal({ ...liveRoomModal, chatInput: e.target.value })}
+                  />
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    style={{ padding: '8px 14px', borderRadius: '8px' }}
+                    title="Send Message"
+                  >
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}
