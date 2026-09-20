@@ -3,7 +3,7 @@
 // Seamlessly reads and writes to SQLite backend with silent fallback to memory
 // ============================================================================
 
-const API_BASE = (typeof window !== 'undefined' && window.location.port === '8085') 
+const API_BASE = (typeof window !== 'undefined' && window.location.origin && window.location.origin.startsWith('http')) 
   ? `${window.location.origin}/api/v1` 
   : 'http://localhost:8085/api/v1';
 
@@ -18,7 +18,7 @@ const apiService = {
     }
   },
 
-  // 2. Courses
+  // 2. Courses Catalog
   getCourses: async () => {
     try {
       const res = await fetch(`${API_BASE}/courses`);
@@ -37,14 +37,41 @@ const apiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(courseData)
       });
-      return await res.json();
+      const data = await res.json();
+      return data;
     } catch (err) {
       console.warn('[API Service] createCourse error:', err.message);
       return { success: false, error: err.message };
     }
   },
 
-  // 3. Leave Applications
+  // 3. Batches & Halaqaat Schedulers
+  getBatches: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/batches`);
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch (err) {
+      console.warn('[API Service] getBatches fallback:', err.message);
+      return null;
+    }
+  },
+
+  createBatch: async (batchData) => {
+    try {
+      const res = await fetch(`${API_BASE}/batches`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(batchData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] createBatch error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 4. Leave Applications
   getLeaves: async (params = {}) => {
     try {
       const query = new URLSearchParams(params).toString();
@@ -85,7 +112,7 @@ const apiService = {
     }
   },
 
-  // 4. Admissions Register
+  // 5. Admissions Register
   getAdmissions: async () => {
     try {
       const res = await fetch(`${API_BASE}/admissions`);
@@ -111,7 +138,33 @@ const apiService = {
     }
   },
 
-  // 5. Chanda & Waqf Ledger
+  // 6. Faculty & Asateza Directory
+  getFaculty: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/faculty`);
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch (err) {
+      console.warn('[API Service] getFaculty fallback:', err.message);
+      return null;
+    }
+  },
+
+  createFaculty: async (facultyData) => {
+    try {
+      const res = await fetch(`${API_BASE}/faculty`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(facultyData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] createFaculty error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 7. Chanda & Waqf Ledger
   getChandaLedger: async () => {
     try {
       const res = await fetch(`${API_BASE}/chanda`);
@@ -137,7 +190,7 @@ const apiService = {
     }
   },
 
-  // 6. 30s Heartbeat SDK Attendance
+  // 8. 30s Heartbeat SDK Attendance
   sendHeartbeat: async (heartbeatData) => {
     try {
       const res = await fetch(`${API_BASE}/attendance/heartbeat`, {

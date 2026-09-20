@@ -73,9 +73,39 @@ function getDepartments(req, res) {
   }
 }
 
+function createFaculty(req, res, body) {
+  try {
+    const id = body.id || 'fac-' + Date.now();
+    const {
+      institute_id = 'inst-darululoom-1',
+      user_id = null,
+      title = 'Ustad',
+      name,
+      designation = 'Senior Ustad',
+      department_id = 'dept-tajweed',
+      sanad_details = 'Dars-e-Nizami Aalimiyyah Sanad',
+      monthly_hadya = 35000,
+      status = 'Active'
+    } = body;
+
+    execute(`
+      INSERT INTO faculty (id, institute_id, user_id, title, name, designation, department_id, sanad_details, monthly_hadya, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, institute_id, user_id, title, name, designation, department_id, sanad_details, Number(monthly_hadya) || 0, status]);
+
+    const created = queryOne('SELECT * FROM faculty WHERE id = ?', [id]);
+    res.writeHead(201, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, message: 'Faculty member registered successfully', data: created }));
+  } catch (err) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
+}
+
 module.exports = {
   getAdmissions,
   createAdmission,
   getFaculty,
+  createFaculty,
   getDepartments
 };

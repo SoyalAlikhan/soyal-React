@@ -19,6 +19,25 @@ function initSchema() {
     const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
     db.exec(schemaSql);
   }
+  runMigrations();
+}
+
+function runMigrations() {
+  const courseCols = [
+    { name: 'description', type: 'TEXT' },
+    { name: 'kitab_hawala', type: 'TEXT' },
+    { name: 'course_type', type: 'TEXT' },
+    { name: 'rating', type: 'REAL DEFAULT 5.0' },
+    { name: 'students_count', type: 'INTEGER DEFAULT 0' },
+    { name: 'lessons_json', type: 'TEXT' }
+  ];
+  for (const col of courseCols) {
+    try {
+      db.exec(`ALTER TABLE courses ADD COLUMN ${col.name} ${col.type};`);
+    } catch {
+      // Column already exists
+    }
+  }
 }
 
 initSchema();

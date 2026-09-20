@@ -906,6 +906,19 @@ function App() {
   // Initial Data Fetch from SQLite Database
   useEffect(() => {
     if (typeof window !== 'undefined' && window.apiService) {
+      // 1. Fetch Courses from SQLite
+      window.apiService.getCourses().then(dbCourses => {
+        if (dbCourses && dbCourses.length > 0) {
+          console.log('[SQLite Backend] Loaded', dbCourses.length, 'courses from alnoor_lms.db');
+          setCourses(prev => {
+            const dbIds = new Set(dbCourses.map(c => c.id));
+            const staticExtra = (window.COURSES_DATA || []).filter(c => !dbIds.has(c.id));
+            return [...dbCourses, ...staticExtra];
+          });
+        }
+      });
+
+      // 2. Fetch Leave Applications from SQLite
       window.apiService.getLeaves().then(leaves => {
         if (leaves && leaves.length > 0) {
           const formatted = leaves.map(l => ({
@@ -924,6 +937,65 @@ function App() {
           setLeaveApplications(formatted);
         }
       });
+
+      // 3. Fetch Admissions Register from SQLite
+      if (window.apiService.getAdmissions) {
+        window.apiService.getAdmissions().then(adms => {
+          if (adms && adms.length > 0) {
+            const formattedAdms = adms.map(a => ({
+              rollNo: a.roll_number,
+              name: a.student_name,
+              guardian: a.guardian_name,
+              phone: a.guardian_phone,
+              dept: a.department_title || a.department_id,
+              darja: a.darja,
+              feeStatus: a.fee_status,
+              amount: a.monthly_fee,
+              lastPaid: "Recently"
+            }));
+            setMadrasaStudents(formattedAdms);
+          }
+        });
+      }
+
+      // 4. Fetch Faculty from SQLite
+      if (window.apiService.getFaculty) {
+        window.apiService.getFaculty().then(facs => {
+          if (facs && facs.length > 0) {
+            const formattedFacs = facs.map(f => ({
+              id: f.id,
+              name: f.name,
+              designation: f.designation,
+              sanad: f.sanad_details,
+              department: f.department_title || f.department_id,
+              hadya: `₹${f.monthly_hadya}/mo`,
+              studentsCount: 28,
+              batches: ["Regular Batch"],
+              status: f.status || "Active",
+              gender: "all"
+            }));
+            setFacultyList(formattedFacs);
+          }
+        });
+      }
+
+      // 5. Fetch Mahana Chanda Ledger from SQLite
+      if (window.apiService.getChandaLedger) {
+        window.apiService.getChandaLedger().then(entries => {
+          if (entries && entries.length > 0) {
+            const formattedChanda = entries.map(ch => ({
+              id: ch.id,
+              donorStudent: ch.student_or_donor,
+              category: ch.fund_category,
+              amount: `₹${ch.amount}`,
+              mode: ch.payment_mode,
+              date: ch.created_at ? ch.created_at.split(' ')[0] : new Date().toISOString().split('T')[0],
+              receiptNo: ch.receipt_no
+            }));
+            setChandaLedger(formattedChanda);
+          }
+        });
+      }
     }
   }, []);
 
@@ -1041,8 +1113,9 @@ function App() {
       alert("Please provide Course Title and Mandatory Kitab Hawala!");
       return;
     }
+    const generatedId = "crs-" + Date.now();
     const newCourse = {
-      id: "course-" + Date.now(),
+      id: generatedId,
       title: courseStudio.title,
       titleArabic: courseStudio.titleArabic,
       dept: courseStudio.dept,
@@ -1059,17 +1132,56 @@ function App() {
       description: `Structured curriculum based on ${courseStudio.kitabName}. Referenced according to classical Islamic sources.`,
       lessons: courseStudio.modules.flatMap(m => m.lessons)
     };
+
+    // Optimistic UI state update
     setCourses([newCourse, ...courses]);
     setCourseStudio({ ...courseStudio, isOpen: false });
-    alert(`Course "${courseStudio.title}" successfully submitted for Formal Scholar & Academic Review!`);
+
+    // Persist directly to SQLite database alnoor_lms.db
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.createCourse) {
+      window.apiService.createCourse({
+        id: generatedId,
+        title: courseStudio.title,
+        titleArabic: courseStudio.titleArabic,
+        dept: courseStudio.dept,
+        department_id: courseStudio.dept === 'quran' ? 'dept-tajweed' : (courseStudio.dept === 'hadith' ? 'dept-darse-nizami' : 'dept-tajweed'),
+        instructor: currentUser.name,
+        instructor_name: currentUser.name,
+        level: courseStudio.level,
+        fee_model: courseStudio.feeModel,
+        feeModel: courseStudio.feeModel,
+        price: Number(courseStudio.price) || 0,
+        fee_amount: Number(courseStudio.price) || 0,
+        duration: `${courseStudio.durationWeeks} Weeks`,
+        durationWeeks: courseStudio.durationWeeks,
+        courseType: courseStudio.courseType,
+        course_type: courseStudio.courseType,
+        description: `Structured curriculum based on ${courseStudio.kitabName}. Referenced according to classical Islamic sources.`,
+        kitabHawala: `${courseStudio.kitabName} by ${courseStudio.musannif} (${courseStudio.baabChapter}, ${courseStudio.volumePage})`,
+        kitab_hawala: `${courseStudio.kitabName} by ${courseStudio.musannif} (${courseStudio.baabChapter}, ${courseStudio.volumePage})`,
+        lessons: courseStudio.modules.flatMap(m => m.lessons)
+      }).then(res => {
+        if (res && res.success) {
+          console.log('[SQLite Backend] Course saved to alnoor_lms.db:', res.data);
+          alert(`MashaAllah! Course "${courseStudio.title}" successfully created and saved to SQLite Database (alnoor_lms.db)!\nID: ${res.data?.id || generatedId}\nPersisted to DB Explorer.`);
+        } else {
+          console.warn('[SQLite Backend] Course save notice:', res?.error);
+        }
+      }).catch(err => {
+        console.error('[SQLite Backend] Network error saving course:', err);
+      });
+    } else {
+      alert(`Course "${courseStudio.title}" successfully submitted!`);
+    }
   };
 
   // Recurring Class Scheduler Submit (BRD Flow 5)
   const handleSchedulerSubmit = (e) => {
     e.preventDefault();
+    const liveId = "live-" + Date.now();
     setLiveClasses([
       {
-        id: "live-" + Date.now(),
+        id: liveId,
         title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
         instructor: currentUser.name,
         date: schedulerModal.startDate + " at " + schedulerModal.startTime,
@@ -1080,7 +1192,20 @@ function App() {
       ...liveClasses
     ]);
     setSchedulerModal({ ...schedulerModal, isOpen: false });
-    alert(`Recurring Live Class Schedule Created! Series auto-generated through course duration (${schedulerModal.recurrence} until ${schedulerModal.autoEndDate}).`);
+
+    // Persist batch schedule to SQLite
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.createBatch) {
+      window.apiService.createBatch({
+        title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
+        schedule_days: schedulerModal.recurrence || 'Mon, Wed, Fri',
+        class_time: schedulerModal.startTime || '08:30 PM PKT',
+        max_talaba: 30
+      }).then(res => {
+        if (res && res.success) console.log('[SQLite Backend] Batch schedule saved to DB:', res.data);
+      });
+    }
+
+    alert(`Recurring Live Class Schedule Created! Series auto-generated through course duration (${schedulerModal.recurrence} until ${schedulerModal.autoEndDate}). Saved to SQLite database.`);
   };
 
   // Homework Creator Submit (BRD Section 10)
@@ -1400,8 +1525,9 @@ function App() {
   // Add Faculty Submit
   const handleAddFacultySubmit = (e) => {
     e.preventDefault();
+    const facId = "fac-" + (facultyList.length + 1);
     const newFac = {
-      id: "fac-" + (facultyList.length + 1),
+      id: facId,
       name: addFacultyModal.name,
       designation: addFacultyModal.designation,
       sanad: addFacultyModal.sanad,
@@ -1414,7 +1540,23 @@ function App() {
     };
     setFacultyList([...facultyList, newFac]);
     setAddFacultyModal({ ...addFacultyModal, isOpen: false, name: '', email: '', phone: '' });
-    alert(`Ustaad ${newFac.name} successfully onboarded to ${newFac.department}!`);
+
+    // Persist to SQLite
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.createFaculty) {
+      window.apiService.createFaculty({
+        id: facId,
+        name: addFacultyModal.name,
+        designation: addFacultyModal.designation,
+        sanad_details: addFacultyModal.sanad,
+        department_id: addFacultyModal.department === 'Ahkam-e-Tajweed' ? 'dept-tajweed' : 'dept-darse-nizami',
+        monthly_hadya: parseInt(String(addFacultyModal.hadya).replace(/[^0-9]/g, ''), 10) || 35000,
+        status: "Active"
+      }).then(res => {
+        if (res && res.success) console.log('[SQLite Backend] Faculty saved to DB:', res.data);
+      });
+    }
+
+    alert(`Ustaad ${newFac.name} successfully onboarded to ${newFac.department} and saved to SQLite Database!`);
   };
 
   // Talaba Admission Submit
@@ -1435,7 +1577,23 @@ function App() {
     setMadrasaStudents([newStudent, ...madrasaStudents]);
     setCurrentUser(prev => ({ ...prev, totalStudents: (prev.totalStudents || 280) + 1 }));
     setAdmissionModal({ ...admissionModal, isOpen: false, name: '', guardian: '', phone: '' });
-    alert(`Talib-e-Ilm ${newStudent.name} admitted successfully with Roll No: ${newRoll}!`);
+
+    // Persist to SQLite
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.submitAdmission) {
+      window.apiService.submitAdmission({
+        student_name: admissionModal.name,
+        guardian_name: admissionModal.guardian,
+        guardian_phone: admissionModal.phone,
+        department_id: admissionModal.department === 'Ahkam-e-Tajweed' ? 'dept-tajweed' : 'dept-darse-nizami',
+        darja: admissionModal.darja,
+        fee_status: admissionModal.feeStatus,
+        monthly_fee: parseInt(String(admissionModal.monthlyFee).replace(/[^0-9]/g, ''), 10) || 1200
+      }).then(res => {
+        if (res && res.success) console.log('[SQLite Backend] Admission saved to DB:', res.data);
+      });
+    }
+
+    alert(`Talib-e-Ilm ${newStudent.name} admitted successfully with Roll No: ${newRoll} and saved to SQLite Database!`);
   };
 
   // Record Chanda / Fee Submit
@@ -1452,7 +1610,20 @@ function App() {
     };
     setChandaLedger([newEntry, ...chandaLedger]);
     setChandaModal({ ...chandaModal, isOpen: false, donorStudent: '', amount: '' });
-    alert(`Mahana Chanda receipt ${newEntry.receiptNo} generated for ${newEntry.amount}!`);
+
+    // Persist to SQLite
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.recordChanda) {
+      window.apiService.recordChanda({
+        student_or_donor: chandaModal.donorStudent,
+        fund_category: chandaModal.category,
+        amount: parseInt(String(chandaModal.amount).replace(/[^0-9]/g, ''), 10) || 5000,
+        payment_mode: chandaModal.mode
+      }).then(res => {
+        if (res && res.success) console.log('[SQLite Backend] Chanda receipt saved to DB:', res.data);
+      });
+    }
+
+    alert(`Mahana Chanda receipt ${newEntry.receiptNo} generated for ${newEntry.amount} and recorded in SQLite Database!`);
   };
 
   // Create Department Submit

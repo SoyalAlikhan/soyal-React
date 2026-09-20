@@ -74,6 +74,12 @@ CREATE TABLE IF NOT EXISTS courses (
     duration TEXT,
     mode TEXT DEFAULT 'Interactive Live Halaqah',
     approval_status TEXT DEFAULT 'Approved',
+    description TEXT,
+    kitab_hawala TEXT,
+    course_type TEXT,
+    rating REAL DEFAULT 5.0,
+    students_count INTEGER DEFAULT 0,
+    lessons_json TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

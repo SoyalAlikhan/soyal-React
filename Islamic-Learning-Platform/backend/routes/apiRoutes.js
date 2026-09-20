@@ -54,11 +54,18 @@ function handleApiRequest(req, res, pathname, query, body) {
     if (req.method === 'GET') return admissionsController.getAdmissions(req, res);
     if (req.method === 'POST') return admissionsController.createAdmission(req, res, body);
   }
-  if (pathname === '/api/v1/faculty' && req.method === 'GET') {
-    return admissionsController.getFaculty(req, res);
+  if (pathname === '/api/v1/faculty') {
+    if (req.method === 'GET') return admissionsController.getFaculty(req, res);
+    if (req.method === 'POST') return admissionsController.createFaculty(req, res, body);
   }
   if (pathname === '/api/v1/departments' && req.method === 'GET') {
     return admissionsController.getDepartments(req, res);
+  }
+
+  // 4B. Batches & Schedulers
+  if (pathname === '/api/v1/batches') {
+    if (req.method === 'GET') return coursesController.getBatches(req, res);
+    if (req.method === 'POST') return coursesController.createBatch(req, res, body);
   }
 
   // 5. 30s Heartbeat SDK Attendance

@@ -42,7 +42,18 @@ const server = http.createServer((req, res) => {
           parsedBody = {};
         }
       }
-      return handleApiRequest(req, res, pathname, query, parsedBody);
+      try {
+        // Hot-reload backend controllers and routes on every API call
+        Object.keys(require.cache).forEach(k => {
+          if (k.includes('backend' + path.sep + 'controllers') || k.includes('backend' + path.sep + 'routes')) {
+            delete require.cache[k];
+          }
+        });
+        const { handleApiRequest: freshHandler } = require('./backend/routes/apiRoutes');
+        return freshHandler(req, res, pathname, query, parsedBody);
+      } catch (err) {
+        return handleApiRequest(req, res, pathname, query, parsedBody);
+      }
     });
     return;
   }
