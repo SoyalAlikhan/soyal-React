@@ -68,6 +68,9 @@ function App() {
   // Active User Session State
   const [currentUser, setCurrentUser] = useState(personas.student);
 
+  // Account Switcher & Role Lock Modal State
+  const [accountSwitchModal, setAccountSwitchModal] = useState(false);
+
   // Authentication & Registration Stepper Modal
   const [authModal, setAuthModal] = useState({
     isOpen: false,
@@ -919,6 +922,7 @@ function App() {
     const p = personas[roleKey];
     setCurrentUser(p);
     setActiveCourse(null);
+    setAccountSwitchModal(false);
     if (roleKey === 'student') setActiveNav('dashboard');
     else if (roleKey === 'teacher') setActiveNav('teacher');
     else if (roleKey === 'institute') setActiveNav('institute');
@@ -1741,8 +1745,8 @@ function App() {
 
           <div 
             className="nav-user-pill"
-            onClick={() => setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 })}
-            title="Click to Register New Account / View Profile"
+            onClick={() => setAccountSwitchModal(true)}
+            title="Click to Switch Account or Role"
           >
             <i className={`fas ${currentUser.avatarIcon}`} style={{ color: 'var(--color-primary-light)' }}></i>
             <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
@@ -1773,32 +1777,30 @@ function App() {
         </div>
       </nav>
 
-      {/* 2. PERSONA SWITCHER BAR */}
-      <div className="persona-switcher-bar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge badge-gold" style={{ fontSize: '0.72rem' }}>
-            <i className="fas fa-id-badge"></i> Active View:
+      {/* 2. ROLE-LOCKED PRIVATE SESSION BAR */}
+      <div className="session-lock-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span className="session-lock-badge">
+            <i className="fas fa-lock"></i> Role-Locked Private Session
+          </span>
+          <span style={{ fontSize: '0.84rem', color: '#cbd5e1' }}>
+            Active Portal: <strong style={{ color: '#ffffff' }}>
+              {currentUser.role === 'student' ? '🎓 Talib-e-Ilm (Student Hub)' : currentUser.role === 'teacher' ? '👨‍🏫 Teacher Studio (Ustad Workspace)' : currentUser.role === 'institute' ? '🏛️ Jamia Darul Uloom (Madrasa Operations)' : '⚖️ Shariah Board (Scholar Review)'}
+            </strong>
+          </span>
+          <span className="badge badge-teal" style={{ fontSize: '0.72rem' }}>
+            Private Data Scoped to: {currentUser.name}
           </span>
         </div>
 
-        <div className="persona-btn-group">
-          <button className={`persona-pill ${currentUser.role === 'student' ? 'active' : ''}`} onClick={() => handleSwitchPersona('student')}>
-            <i className="fas fa-user-graduate"></i> 🎓 Student (Ahmad Raza)
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button className="btn btn-outline btn-sm" onClick={() => setAccountSwitchModal(true)} style={{ borderColor: 'var(--color-accent-gold)', color: 'var(--color-accent-gold)' }}>
+            <i className="fas fa-user-shield"></i> Switch Account / Login As...
           </button>
-          <button className={`persona-pill ${currentUser.role === 'teacher' ? 'active' : ''}`} onClick={() => handleSwitchPersona('teacher')}>
-            <i className="fas fa-chalkboard-teacher"></i> 👨‍🏫 Teacher Studio (Qari Abdul Basit)
-          </button>
-          <button className={`persona-pill institute ${currentUser.role === 'institute' ? 'active' : ''}`} onClick={() => handleSwitchPersona('institute')}>
-            <i className="fas fa-mosque"></i> 🏛️ Madrasa Hub (Jamia Darul Uloom)
-          </button>
-          <button className={`persona-pill scholar ${currentUser.role === 'admin' ? 'active' : ''}`} onClick={() => handleSwitchPersona('admin')}>
-            <i className="fas fa-user-shield"></i> ⚖️ Scholar Reviewer (Mufti Tariq)
+          <button className="btn btn-gold btn-sm" onClick={() => setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 })}>
+            <i className="fas fa-user-plus"></i> Register New Role
           </button>
         </div>
-
-        <button className="btn btn-gold btn-sm" onClick={() => setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 })}>
-          <i className="fas fa-file-alt"></i> Onboarding Wizards
-        </button>
       </div>
 
       {/* MAIN CONTAINER */}
@@ -2065,24 +2067,40 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {leaveApplications.map(l => (
-                      <tr key={l.id}>
-                        <td><code>{l.id}</code></td>
-                        <td><span className="badge badge-teal">{l.courseTitle}</span></td>
-                        <td>
-                          <strong>{l.assignedTeacher}</strong>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Role: {l.approverRole}</div>
-                        </td>
-                        <td><strong>{l.leaveType}</strong> — <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{l.reason}</span></td>
-                        <td style={{ fontSize: '0.82rem' }}>{l.fromDate} to {l.toDate}</td>
-                        <td>
-                          <span className={`badge ${l.status.includes('Approved') ? 'badge-emerald' : l.status.includes('Rejected') ? 'badge-ruby' : 'badge-gold'}`}>
-                            {l.status}
-                          </span>
-                        </td>
-                        <td style={{ fontSize: '0.84rem', color: 'var(--color-accent-gold)' }}>{l.remarks}</td>
-                      </tr>
-                    ))}
+                    {(() => {
+                      const studentLeaves = leaveApplications.filter(l => 
+                        (l.studentName && l.studentName.toLowerCase().includes(currentUser.name.toLowerCase())) ||
+                        l.student_id === currentUser.id
+                      );
+                      if (studentLeaves.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                              <i className="fas fa-info-circle" style={{ marginRight: '6px', color: 'var(--color-primary-light)' }}></i>
+                              Aapki koi chutti (leave application) darj nahi hai. Naya uzr darj karne ke liye upar "+ New Leave Request" par click karein.
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return studentLeaves.map(l => (
+                        <tr key={l.id}>
+                          <td><code>{l.id}</code></td>
+                          <td><span className="badge badge-teal">{l.courseTitle}</span></td>
+                          <td>
+                            <strong>{l.assignedTeacher}</strong>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Role: {l.approverRole}</div>
+                          </td>
+                          <td><strong>{l.leaveType}</strong> — <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{l.reason}</span></td>
+                          <td style={{ fontSize: '0.82rem' }}>{l.fromDate} to {l.toDate}</td>
+                          <td>
+                            <span className={`badge ${l.status.includes('Approved') ? 'badge-emerald' : l.status.includes('Rejected') ? 'badge-ruby' : 'badge-gold'}`}>
+                              {l.status}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '0.84rem', color: 'var(--color-accent-gold)' }}>{l.remarks}</td>
+                        </tr>
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -2093,7 +2111,29 @@ function App() {
         {/* =========================================================================
             2. TEACHER STUDIO & MINI ACADEMY (FULL 8-TAB TEACHER WORKSPACE — BRD v2.0)
            ========================================================================= */}
-        {currentUser.role === 'teacher' && activeNav === 'teacher' && !activeCourse && (
+        {currentUser.role === 'teacher' && activeNav === 'teacher' && !activeCourse && (() => {
+          const teacherCourses = courses.filter(crs => 
+            crs.instructor && (
+              crs.instructor.toLowerCase().includes('basit') || 
+              crs.instructor.toLowerCase().includes(currentUser.name.toLowerCase()) || 
+              crs.instructor === currentUser.name
+            )
+          );
+          const teacherLeaves = leaveApplications.filter(l => 
+            l.assignedTeacher && (
+              l.assignedTeacher.toLowerCase().includes('basit') || 
+              l.assignedTeacher.toLowerCase().includes(currentUser.name.toLowerCase()) || 
+              l.assignedTeacher === currentUser.name
+            )
+          );
+          const teacherAudio = audioSubmissions.filter(sub => 
+            !sub.assignedTeacher || 
+            sub.assignedTeacher.toLowerCase().includes('basit') || 
+            sub.assignedTeacher.toLowerCase().includes(currentUser.name.toLowerCase()) || 
+            sub.assignedTeacher === currentUser.name
+          );
+
+          return (
           <div>
             {/* Header with All Action Buttons & Stats */}
             <div className="glass-card" style={{ padding: '24px', marginBottom: '20px' }}>
@@ -2120,7 +2160,7 @@ function App() {
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ACTIVE COURSES</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>{courses.length}</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>{teacherCourses.length}</div>
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ACTIVE BATCHES</div>
@@ -2168,7 +2208,7 @@ function App() {
             {/* Sub-Navigation Tabs */}
             <div className="teacher-subnav-tabs">
               <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'courses' ? 'active' : ''}`} onClick={() => setTeacherSubTab('courses')}>
-                <i className="fas fa-book"></i> 1. Course Studio & Management ({courses.length})
+                <i className="fas fa-book"></i> 1. Course Studio & Management ({teacherCourses.length})
               </button>
               <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'live' ? 'active' : ''}`} onClick={() => setTeacherSubTab('live')}>
                 <i className="fas fa-video"></i> 2. Live Classes & Auto Attendance
@@ -2180,7 +2220,7 @@ function App() {
                 <i className="fas fa-clipboard-list"></i> 4. Homework & Hifz Register
               </button>
               <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'tajweed' ? 'active' : ''}`} onClick={() => setTeacherSubTab('tajweed')}>
-                <i className="fas fa-microphone-alt"></i> 5. Tajweed Audio Studio ({audioSubmissions.length})
+                <i className="fas fa-microphone-alt"></i> 5. Tajweed Audio Studio ({teacherAudio.length})
               </button>
               <button type="button" className={`teacher-subnav-tab ${teacherSubTab === 'finances' ? 'active' : ''}`} onClick={() => setTeacherSubTab('finances')}>
                 <i className="fas fa-wallet"></i> 6. Fees & Payout Wallet
@@ -2213,39 +2253,51 @@ function App() {
                 </div>
 
                 <div className="teacher-course-grid">
-                  {courses.map((crs, idx) => (
-                    <div key={crs.id || idx} className="teacher-course-card">
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                          <span className="dept-tag">{crs.dept || "Quran & Tajweed"}</span>
-                          <span className={`badge ${crs.status && crs.status.includes('Approved') ? 'badge-emerald' : crs.status && crs.status.includes('Academic') ? 'badge-teal' : 'badge-gold'}`}>
-                            {crs.status || "Under Scholar Review Board"}
-                          </span>
-                        </div>
-                        <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '4px 0 2px' }}>{crs.title}</h4>
-                        {crs.titleArabic && <div style={{ fontSize: '0.92rem', color: 'var(--color-accent-gold)', direction: 'rtl', marginBottom: '6px' }}>{crs.titleArabic}</div>}
-                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '6px 0 12px' }}>
-                          {crs.description || "Comprehensive structured Islamic curriculum with authenticated kitab references."}
-                        </p>
-                        <div style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.25)', padding: '8px', borderRadius: '8px', marginBottom: '12px', color: 'var(--text-muted)' }}>
-                          <div><strong style={{ color: 'var(--color-accent-gold)' }}>Hawala:</strong> {crs.kitabHawala || "Al-Muqaddimah Al-Jazariyyah (Page 42)"}</div>
-                          <div style={{ marginTop: '3px' }}><strong>Duration:</strong> {crs.duration || "12 Weeks"} • <strong>Level:</strong> {crs.level || "Beginner"} • <strong>Fee:</strong> {crs.price ? `${crs.price} (${crs.feeModel})` : "Free / Sadaqah"}</div>
-                        </div>
+                  {teacherCourses.length === 0 ? (
+                    <div style={{ gridColumn: '1 / -1', padding: '36px', textAlign: 'center', background: 'rgba(0,0,0,0.25)', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ fontSize: '2.5rem', color: 'var(--color-accent-gold)', marginBottom: '10px' }}>
+                        <i className="fas fa-book-reader"></i>
                       </div>
-
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
-                        <button className="btn btn-primary btn-sm" onClick={() => handleOpenAddLesson(1)}>
-                          <i className="fas fa-plus"></i> + Add Lesson
-                        </button>
-                        <button className="btn btn-outline btn-sm" onClick={() => handleOpenAddQuiz(1)}>
-                          <i className="fas fa-question-circle"></i> + Add Quiz
-                        </button>
-                        <button className="btn btn-outline btn-sm" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true, title: crs.title })}>
-                          <i className="fas fa-edit"></i> Edit in Studio
-                        </button>
-                      </div>
+                      <h4 style={{ margin: '0 0 6px', fontSize: '1.2rem' }}>Aapka banaya hua koi course darj nahi hai</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0 0 16px' }}>
+                        Upar diye gaye "+ Open 5-Tab Course Creation Studio" button par click kar ke shariah references ke sath apna pehla course publish karein.
+                      </p>
                     </div>
-                  ))}
+                  ) : (
+                    teacherCourses.map((crs, idx) => (
+                      <div key={crs.id || idx} className="teacher-course-card">
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                            <span className="dept-tag">{crs.dept || "Quran & Tajweed"}</span>
+                            <span className={`badge ${crs.status && crs.status.includes('Approved') ? 'badge-emerald' : crs.status && crs.status.includes('Academic') ? 'badge-teal' : 'badge-gold'}`}>
+                              {crs.status || "Under Scholar Review Board"}
+                            </span>
+                          </div>
+                          <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '4px 0 2px' }}>{crs.title}</h4>
+                          {crs.titleArabic && <div style={{ fontSize: '0.92rem', color: 'var(--color-accent-gold)', direction: 'rtl', marginBottom: '6px' }}>{crs.titleArabic}</div>}
+                          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '6px 0 12px' }}>
+                            {crs.description || "Comprehensive structured Islamic curriculum with authenticated kitab references."}
+                          </p>
+                          <div style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.25)', padding: '8px', borderRadius: '8px', marginBottom: '12px', color: 'var(--text-muted)' }}>
+                            <div><strong style={{ color: 'var(--color-accent-gold)' }}>Hawala:</strong> {crs.kitabHawala || "Al-Muqaddimah Al-Jazariyyah (Page 42)"}</div>
+                            <div style={{ marginTop: '3px' }}><strong>Duration:</strong> {crs.duration || "12 Weeks"} • <strong>Level:</strong> {crs.level || "Beginner"} • <strong>Fee:</strong> {crs.price ? `${crs.price} (${crs.feeModel})` : "Free / Sadaqah"}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
+                          <button className="btn btn-primary btn-sm" onClick={() => handleOpenAddLesson(1)}>
+                            <i className="fas fa-plus"></i> + Add Lesson
+                          </button>
+                          <button className="btn btn-outline btn-sm" onClick={() => handleOpenAddQuiz(1)}>
+                            <i className="fas fa-question-circle"></i> + Add Quiz
+                          </button>
+                          <button className="btn btn-outline btn-sm" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true, title: crs.title })}>
+                            <i className="fas fa-edit"></i> Edit in Studio
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
 
                   {/* Empty Create Course Card */}
                   <div 
@@ -2472,7 +2524,7 @@ function App() {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className="badge badge-gold"><i className="fas fa-user-clock"></i> Leave Approval Queue</span>
-                        <span className="badge badge-ruby">{leaveApplications.filter(l => l.status.includes('Pending')).length} Pending Actions</span>
+                        <span className="badge badge-ruby">{teacherLeaves.filter(l => l.status.includes('Pending')).length} Pending Actions</span>
                       </div>
                       <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '6px 0 2px' }}>
                         Talaba Madrasa Chutti (Leave) Applications
@@ -2497,41 +2549,50 @@ function App() {
                         </tr>
                       </thead>
                       <tbody>
-                        {leaveApplications.map(l => (
-                          <tr key={l.id}>
-                            <td><code>{l.id}</code></td>
-                            <td><strong>{l.studentName}</strong></td>
-                            <td><span className="badge badge-teal">{l.courseTitle}</span></td>
-                            <td>
-                              <strong>{l.leaveType}</strong>
-                              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{l.reason}</div>
-                            </td>
-                            <td style={{ fontSize: '0.82rem' }}>{l.fromDate} to {l.toDate}</td>
-                            <td>
-                              <span className={`badge ${l.status.includes('Approved') ? 'badge-emerald' : l.status.includes('Rejected') ? 'badge-ruby' : 'badge-gold'}`}>
-                                {l.status}
-                              </span>
-                            </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button 
-                                  className="btn btn-primary btn-sm" 
-                                  style={{ padding: '3px 8px', fontSize: '0.75rem' }}
-                                  onClick={() => handleTeacherLeaveDecision(l.id, 'Approved', 'Ustaad ne uzr-e-shar\'i qubool farmaya. Chutti manzoor shuda.')}
-                                >
-                                  <i className="fas fa-check"></i> Approve
-                                </button>
-                                <button 
-                                  className="btn btn-ruby btn-sm" 
-                                  style={{ padding: '3px 8px', fontSize: '0.75rem' }}
-                                  onClick={() => handleTeacherLeaveDecision(l.id, 'Rejected', 'Dars aur Sabaq ke nuqsaan ki wajah se chutti manzoor nahi hui.')}
-                                >
-                                  <i className="fas fa-times"></i> Reject
-                                </button>
-                              </div>
+                        {teacherLeaves.length === 0 ? (
+                          <tr>
+                            <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                              <i className="fas fa-check-circle" style={{ marginRight: '6px', color: 'var(--color-emerald-light)' }}></i>
+                              Aapke zimme koi pending ya reviewed leave application nahi hai.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          teacherLeaves.map(l => (
+                            <tr key={l.id}>
+                              <td><code>{l.id}</code></td>
+                              <td><strong>{l.studentName}</strong></td>
+                              <td><span className="badge badge-teal">{l.courseTitle}</span></td>
+                              <td>
+                                <strong>{l.leaveType}</strong>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{l.reason}</div>
+                              </td>
+                              <td style={{ fontSize: '0.82rem' }}>{l.fromDate} to {l.toDate}</td>
+                              <td>
+                                <span className={`badge ${l.status.includes('Approved') ? 'badge-emerald' : l.status.includes('Rejected') ? 'badge-ruby' : 'badge-gold'}`}>
+                                  {l.status}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button 
+                                    className="btn btn-primary btn-sm" 
+                                    style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                                    onClick={() => handleTeacherLeaveDecision(l.id, 'Approved', "Ustaad ne uzr-e-shar'i qubool farmaya. Chutti manzoor shuda.")}
+                                  >
+                                    <i className="fas fa-check"></i> Approve
+                                  </button>
+                                  <button 
+                                    className="btn btn-ruby btn-sm" 
+                                    style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                                    onClick={() => handleTeacherLeaveDecision(l.id, 'Rejected', 'Dars aur Sabaq ke nuqsaan ki wajah se chutti manzoor nahi hui.')}
+                                  >
+                                    <i className="fas fa-times"></i> Reject
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -2645,34 +2706,41 @@ function App() {
                 </div>
 
                 <div className="glass-card" style={{ padding: '24px' }}>
-                  {audioSubmissions.map(sub => (
-                    <div key={sub.id} style={{ padding: '18px', background: 'rgba(0,0,0,0.25)', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-primary-light)' }}>{sub.studentName}</div>
-                          <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>{sub.courseTitle} • {sub.lessonTitle}</div>
-                        </div>
-                        <span className={`badge ${sub.status === 'Graded' ? 'badge-emerald' : 'badge-gold'}`}>{sub.status}</span>
-                      </div>
-
-                      <div style={{ margin: '14px 0' }}>
-                        <audio controls src="https://everyayah.com/data/Husary_128kbps/001001.mp3" style={{ height: '38px', width: '100%' }}></audio>
-                      </div>
-
-                      {sub.mistakes && (
-                        <div style={{ margin: '8px 0', fontSize: '0.82rem' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Detected Mistake Tags: </span>
-                          {sub.mistakes.map(m => (
-                            <span key={m} className="badge badge-gold" style={{ marginRight: '6px' }}>{m}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      <button className="btn btn-primary btn-sm" onClick={() => handleOpenTajweedEval(sub)}>
-                        <i className="fas fa-sliders-h"></i> Open Structured Evaluation Modal (Timestamp & Tags)
-                      </button>
+                  {teacherAudio.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                      <i className="fas fa-microphone-slash" style={{ fontSize: '2rem', marginBottom: '8px', display: 'block', color: 'var(--color-accent-gold)' }}></i>
+                      Aapke kisi student ki audio submission review ke liye pending nahi hai.
                     </div>
-                  ))}
+                  ) : (
+                    teacherAudio.map(sub => (
+                      <div key={sub.id} style={{ padding: '18px', background: 'rgba(0,0,0,0.25)', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-primary-light)' }}>{sub.studentName}</div>
+                            <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>{sub.courseTitle} • {sub.lessonTitle}</div>
+                          </div>
+                          <span className={`badge ${sub.status === 'Graded' ? 'badge-emerald' : 'badge-gold'}`}>{sub.status}</span>
+                        </div>
+
+                        <div style={{ margin: '14px 0' }}>
+                          <audio controls src="https://everyayah.com/data/Husary_128kbps/001001.mp3" style={{ height: '38px', width: '100%' }}></audio>
+                        </div>
+
+                        {sub.mistakes && (
+                          <div style={{ margin: '8px 0', fontSize: '0.82rem' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Detected Mistake Tags: </span>
+                            {sub.mistakes.map(m => (
+                              <span key={m} className="badge badge-gold" style={{ marginRight: '6px' }}>{m}</span>
+                            ))}
+                          </div>
+                        )}
+
+                        <button className="btn btn-primary btn-sm" onClick={() => handleOpenTajweedEval(sub)}>
+                          <i className="fas fa-sliders-h"></i> Open Structured Evaluation Modal (Timestamp & Tags)
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -2904,7 +2972,8 @@ function App() {
               </div>
             )}
           </div>
-        )}
+        );
+      })()}
 
         {/* =========================================================================
             3. MADRASA OPERATIONS HUB
@@ -5751,6 +5820,194 @@ function App() {
                     <i className="fas fa-paper-plane"></i>
                   </button>
                 </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 22. ACCOUNT SWITCHER & ROLE LOCK SECURITY MODAL */}
+      {accountSwitchModal && (
+        <div className="modal-backdrop" onClick={() => setAccountSwitchModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '880px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="badge badge-gold" style={{ fontSize: '0.8rem' }}>
+                  <i className="fas fa-user-shield"></i> Role-Locked Portal Access
+                </span>
+                <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800 }}>
+                  Switch Account / Log In As...
+                </h3>
+              </div>
+              <button className="modal-close-btn" onClick={() => setAccountSwitchModal(false)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ padding: '20px 24px' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: 0, marginBottom: '20px' }}>
+                Islamic LMS enforces strict private role isolation. Select an authenticated account below to switch your workspace and access only your authorized records:
+              </p>
+
+              <div className="account-switch-grid">
+                {/* 1. Student Card */}
+                <div className={`account-card ${currentUser.role === 'student' ? 'active' : ''}`}>
+                  <div>
+                    <div className="account-card-header">
+                      <div className="account-card-avatar student">
+                        <i className="fas fa-user-graduate"></i>
+                      </div>
+                      <div>
+                        <span className="badge badge-teal" style={{ fontSize: '0.68rem' }}>Talib-e-Ilm (Student)</span>
+                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Ahmad Raza</h4>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
+                      <div>• <strong>Access Scope:</strong> Personal learning portal</div>
+                      <div>• <strong>Private Data:</strong> Enrolled courses, personal daily Hifz log, homework submissions, and personal leave applications.</div>
+                    </div>
+                  </div>
+                  <div>
+                    {currentUser.role === 'student' ? (
+                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(20, 184, 166, 0.15)', borderRadius: '8px', color: 'var(--color-primary-light)', fontWeight: 700, fontSize: '0.82rem' }}>
+                        <i className="fas fa-check-circle"></i> Currently Active Account
+                      </div>
+                    ) : (
+                      <button 
+                        className="btn btn-primary btn-sm" 
+                        style={{ width: '100%', fontWeight: 700 }}
+                        onClick={() => {
+                          handleSwitchPersona('student');
+                        }}
+                      >
+                        <i className="fas fa-sign-in-alt"></i> Log In as Ahmad Raza
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Teacher Card */}
+                <div className={`account-card ${currentUser.role === 'teacher' ? 'active' : ''}`}>
+                  <div>
+                    <div className="account-card-header">
+                      <div className="account-card-avatar teacher">
+                        <i className="fas fa-chalkboard-teacher"></i>
+                      </div>
+                      <div>
+                        <span className="badge badge-gold" style={{ fontSize: '0.68rem' }}>Ustad / Educator</span>
+                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Qari Abdul Basit</h4>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
+                      <div>• <strong>Access Scope:</strong> Teacher Studio & Mini-Academy</div>
+                      <div>• <strong>Private Data:</strong> Courses created by Qari Abdul Basit, assigned batches, student leave approval queue, tilawat grading, and payout wallet.</div>
+                    </div>
+                  </div>
+                  <div>
+                    {currentUser.role === 'teacher' ? (
+                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '8px', color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '0.82rem' }}>
+                        <i className="fas fa-check-circle"></i> Currently Active Account
+                      </div>
+                    ) : (
+                      <button 
+                        className="btn btn-gold btn-sm" 
+                        style={{ width: '100%', fontWeight: 700 }}
+                        onClick={() => {
+                          handleSwitchPersona('teacher');
+                        }}
+                      >
+                        <i className="fas fa-sign-in-alt"></i> Log In as Qari Abdul Basit
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Institute Card */}
+                <div className={`account-card ${currentUser.role === 'institute' ? 'active' : ''}`}>
+                  <div>
+                    <div className="account-card-header">
+                      <div className="account-card-avatar institute">
+                        <i className="fas fa-mosque"></i>
+                      </div>
+                      <div>
+                        <span className="badge badge-teal" style={{ fontSize: '0.68rem' }}>Madrasa Administration</span>
+                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Jamia Darul Uloom</h4>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
+                      <div>• <strong>Access Scope:</strong> Madrasa Operations Hub</div>
+                      <div>• <strong>Private Data:</strong> Jamia faculty roster, talaba admissions register, departments/wings, and monthly Waqf/chanda ledger.</div>
+                    </div>
+                  </div>
+                  <div>
+                    {currentUser.role === 'institute' ? (
+                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(56, 189, 248, 0.15)', borderRadius: '8px', color: '#38bdf8', fontWeight: 700, fontSize: '0.82rem' }}>
+                        <i className="fas fa-check-circle"></i> Currently Active Account
+                      </div>
+                    ) : (
+                      <button 
+                        className="btn btn-outline btn-sm" 
+                        style={{ width: '100%', fontWeight: 700, borderColor: '#38bdf8', color: '#38bdf8' }}
+                        onClick={() => {
+                          handleSwitchPersona('institute');
+                        }}
+                      >
+                        <i className="fas fa-sign-in-alt"></i> Log In as Jamia Admin
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. Scholar Card */}
+                <div className={`account-card ${currentUser.role === 'admin' ? 'active' : ''}`}>
+                  <div>
+                    <div className="account-card-header">
+                      <div className="account-card-avatar scholar">
+                        <i className="fas fa-user-shield"></i>
+                      </div>
+                      <div>
+                        <span className="badge badge-ruby" style={{ fontSize: '0.68rem' }}>Shariah Board Reviewer</span>
+                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Mufti Tariq Masood</h4>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
+                      <div>• <strong>Access Scope:</strong> Shariah Curriculum Vetting</div>
+                      <div>• <strong>Private Data:</strong> Course verification queue, kitab hawala authentication, and academic publishing decisions.</div>
+                    </div>
+                  </div>
+                  <div>
+                    {currentUser.role === 'admin' ? (
+                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(168, 85, 247, 0.15)', borderRadius: '8px', color: '#c084fc', fontWeight: 700, fontSize: '0.82rem' }}>
+                        <i className="fas fa-check-circle"></i> Currently Active Account
+                      </div>
+                    ) : (
+                      <button 
+                        className="btn btn-outline btn-sm" 
+                        style={{ width: '100%', fontWeight: 700, borderColor: '#c084fc', color: '#c084fc' }}
+                        onClick={() => {
+                          handleSwitchPersona('admin');
+                        }}
+                      >
+                        <i className="fas fa-sign-in-alt"></i> Log In as Mufti Tariq
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  Need a custom account with unique credentials?
+                </div>
+                <button 
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setAccountSwitchModal(false);
+                    setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 });
+                  }}
+                >
+                  <i className="fas fa-id-card"></i> Register New Custom Role (Multi-Step Form)
+                </button>
               </div>
             </div>
           </div>

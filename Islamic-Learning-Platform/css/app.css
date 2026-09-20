@@ -1152,7 +1152,108 @@ body {
   box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
-/* Quick Persona Switcher Bar */
+/* Role-Locked Private Session Bar */
+.session-lock-bar {
+  background: linear-gradient(90deg, rgba(6, 78, 59, 0.4), rgba(15, 23, 42, 0.85));
+  border-bottom: 1px solid rgba(20, 184, 166, 0.25);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.84rem;
+}
+
+.session-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* Account Switcher Modal Cards */
+.account-switch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.account-card {
+  background: rgba(10, 24, 38, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.account-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary-light);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.account-card.active {
+  border-color: var(--color-primary-light);
+  background: rgba(13, 148, 136, 0.12);
+  box-shadow: 0 0 16px rgba(13, 148, 136, 0.25);
+}
+
+.account-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.account-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.account-card-avatar.student {
+  background: rgba(20, 184, 166, 0.2);
+  color: var(--color-primary-light);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+}
+
+.account-card-avatar.teacher {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-accent-gold);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.account-card-avatar.institute {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.account-card-avatar.scholar {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+/* Quick Persona Switcher Bar (Retained for backwards compatibility) */
 .persona-switcher-bar {
   background: linear-gradient(90deg, rgba(13, 148, 136, 0.15), rgba(245, 158, 11, 0.15));
   border-bottom: 1px solid var(--border-subtle);
