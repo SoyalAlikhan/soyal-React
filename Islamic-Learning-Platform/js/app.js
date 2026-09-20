@@ -74,9 +74,12 @@ function App() {
   // Authentication & Registration Stepper Modal
   const [authModal, setAuthModal] = useState({
     isOpen: false,
-    mode: 'signup', // 'login' or 'signup'
-    roleTab: 'student', // 'student', 'teacher', 'institute'
-    step: 1
+    mode: 'login', // 'login' or 'signup'
+    roleTab: 'student', // 'student', 'teacher', 'institute', 'scholar'
+    step: 1,
+    errorMsg: '',
+    successMsg: '',
+    isLoading: false
   });
 
   // Auth Form State
@@ -1027,12 +1030,104 @@ function App() {
     }
   };
 
-  // Multi-Step Registration Submit
-  const handleMultiStepSubmit = (e) => {
+  // Authenticated Login & Registration Handler (with SQLite & Role Mismatch Verification)
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    handleSwitchPersona(authModal.roleTab);
-    setAuthModal({ ...authModal, isOpen: false, step: 1 });
-    alert("Registration completed successfully!");
+    setAuthModal(prev => ({ ...prev, errorMsg: '', successMsg: '', isLoading: true }));
+
+    if (authModal.mode === 'login') {
+      // 1. Verify Credentials against SQLite Database
+      if (typeof window !== 'undefined' && window.apiService && window.apiService.login) {
+        const res = await window.apiService.login({
+          email: authForm.email,
+          password: authForm.password,
+          role: authModal.roleTab
+        });
+
+        if (!res || !res.success) {
+          // AUTHENTICATION FAILED OR ROLE MISMATCH!
+          setAuthModal(prev => ({
+            ...prev,
+            isLoading: false,
+            errorMsg: res?.error || "Authentication failed: Please check your credentials."
+          }));
+          return; // DO NOT LOG IN! DO NOT SWITCH PERSONA!
+        }
+
+        // Login Verified!
+        const dbUser = res.data;
+        const roleKey = dbUser.role === 'scholar' ? 'admin' : dbUser.role;
+        const basePersona = personas[roleKey] || personas.student;
+
+        const authenticatedPersona = {
+          ...basePersona,
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          role: dbUser.role === 'scholar' ? 'admin' : dbUser.role,
+          phone: dbUser.phone || basePersona.phone,
+          avatarIcon: dbUser.avatar || basePersona.avatarIcon
+        };
+
+        setCurrentUser(authenticatedPersona);
+        setActiveCourse(null);
+        setAuthModal(prev => ({ ...prev, isOpen: false, isLoading: false, errorMsg: '', successMsg: '' }));
+        
+        if (roleKey === 'student') setActiveNav('dashboard');
+        else if (roleKey === 'teacher') setActiveNav('teacher');
+        else if (roleKey === 'institute') setActiveNav('institute');
+        else if (roleKey === 'admin') setActiveNav('admin');
+
+        alert(`✅ Login Successful!\n\nKhush Amdeed, ${authenticatedPersona.name}!\nAapka ${authenticatedPersona.role.toUpperCase()} portal kamyabi se verify ho kar activate ho gaya hai.`);
+      } else {
+        handleSwitchPersona(authModal.roleTab);
+        setAuthModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+      }
+    } else {
+      // 2. Sign Up Mode: Register user in SQLite database
+      if (typeof window !== 'undefined' && window.apiService && window.apiService.register) {
+        const res = await window.apiService.register({
+          name: authForm.name,
+          email: authForm.email,
+          password: authForm.password || 'password123',
+          role: authModal.roleTab,
+          phone: authForm.phone,
+          institute_affiliation: authForm.instituteName
+        });
+
+        if (!res || !res.success) {
+          setAuthModal(prev => ({
+            ...prev,
+            isLoading: false,
+            errorMsg: res?.error || "Registration failed. Please try again."
+          }));
+          return;
+        }
+
+        const dbUser = res.data;
+        const roleKey = dbUser.role === 'scholar' ? 'admin' : dbUser.role;
+        const basePersona = personas[roleKey] || personas.student;
+
+        setCurrentUser({
+          ...basePersona,
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
+          role: roleKey
+        });
+
+        setAuthModal(prev => ({ ...prev, isOpen: false, isLoading: false, errorMsg: '' }));
+        if (roleKey === 'student') setActiveNav('dashboard');
+        else if (roleKey === 'teacher') setActiveNav('teacher');
+        else if (roleKey === 'institute') setActiveNav('institute');
+        else if (roleKey === 'admin') setActiveNav('admin');
+
+        alert(`MashaAllah! Registration completed and saved to database!\nWelcome, ${dbUser.name}.`);
+      } else {
+        handleSwitchPersona(authModal.roleTab);
+        setAuthModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+      }
+    }
   };
 
   // Add Module in Course Studio
@@ -4176,38 +4271,218 @@ function App() {
         </div>
       )}
 
-      {/* 6. ONBOARDING MULTI-STEP MODAL */}
+      {/* 6. AUTHENTICATION & LOGIN / SIGNUP MODAL */}
       {authModal.isOpen && (
-        <div className="auth-overlay" onClick={() => setAuthModal({ ...authModal, isOpen: false })}>
-          <div className="auth-modal modal-wizard" onClick={(e) => e.stopPropagation()}>
-            <button className="auth-close-btn" onClick={() => setAuthModal({ ...authModal, isOpen: false })}>
+        <div className="auth-overlay" onClick={() => setAuthModal({ ...authModal, isOpen: false, errorMsg: '', successMsg: '' })}>
+          <div className="auth-modal modal-wizard" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setAuthModal({ ...authModal, isOpen: false, errorMsg: '', successMsg: '' })}>
               <i className="fas fa-times"></i>
             </button>
-            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>
-                Multi-Step Registration Wizard
+
+            {/* Header with Mode Switcher */}
+            <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+              <div style={{ display: 'inline-flex', background: 'rgba(0,0,0,0.4)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-subtle)', marginBottom: '12px' }}>
+                <button 
+                  type="button" 
+                  className={`btn btn-sm ${authModal.mode === 'login' ? 'btn-gold' : 'btn-outline'}`}
+                  style={{ borderRadius: '8px', padding: '6px 22px', fontWeight: 700 }}
+                  onClick={() => setAuthModal({ ...authModal, mode: 'login', errorMsg: '' })}
+                >
+                  <i className="fas fa-sign-in-alt"></i> Log In
+                </button>
+                <button 
+                  type="button" 
+                  className={`btn btn-sm ${authModal.mode === 'signup' ? 'btn-gold' : 'btn-outline'}`}
+                  style={{ borderRadius: '8px', padding: '6px 22px', fontWeight: 700 }}
+                  onClick={() => setAuthModal({ ...authModal, mode: 'signup', errorMsg: '' })}
+                >
+                  <i className="fas fa-user-plus"></i> Sign Up
+                </button>
+              </div>
+
+              <h3 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '4px 0', color: '#ffffff' }}>
+                {authModal.mode === 'login' ? 'Database Authentication & Role Guard' : 'Create New Platform Account'}
+              </h3>
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
+                {authModal.mode === 'login' 
+                  ? 'Credentials are automatically verified against SQLite database with cross-role access protection.' 
+                  : 'Register a new account directly to SQLite database.'}
+              </p>
+            </div>
+
+            {/* Role Selection Tabs */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
+                Select Portal to Access:
+              </div>
+              <div className="auth-role-tabs" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                <button 
+                  type="button" 
+                  className={`auth-role-tab ${authModal.roleTab === 'student' ? 'active' : ''}`} 
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'student', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'ahmad.raza@example.com', password: 'student123' }));
+                  }}
+                >
+                  🎓 Student
+                </button>
+                <button 
+                  type="button" 
+                  className={`auth-role-tab ${authModal.roleTab === 'teacher' ? 'active' : ''}`} 
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'teacher', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'qari.basit@darululoom.edu', password: 'teacher123' }));
+                  }}
+                >
+                  👨‍🏫 Teacher
+                </button>
+                <button 
+                  type="button" 
+                  className={`auth-role-tab ${authModal.roleTab === 'institute' ? 'active' : ''}`} 
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'institute', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'admin@darululoom.edu', password: 'admin123' }));
+                  }}
+                >
+                  🏛️ Madrasa
+                </button>
+                <button 
+                  type="button" 
+                  className={`auth-role-tab ${authModal.roleTab === 'scholar' || authModal.roleTab === 'admin' ? 'active' : ''}`} 
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'scholar', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'mufti.tariq@shariahboard.org', password: 'scholar123' }));
+                  }}
+                >
+                  ⚖️ Scholar
+                </button>
               </div>
             </div>
 
-            <div className="auth-role-tabs">
-              <button type="button" className={`auth-role-tab ${authModal.roleTab === 'student' ? 'active' : ''}`} onClick={() => setAuthModal({ ...authModal, roleTab: 'student' })}>Student</button>
-              <button type="button" className={`auth-role-tab ${authModal.roleTab === 'teacher' ? 'active' : ''}`} onClick={() => setAuthModal({ ...authModal, roleTab: 'teacher' })}>Teacher</button>
-              <button type="button" className={`auth-role-tab ${authModal.roleTab === 'institute' ? 'active' : ''}`} onClick={() => setAuthModal({ ...authModal, roleTab: 'institute' })}>Madrasa</button>
-            </div>
+            {/* Error Banner (Shows Role Mismatch or Invalid Password) */}
+            {authModal.errorMsg && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.16)', border: '1px solid #ef4444', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', color: '#fca5a5', fontSize: '0.86rem', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <i className="fas fa-exclamation-triangle" style={{ color: '#ef4444', marginTop: '2px', fontSize: '1.1rem' }}></i>
+                <div>
+                  <strong style={{ color: '#f87171' }}>Access Denied:</strong>
+                  <div style={{ marginTop: '2px', lineHeight: '1.4' }}>{authModal.errorMsg}</div>
+                </div>
+              </div>
+            )}
 
-            <form onSubmit={handleMultiStepSubmit}>
-              <div className="form-group">
-                <label className="form-label">Full Name / Organization Name</label>
-                <input type="text" className="form-input" required defaultValue={authForm.name || "Ahmad Raza"} />
+            <form onSubmit={handleAuthSubmit}>
+              {authModal.mode === 'signup' && (
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label">Full Name / Organization Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    required 
+                    placeholder="e.g. Maulana Muhammad Farooq"
+                    value={authForm.name} 
+                    onChange={e => setAuthForm({ ...authForm, name: e.target.value })} 
+                  />
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginBottom: '12px' }}>
+                <label className="form-label">Email Address / User ID</label>
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  required 
+                  placeholder="e.g. qari.basit@darululoom.edu"
+                  value={authForm.email} 
+                  onChange={e => {
+                    setAuthForm({ ...authForm, email: e.target.value });
+                    if (authModal.errorMsg) setAuthModal({ ...authModal, errorMsg: '' });
+                  }} 
+                />
               </div>
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input type="email" className="form-input" required defaultValue={authForm.email || "user@alnoor.edu"} />
+
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label">Account Password</label>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  required 
+                  placeholder="Enter your database password..."
+                  value={authForm.password} 
+                  onChange={e => {
+                    setAuthForm({ ...authForm, password: e.target.value });
+                    if (authModal.errorMsg) setAuthModal({ ...authModal, errorMsg: '' });
+                  }} 
+                />
               </div>
-              <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '14px' }}>
-                Complete Registration & Activate Role
+
+              <button 
+                type="submit" 
+                className={`btn ${authModal.mode === 'login' ? 'btn-gold' : 'btn-primary'}`} 
+                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 800 }}
+                disabled={authModal.isLoading}
+              >
+                {authModal.isLoading ? (
+                  <span><i className="fas fa-spinner fa-spin"></i> Checking Database...</span>
+                ) : authModal.mode === 'login' ? (
+                  <span><i className="fas fa-lock"></i> Verify Credentials & Log In</span>
+                ) : (
+                  <span><i className="fas fa-user-check"></i> Register Account</span>
+                )}
               </button>
             </form>
+
+            {/* Quick Demo Credentials Bar */}
+            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)', background: 'rgba(0,0,0,0.25)', padding: '12px 14px', borderRadius: '10px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--color-accent-gold)', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>
+                <i className="fas fa-key"></i> Quick-Fill Database Demo Credentials:
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.74rem', padding: '4px 8px' }}
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'student', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'ahmad.raza@example.com', password: 'student123' }));
+                  }}
+                >
+                  🎓 Ahmad Raza (student123)
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.74rem', padding: '4px 8px' }}
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'teacher', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'qari.basit@darululoom.edu', password: 'teacher123' }));
+                  }}
+                >
+                  👨‍🏫 Qari Basit (teacher123)
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.74rem', padding: '4px 8px' }}
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'institute', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'admin@darululoom.edu', password: 'admin123' }));
+                  }}
+                >
+                  🏛️ Jamia Admin (admin123)
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.74rem', padding: '4px 8px' }}
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'scholar', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'mufti.tariq@shariahboard.org', password: 'scholar123' }));
+                  }}
+                >
+                  ⚖️ Mufti Tariq (scholar123)
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -6048,10 +6323,23 @@ function App() {
                         className="btn btn-primary btn-sm" 
                         style={{ width: '100%', fontWeight: 700 }}
                         onClick={() => {
-                          handleSwitchPersona('student');
+                          setAccountSwitchModal(false);
+                          setAuthModal({
+                            isOpen: true,
+                            mode: 'login',
+                            roleTab: 'student',
+                            errorMsg: '',
+                            successMsg: '',
+                            isLoading: false
+                          });
+                          setAuthForm(prev => ({
+                            ...prev,
+                            email: 'ahmad.raza@example.com',
+                            password: 'student123'
+                          }));
                         }}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Ahmad Raza
+                        <i className="fas fa-sign-in-alt"></i> Log In as Ahmad Raza (Verify)
                       </button>
                     )}
                   </div>
@@ -6084,10 +6372,23 @@ function App() {
                         className="btn btn-gold btn-sm" 
                         style={{ width: '100%', fontWeight: 700 }}
                         onClick={() => {
-                          handleSwitchPersona('teacher');
+                          setAccountSwitchModal(false);
+                          setAuthModal({
+                            isOpen: true,
+                            mode: 'login',
+                            roleTab: 'teacher',
+                            errorMsg: '',
+                            successMsg: '',
+                            isLoading: false
+                          });
+                          setAuthForm(prev => ({
+                            ...prev,
+                            email: 'qari.basit@darululoom.edu',
+                            password: 'teacher123'
+                          }));
                         }}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Qari Abdul Basit
+                        <i className="fas fa-sign-in-alt"></i> Log In as Qari Abdul Basit (Verify)
                       </button>
                     )}
                   </div>
@@ -6120,10 +6421,23 @@ function App() {
                         className="btn btn-outline btn-sm" 
                         style={{ width: '100%', fontWeight: 700, borderColor: '#38bdf8', color: '#38bdf8' }}
                         onClick={() => {
-                          handleSwitchPersona('institute');
+                          setAccountSwitchModal(false);
+                          setAuthModal({
+                            isOpen: true,
+                            mode: 'login',
+                            roleTab: 'institute',
+                            errorMsg: '',
+                            successMsg: '',
+                            isLoading: false
+                          });
+                          setAuthForm(prev => ({
+                            ...prev,
+                            email: 'admin@darululoom.edu',
+                            password: 'admin123'
+                          }));
                         }}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Jamia Admin
+                        <i className="fas fa-sign-in-alt"></i> Log In as Jamia Admin (Verify)
                       </button>
                     )}
                   </div>
@@ -6148,20 +6462,32 @@ function App() {
                   </div>
                   <div>
                     {currentUser.role === 'admin' ? (
-                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(168, 85, 247, 0.15)', borderRadius: '8px', color: '#c084fc', fontWeight: 700, fontSize: '0.82rem' }}>
+                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(244, 63, 94, 0.15)', borderRadius: '8px', color: 'var(--color-ruby-light)', fontWeight: 700, fontSize: '0.82rem' }}>
                         <i className="fas fa-check-circle"></i> Currently Active Account
                       </div>
                     ) : (
                       <button 
-                        className="btn btn-outline btn-sm" 
-                        style={{ width: '100%', fontWeight: 700, borderColor: '#c084fc', color: '#c084fc' }}
+                        className="btn btn-ruby btn-sm" 
+                        style={{ width: '100%', fontWeight: 700 }}
                         onClick={() => {
-                          handleSwitchPersona('admin');
+                          setAccountSwitchModal(false);
+                          setAuthModal({
+                            isOpen: true,
+                            mode: 'login',
+                            roleTab: 'scholar',
+                            errorMsg: '',
+                            successMsg: '',
+                            isLoading: false
+                          });
+                          setAuthForm(prev => ({
+                            ...prev,
+                            email: 'mufti.tariq@shariahboard.org',
+                            password: 'scholar123'
+                          }));
                         }}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Mufti Tariq
+                        <i className="fas fa-sign-in-alt"></i> Log In as Mufti Tariq (Verify)
                       </button>
-                    )}
                   </div>
                 </div>
               </div>

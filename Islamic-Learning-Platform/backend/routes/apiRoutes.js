@@ -7,6 +7,7 @@ const admissionsController = require('../controllers/admissionsController');
 const attendanceController = require('../controllers/attendanceController');
 const chandaController = require('../controllers/chandaController');
 const explorerController = require('../controllers/explorerController');
+const authController = require('../controllers/authController');
 
 function handleApiRequest(req, res, pathname, query, body) {
   // CORS Headers for both Web & Mobile
@@ -17,6 +18,17 @@ function handleApiRequest(req, res, pathname, query, body) {
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
+  }
+
+  // 0. Authentication & Role-Guard Endpoints
+  if (pathname === '/api/v1/auth/login' && req.method === 'POST') {
+    return authController.login(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/register' && req.method === 'POST') {
+    return authController.register(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/users' && req.method === 'GET') {
+    return authController.getUsers(req, res);
   }
 
   // 1. Health Check

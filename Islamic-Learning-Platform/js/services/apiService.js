@@ -8,6 +8,46 @@ const API_BASE = (typeof window !== 'undefined' && window.location.origin && win
   : 'http://localhost:8085/api/v1';
 
 const apiService = {
+  // 0. Authentication & Role-Guards
+  login: async (credentials) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] login error:', err.message);
+      return { success: false, error: 'Network error connecting to backend authentication.' };
+    }
+  },
+
+  register: async (userData) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] register error:', err.message);
+      return { success: false, error: 'Network error connecting to backend.' };
+    }
+  },
+
+  getUsers: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/users`);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getUsers error:', err.message);
+      return [];
+    }
+  },
+
   // 1. Health & Status
   checkHealth: async () => {
     try {
