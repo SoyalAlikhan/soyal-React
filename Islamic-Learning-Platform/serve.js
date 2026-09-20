@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { handleApiRequest } = require('./backend/routes/apiRoutes');
 
-const PORT = 8085;
+let PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8085;
 
 const server = http.createServer((req, res) => {
   const reqUrl = new URL(req.url, `http://localhost:${PORT}`);
@@ -76,8 +76,22 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(filePath).pipe(res);
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.warn(`[WARNING] Port ${PORT} is in use. Automatically trying port ${PORT + 1}...`);
+    PORT = PORT + 1;
+    setTimeout(() => {
+      server.listen(PORT);
+    }, 200);
+  } else {
+    console.error('[SERVER ERROR]', err);
+  }
+});
+
 server.listen(PORT, () => {
-  console.log(`Al-Noor Server running at http://localhost:${PORT}/`);
-  console.log(`Database Explorer GUI available at http://localhost:${PORT}/db-explorer`);
-  console.log(`REST APIs active at http://localhost:${PORT}/api/v1/`);
+  console.log(`==========================================================`);
+  console.log(`  Al-Noor Master Server running at: http://localhost:${PORT}/`);
+  console.log(`  Database Explorer: http://localhost:${PORT}/db-explorer.html`);
+  console.log(`  REST APIs active at: http://localhost:${PORT}/api/v1/`);
+  console.log(`==========================================================`);
 });
