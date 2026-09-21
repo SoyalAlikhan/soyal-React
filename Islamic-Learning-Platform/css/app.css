@@ -4,26 +4,27 @@
    ========================================================================== */
 
 :root {
-  /* Brand Color Palette */
-  --color-bg-primary: #061019;
-  --color-bg-secondary: #0a1826;
-  --color-bg-card: rgba(14, 28, 44, 0.75);
-  --color-bg-card-hover: rgba(20, 38, 60, 0.85);
-  --color-bg-glass: rgba(14, 30, 48, 0.65);
-  --color-bg-elevated: #0f2236;
+  /* Brand Color Palette — Modern Classic Luxury (Midnight Obsidian & Royal Emerald) */
+  --color-bg-primary: #0a0f18;        /* Deep Obsidian Slate */
+  --color-bg-secondary: #0f172a;      /* Slate Navy */
+  --color-bg-card: rgba(15, 23, 42, 0.75);
+  --color-bg-card-hover: rgba(30, 41, 59, 0.85);
+  --color-bg-glass: rgba(15, 23, 42, 0.65);
+  --color-bg-elevated: #1e293b;
   
-  --color-primary: #0d9488;          /* Teal 600 */
-  --color-primary-light: #14b8a6;    /* Teal 500 */
-  --color-primary-dark: #0f766e;     /* Teal 700 */
-  --color-primary-glow: rgba(20, 184, 166, 0.25);
+  --color-primary: #059669;          /* Royal Emerald */
+  --color-primary-light: #10b981;    /* Sage Jade */
+  --color-primary-dark: #047857;     /* Deep Forest */
+  --color-primary-glow: rgba(16, 185, 129, 0.15);
   
-  --color-accent-gold: #f59e0b;      /* Amber 500 */
-  --color-accent-gold-light: #fbbf24;/* Amber 400 */
-  --color-accent-gold-glow: rgba(245, 158, 11, 0.25);
+  --color-accent-gold: #c5a059;      /* Classic Champagne Gold (Restrained & Elegant) */
+  --color-accent-gold-light: #dfba73;/* Warm Antique Gold */
+  --color-accent-gold-glow: rgba(197, 160, 89, 0.15);
   
   --color-emerald: #10b981;
   --color-emerald-light: #34d399;
-  --color-ruby: #f43f5e;
+  --color-ruby: #e11d48;             /* Refined Crimson Rose */
+  --color-ruby-light: #fda4af;
   --color-indigo: #6366f1;
   
   /* Text Colors */
@@ -31,20 +32,20 @@
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --text-accent: #38bdf8;
-  --text-gold: #fbbf24;
+  --text-gold: #dfba73;
   
   /* Borders & Dividers */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.15);
-  --border-accent: rgba(20, 184, 166, 0.4);
-  --border-gold: rgba(245, 158, 11, 0.4);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-light: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(16, 185, 129, 0.3);
+  --border-gold: rgba(197, 160, 89, 0.3);
   
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px var(--color-primary-glow);
-  --shadow-gold-glow: 0 0 25px var(--color-accent-gold-glow);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 25px var(--color-primary-glow);
+  --shadow-gold-glow: 0 0 20px var(--color-accent-gold-glow);
   
   /* Typography */
   --font-main: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -53,29 +54,39 @@
   
   /* Transitions */
   --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Light Theme Variables */
-[data-theme="light"] {
-  --color-bg-primary: #f1f5f9;
-  --color-bg-secondary: #e2e8f0;
-  --color-bg-card: rgba(255, 255, 255, 0.9);
-  --color-bg-card-hover: rgba(255, 255, 255, 1);
-  --color-bg-glass: rgba(255, 255, 255, 0.85);
+/* Light Theme Variables — Warm Alabaster & Royal British Racing Green */
+[data-theme="light"],
+.theme-light {
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #f1f5f9;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #ffffff;
+  --color-bg-glass: rgba(255, 255, 255, 0.92);
   --color-bg-elevated: #ffffff;
+  
+  --color-primary: #047857;
+  --color-primary-light: #059669;
+  --color-primary-dark: #064e3b;
+  --color-primary-glow: rgba(4, 120, 87, 0.12);
+  
+  --color-accent-gold: #92400e;
+  --color-accent-gold-light: #b45309;
+  --color-accent-gold-glow: rgba(180, 83, 9, 0.12);
   
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
-  --text-gold: #b45309;
+  --text-gold: #92400e;
   
-  --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-light: rgba(0, 0, 0, 0.14);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.15);
+  --border-subtle: #e2e8f0;
+  --border-light: #cbd5e1;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 12px 30px -4px rgba(15, 23, 42, 0.07);
 }
 
 /* Reset & Base Setup */
@@ -102,9 +113,8 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 15% 10%, rgba(13, 148, 136, 0.15) 0%, transparent 45%),
-    radial-gradient(circle at 85% 90%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(6, 78, 59, 0.06) 0%, transparent 60%);
+    radial-gradient(circle at 15% 10%, rgba(5, 150, 105, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 85% 90%, rgba(197, 160, 89, 0.04) 0%, transparent 45%);
   background-attachment: fixed;
 }
 
@@ -153,129 +163,183 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+/* Glassmorphism Classes — Sleek Modern Frosted Architecture */
+.glass-panel {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
 .glass-card {
   background: var(--color-bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
-  transition: all var(--transition-normal);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
 }
 
 .glass-card:hover {
   background: var(--color-bg-card-hover);
-  border-color: var(--border-accent);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Buttons */
+/* Buttons — Classic, Refined, Modern Architecture */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
-  font-size: 0.925rem;
+  padding: 9px 18px;
+  font-size: 0.88rem;
   font-weight: 600;
   border-radius: 10px;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
   font-family: inherit;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* 1. Primary Button — Sovereign Emerald (Rich, Authoritative, Clean) */
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
   color: #ffffff;
-  box-shadow: 0 4px 15px var(--color-primary-glow);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #2dd4bf, var(--color-primary-light));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.35);
+  transform: translateY(-1px);
 }
 
+/* 2. Gold / Royal Honor Button — Sophisticated Champagne Bronze */
 .btn-gold {
-  background: linear-gradient(135deg, var(--color-accent-gold-light), var(--color-accent-gold));
-  color: #1e1300;
-  font-weight: 700;
-  box-shadow: 0 4px 15px var(--color-accent-gold-glow);
+  background: linear-gradient(180deg, #c5a059 0%, #a67c33 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(166, 124, 51, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-gold:hover {
-  background: linear-gradient(135deg, #fcd34d, var(--color-accent-gold-light));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(180deg, #dfba73 0%, #c5a059 100%);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(166, 124, 51, 0.35);
+  transform: translateY(-1px);
 }
 
+/* 3. Ruby / Live Room Button — Refined Crimson Velvet */
+.btn-ruby {
+  background: linear-gradient(180deg, #be123c 0%, #9f1239 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 8px rgba(190, 18, 60, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.btn-ruby:hover {
+  background: linear-gradient(180deg, #e11d48 0%, #be123c 100%);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 4px 14px rgba(190, 18, 60, 0.35);
+  transform: translateY(-1px);
+}
+
+/* 4. Outline / Secondary Button — Modern Frosted Glass Neutral */
 .btn-outline {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   border: 1px solid var(--border-light);
+  backdrop-filter: blur(8px);
 }
 
 .btn-outline:hover {
-  border-color: var(--color-primary-light);
-  background: rgba(20, 184, 166, 0.1);
-  color: var(--color-primary-light);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-sm {
   padding: 6px 12px;
   font-size: 0.8rem;
   border-radius: 8px;
+  gap: 6px;
 }
 
 .btn-lg {
-  padding: 14px 28px;
-  font-size: 1.05rem;
+  padding: 12px 24px;
+  font-size: 0.98rem;
   border-radius: 12px;
 }
 
-/* Badges */
+/* Badges — Subtle, Low-Saturation Elegant Indicators */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
-.badge-teal {
-  background: rgba(20, 184, 166, 0.15);
-  color: #2dd4bf;
-  border: 1px solid rgba(20, 184, 166, 0.3);
+.badge-teal, .badge-emerald {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.22);
 }
 
 .badge-gold {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(197, 160, 89, 0.1);
+  color: #dfba73;
+  border: 1px solid rgba(197, 160, 89, 0.22);
 }
 
 .badge-ruby {
-  background: rgba(244, 63, 94, 0.15);
-  color: #fb7185;
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: rgba(225, 29, 72, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(225, 29, 72, 0.22);
 }
 
-.badge-emerald {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.badge-purple, .badge-indigo {
+  background: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.22);
 }
 
-.badge-purple {
-  background: rgba(147, 51, 234, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(147, 51, 234, 0.3);
+/* Live Indicator Pulse Dot */
+.live-dot-pulse {
+  width: 7px;
+  height: 7px;
+  background-color: var(--color-ruby);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7);
+  animation: livePulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes livePulse {
+  to {
+    box-shadow: 0 0 0 8px rgba(225, 29, 72, 0);
+  }
 }
 
 /* Navigation Bar — Edge-to-Edge Fluid Header */
@@ -1799,12 +1863,20 @@ body {
   box-shadow: 0 4px 14px var(--color-primary-glow);
 }
 
-/* Quick Action Strip */
+/* Quick Action Strip — Modern Unified Pill Ribbon */
 .quick-action-strip {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  width: fit-content;
+  max-width: 100%;
 }
 
 /* Teacher Course Grid & Management Cards */
@@ -2740,40 +2812,50 @@ body {
 }
 
 /* ==========================================================================
-   LIGHT / WHITE LUXURY THEME
+   LIGHT / WHITE LUXURY THEME (Editorial Classic / Oxford & Al-Azhar Academic)
    ========================================================================== */
 .theme-light {
   --bg-dark: #f8fafc;
   --bg-surface: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.98);
-  --border-light: rgba(0, 0, 0, 0.09);
-  --border-subtle: rgba(0, 0, 0, 0.06);
+  --bg-card: #ffffff;
+  --border-light: #cbd5e1;
+  --border-subtle: #e2e8f0;
   --text-primary: #0f172a;
-  --text-secondary: #334155;
+  --text-secondary: #475569;
   --text-muted: #64748b;
   color: #0f172a !important;
-  background-color: #f1f5f9 !important;
+  background-color: #f8fafc !important;
 }
 
 body:has(.theme-light),
 .theme-light {
-  background: #f1f5f9 !important;
+  background: #f8fafc !important;
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(4, 120, 87, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(180, 83, 9, 0.03) 0%, transparent 40%) !important;
 }
 
 .theme-light .navbar {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .brand-title {
+  background: linear-gradient(135deg, #047857 0%, #064e3b 50%, #92400e 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .theme-light .nav-link {
-  color: #334155 !important;
+  color: #475569 !important;
 }
 
 .theme-light .nav-link:hover,
 .theme-light .nav-link.active {
-  color: #0d9488 !important;
-  background: rgba(13, 148, 136, 0.1) !important;
+  color: #047857 !important;
+  background: rgba(4, 120, 87, 0.08) !important;
+  border-color: rgba(4, 120, 87, 0.2) !important;
 }
 
 .theme-light .nav-user-pill,
@@ -2782,7 +2864,14 @@ body:has(.theme-light),
   background: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .nav-user-pill:hover,
+.theme-light .nav-notif-btn:hover,
+.theme-light .nav-theme-btn:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
 }
 
 .theme-light .nav-user-pill div > div:first-child {
@@ -2796,8 +2885,14 @@ body:has(.theme-light),
 .theme-light .course-card {
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 16px -2px rgba(15, 23, 42, 0.04) !important;
   color: #0f172a !important;
+}
+
+.theme-light .glass-card:hover,
+.theme-light .course-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08) !important;
 }
 
 .theme-light .glass-card h2,
@@ -2807,16 +2902,59 @@ body:has(.theme-light),
   color: #0f172a !important;
 }
 
+.theme-light .quick-action-strip {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+.theme-light .btn-outline {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.theme-light .btn-outline:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+.theme-light .badge-teal,
+.theme-light .badge-emerald {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.theme-light .badge-gold {
+  background: #fefce8 !important;
+  color: #854d0e !important;
+  border-color: #fef08a !important;
+}
+
+.theme-light .badge-ruby {
+  background: #fff1f2 !important;
+  color: #9f1239 !important;
+  border-color: #fecdd3 !important;
+}
+
+.theme-light .badge-purple,
+.theme-light .badge-indigo {
+  background: #eef2ff !important;
+  color: #4338ca !important;
+  border-color: #c7d2fe !important;
+}
+
 .theme-light .profile-dropdown-menu,
 .theme-light .notif-dropdown-menu {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12) !important;
   color: #0f172a !important;
 }
 
 .theme-light .profile-dropdown-header {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), #f8fafc) !important;
+  background: linear-gradient(135deg, rgba(4, 120, 87, 0.08), #f8fafc) !important;
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
@@ -2830,7 +2968,7 @@ body:has(.theme-light),
 
 .theme-light .profile-dropdown-item:hover {
   background: #f1f5f9 !important;
-  color: #0f172a !important;
+  color: #047857 !important;
 }
 
 .theme-light .profile-role-chip {
@@ -2840,15 +2978,15 @@ body:has(.theme-light),
 }
 
 .theme-light .profile-role-chip.active {
-  background: rgba(20, 184, 166, 0.15) !important;
-  border-color: var(--color-primary) !important;
+  background: rgba(4, 120, 87, 0.1) !important;
+  border-color: #047857 !important;
 }
 
 .theme-light .modal-content,
 .theme-light .auth-modal {
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18) !important;
   color: #0f172a !important;
 }
 
@@ -2869,19 +3007,27 @@ body:has(.theme-light),
   color: #0f172a !important;
 }
 
-.theme-light .table th {
+.theme-light .table th,
+.theme-light .custom-table th {
   background: #f1f5f9 !important;
-  color: #334155 !important;
+  color: #475569 !important;
   border-bottom: 1px solid #cbd5e1 !important;
 }
 
-.theme-light .table td {
+.theme-light .table td,
+.theme-light .custom-table td {
   color: #1e293b !important;
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
 .theme-light .profile-dropdown-divider {
   background: #e2e8f0 !important;
+}
+
+.theme-light .app-footer {
+  background: #f1f5f9 !important;
+  border-top: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
 }
 
 /* ==========================================================================

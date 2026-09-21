@@ -2842,57 +2842,88 @@ function App() {
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button className="btn btn-ruby" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
-                  <i className="fas fa-video"></i> 🔴 {t.enterLiveClassroom || 'Enter Live Classroom'}
+                  <span className="live-dot-pulse"></span> <i className="fas fa-video"></i> {t.enterLiveClassroom || 'Enter Live Classroom'}
                 </button>
                 <button className="btn btn-primary" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
-                  <i className="fas fa-microphone"></i> {t.submitTajweedAudio || 'Submit Tajweed Audio Form'}
+                  <i className="fas fa-microphone"></i> {t.submitTajweedAudio || 'Submit Tajweed Audio'}
                 </button>
                 <button className="btn btn-outline" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
-                  <i className="fas fa-calendar-minus"></i> {t.applyLeave || 'Apply for Leave Form'}
+                  <i className="fas fa-calendar-minus"></i> {t.applyLeave || 'Leave Application'}
                 </button>
                 <button className="btn btn-gold" onClick={() => setCertModal({ isOpen: true, course: courses[0], studentName: currentUser.name, grade: "Mumtaz (A+)" })}>
-                  <i className="fas fa-award"></i> {t.viewCertificate || 'View Official Certificate'}
+                  <i className="fas fa-award"></i> {t.viewCertificate || 'View Certificate'}
                 </button>
               </div>
             </div>
 
             {/* Quick Action Strip for Student */}
-            <div className="quick-action-strip" style={{ marginBottom: '20px' }}>
+            <div className="quick-action-strip">
               <button className="btn btn-ruby btn-sm" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
-                <i className="fas fa-broadcast-tower"></i> 🔴 {t.cardLiveHalaqah || 'Join Live Halaqah'}
+                <span className="live-dot-pulse"></span> <i className="fas fa-broadcast-tower"></i> {t.cardLiveHalaqah || 'Join Live Halaqah'}
               </button>
               <button className="btn btn-outline btn-sm" onClick={() => handleOpenCheckout(courses[0])}>
-                <i className="fas fa-shopping-cart"></i> Course Enrollment Checkout
+                <i className="fas fa-shopping-cart"></i> Course Enrollment
               </button>
               <button className="btn btn-outline btn-sm" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
-                <i className="fas fa-quran"></i> Record Surah Al-Mulk Recitation
+                <i className="fas fa-quran"></i> Record Surah Al-Mulk
               </button>
               <button className="btn btn-outline btn-sm" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
-                <i className="fas fa-envelope-open-text"></i> {t.applyLeave || 'Leave Application'}
+                <i className="fas fa-envelope-open-text"></i> Leave Request
               </button>
             </div>
 
-            {/* 4 Stats */}
+            {/* 4 Stats Cards — Classic, Unified Executive Dashboard */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>1. {t.cardContinueLearning || 'CONTINUE LEARNING'}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary-light)', marginTop: '4px' }}>{enrolledIds.length} Courses</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>Active & On Track</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                  <i className="fas fa-graduation-cap" style={{ marginRight: '6px', color: 'var(--color-primary-light)' }}></i>
+                  {t.cardContinueLearning || 'Continue Learning'}
+                </div>
+                <div style={{ fontSize: '1.9rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '6px 0 4px' }}>
+                  {enrolledIds.length} Courses
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--color-primary-light)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <i className="fas fa-check-circle" style={{ fontSize: '0.7rem' }}></i> Active & On Track
+                </div>
               </div>
+
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>2. {t.cardLiveHalaqah || 'LIVE HALAQAH'}</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f43f5e', marginTop: '6px' }}>Tajweed Halaqah</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>LIVE NOW (Auto Attendance)</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                  <i className="fas fa-broadcast-tower" style={{ marginRight: '6px', color: 'var(--color-ruby)' }}></i>
+                  {t.cardLiveHalaqah || 'Live Halaqah'}
+                </div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: '6px 0 4px' }}>
+                  Tajweed Halaqah
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--color-ruby-light)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="live-dot-pulse"></span> LIVE NOW (Auto Attendance)
+                </div>
               </div>
+
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>3. {t.cardPendingHw || 'PENDING HOMEWORK'}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-accent-gold)', marginTop: '4px' }}>1 Assignment</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Due Tomorrow</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                  <i className="fas fa-tasks" style={{ marginRight: '6px', color: 'var(--color-accent-gold)' }}></i>
+                  {t.cardPendingHw || 'Pending Homework'}
+                </div>
+                <div style={{ fontSize: '1.9rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '6px 0 4px' }}>
+                  1 Assignment
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <i className="fas fa-clock" style={{ fontSize: '0.7rem' }}></i> Due Tomorrow
+                </div>
               </div>
+
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>4. {t.cardMyAttendance || 'MERI ATTENDANCE'}</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-emerald-light)', marginTop: '4px' }}>88%</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>Eligible for Sanad (Req 75%)</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                  <i className="fas fa-user-check" style={{ marginRight: '6px', color: 'var(--color-primary-light)' }}></i>
+                  {t.cardMyAttendance || 'My Attendance'}
+                </div>
+                <div style={{ fontSize: '1.9rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '6px 0 4px' }}>
+                  88%
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--color-primary-light)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <i className="fas fa-award" style={{ fontSize: '0.7rem' }}></i> Eligible for Sanad (Req 75%)
+                </div>
               </div>
             </div>
 
