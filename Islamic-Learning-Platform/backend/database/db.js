@@ -38,6 +38,58 @@ function runMigrations() {
       // Column already exists
     }
   }
+
+  // User & Student credentials migrations
+  const userCols = [
+    { name: 'username', type: 'TEXT' },
+    { name: 'password', type: 'TEXT' }
+  ];
+  for (const col of userCols) {
+    try {
+      db.exec(`ALTER TABLE users ADD COLUMN ${col.name} ${col.type};`);
+    } catch {}
+  }
+  try {
+    db.exec(`ALTER TABLE students ADD COLUMN username TEXT;`);
+  } catch {}
+
+  // Ensure homework & submissions tables exist
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS homework (
+        id TEXT PRIMARY KEY,
+        course_id TEXT,
+        course_title TEXT,
+        batch_id TEXT NOT NULL,
+        batch_title TEXT,
+        teacher_id TEXT,
+        teacher_name TEXT,
+        title TEXT NOT NULL,
+        instructions TEXT,
+        due_date TEXT,
+        due_time TEXT,
+        max_marks INTEGER DEFAULT 25,
+        submission_type TEXT DEFAULT 'Audio Recitation + PDF File',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS homework_submissions (
+        id TEXT PRIMARY KEY,
+        homework_id TEXT NOT NULL,
+        student_id TEXT NOT NULL,
+        student_name TEXT NOT NULL,
+        submission_notes TEXT,
+        audio_url TEXT,
+        file_name TEXT,
+        marks_awarded INTEGER DEFAULT NULL,
+        status TEXT DEFAULT 'Pending Review',
+        teacher_feedback TEXT,
+        teacher_voice_url TEXT,
+        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (e) {
+    console.error('[db.js migration error]', e);
+  }
 }
 
 initSchema();

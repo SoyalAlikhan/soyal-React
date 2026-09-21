@@ -243,6 +243,42 @@ CREATE TABLE IF NOT EXISTS scholar_reviews (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 15. Teacher Homework & Student Submissions (Relational SQLite per BRD Section 10)
+CREATE TABLE IF NOT EXISTS homework (
+    id TEXT PRIMARY KEY,
+    course_id TEXT,
+    course_title TEXT,
+    batch_id TEXT NOT NULL,
+    batch_title TEXT,
+    teacher_id TEXT,
+    teacher_name TEXT,
+    title TEXT NOT NULL,
+    instructions TEXT,
+    due_date TEXT,
+    due_time TEXT,
+    max_marks INTEGER DEFAULT 25,
+    submission_type TEXT DEFAULT 'Audio Recitation + PDF File',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS homework_submissions (
+    id TEXT PRIMARY KEY,
+    homework_id TEXT NOT NULL,
+    student_id TEXT NOT NULL,
+    student_name TEXT NOT NULL,
+    submission_notes TEXT,
+    audio_url TEXT,
+    file_name TEXT,
+    marks_awarded INTEGER DEFAULT NULL,
+    status TEXT DEFAULT 'Pending Review',
+    teacher_feedback TEXT,
+    teacher_voice_url TEXT,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (homework_id) REFERENCES homework(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
 -- Indexes for lightning fast queries
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_courses_dept ON courses(department_id);
@@ -250,3 +286,7 @@ CREATE INDEX IF NOT EXISTS idx_admissions_inst ON admissions(institute_id);
 CREATE INDEX IF NOT EXISTS idx_leaves_student ON leave_applications(student_id);
 CREATE INDEX IF NOT EXISTS idx_leaves_teacher ON leave_applications(assigned_teacher);
 CREATE INDEX IF NOT EXISTS idx_attendance_student ON attendance_heartbeats(student_id);
+CREATE INDEX IF NOT EXISTS idx_hw_batch ON homework(batch_id);
+CREATE INDEX IF NOT EXISTS idx_hw_sub_hw ON homework_submissions(homework_id);
+CREATE INDEX IF NOT EXISTS idx_hw_sub_stu ON homework_submissions(student_id);
+

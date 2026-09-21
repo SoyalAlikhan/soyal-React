@@ -10,6 +10,7 @@ const explorerController = require('../controllers/explorerController');
 const authController = require('../controllers/authController');
 const liveClassesController = require('../controllers/liveClassesController');
 const studentsController = require('../controllers/studentsController');
+const homeworkController = require('../controllers/homeworkController');
 
 function handleApiRequest(req, res, pathname, query, body) {
   // CORS Headers for both Web & Mobile
@@ -31,6 +32,15 @@ function handleApiRequest(req, res, pathname, query, body) {
   }
   if (pathname === '/api/v1/auth/users' && req.method === 'GET') {
     return authController.getUsers(req, res);
+  }
+  if (pathname === '/api/v1/auth/forgot-password' && req.method === 'POST') {
+    return authController.forgotPassword(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/reset-password' && req.method === 'POST') {
+    return authController.resetPassword(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/change-password' && req.method === 'POST') {
+    return authController.changePassword(req, res, body);
   }
 
   // 1. Health Check
@@ -124,6 +134,34 @@ function handleApiRequest(req, res, pathname, query, body) {
     const parts = pathname.split('/');
     const batchId = parts[4];
     if (req.method === 'POST') return studentsController.enrollStudentInBatch(req, res, batchId, body);
+  }
+  if (pathname.startsWith('/api/v1/students/') && pathname.endsWith('/dashboard') && req.method === 'GET') {
+    const parts = pathname.split('/');
+    const studentId = parts[4];
+    return studentsController.getStudentDashboard(req, res, studentId);
+  }
+
+  // 4E. Relational Homework & Submissions (SQLite per BRD Section 10)
+  if (pathname === '/api/v1/homework') {
+    if (req.method === 'GET') return homeworkController.getHomework(req, res, query);
+    if (req.method === 'POST') return homeworkController.createHomework(req, res, body);
+  }
+  if (pathname === '/api/v1/homework/submissions' && req.method === 'GET') {
+    return homeworkController.getSubmissions(req, res, query);
+  }
+  if (pathname.startsWith('/api/v1/homework/') && pathname.endsWith('/submit') && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const hwId = parts[4];
+    return homeworkController.submitHomework(req, res, hwId, body);
+  }
+  if (pathname.startsWith('/api/v1/homework/submissions/') && pathname.endsWith('/grade') && (req.method === 'PATCH' || req.method === 'POST')) {
+    const parts = pathname.split('/');
+    const subId = parts[5];
+    return homeworkController.gradeHomework(req, res, subId, body);
+  }
+  if (pathname.startsWith('/api/v1/homework/') && (req.method === 'DELETE' || (req.method === 'POST' && pathname.endsWith('/delete')))) {
+    const hwId = pathname.replace('/api/v1/homework/', '').replace('/delete', '').trim();
+    return homeworkController.deleteHomework(req, res, hwId);
   }
 
   // 5. 30s Heartbeat SDK Attendance

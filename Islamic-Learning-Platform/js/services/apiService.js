@@ -48,6 +48,48 @@ const apiService = {
     }
   },
 
+  forgotPassword: async (identifier) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] forgotPassword error:', err.message);
+      return { success: false, error: 'Network error requesting OTP.' };
+    }
+  },
+
+  resetPassword: async (identifier, otp, newPassword) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, otp, new_password: newPassword })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] resetPassword error:', err.message);
+      return { success: false, error: 'Network error resetting password.' };
+    }
+  },
+
+  changePassword: async (userId, oldPassword, newPassword) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, old_password: oldPassword, new_password: newPassword })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] changePassword error:', err.message);
+      return { success: false, error: 'Network error changing password.' };
+    }
+  },
+
   // 1. Health & Status
   checkHealth: async () => {
     try {
@@ -321,10 +363,13 @@ const apiService = {
 
   enrollStudentInBatch: async (batchId, studentId, paymentStatus = 'Paid') => {
     try {
+      const payload = (typeof studentId === 'object' && studentId !== null)
+        ? { batch_id: batchId, payment_status: paymentStatus, ...studentId }
+        : { batch_id: batchId, student_id: studentId, payment_status: paymentStatus };
       const res = await fetch(`${API_BASE}/batch-students`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ batch_id: batchId, student_id: studentId, payment_status: paymentStatus })
+        body: JSON.stringify(payload)
       });
       return await res.json();
     } catch (err) {
@@ -357,6 +402,88 @@ const apiService = {
       return await res.json();
     } catch (err) {
       console.warn('[API Service] createStudent error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 4E. Homework & Assignments SQLite Engine
+  getHomework: async (batchId, studentId) => {
+    try {
+      let url = `${API_BASE}/homework`;
+      const params = [];
+      if (batchId && batchId !== 'all') params.push(`batch_id=${encodeURIComponent(batchId)}`);
+      if (studentId) params.push(`student_id=${encodeURIComponent(studentId)}`);
+      if (params.length > 0) url += `?${params.join('&')}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getHomework fallback:', err.message);
+      return [];
+    }
+  },
+
+  createHomework: async (hwData) => {
+    try {
+      const res = await fetch(`${API_BASE}/homework`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(hwData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] createHomework error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  deleteHomework: async (hwId) => {
+    try {
+      const res = await fetch(`${API_BASE}/homework/${encodeURIComponent(hwId)}`, {
+        method: 'DELETE'
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] deleteHomework error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  submitHomework: async (hwId, submissionData) => {
+    try {
+      const res = await fetch(`${API_BASE}/homework/${encodeURIComponent(hwId)}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submissionData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] submitHomework error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  gradeHomework: async (subId, gradeData) => {
+    try {
+      const res = await fetch(`${API_BASE}/homework/submissions/${encodeURIComponent(subId)}/grade`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gradeData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] gradeHomework error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  getStudentDashboard: async (studentId) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${encodeURIComponent(studentId)}/dashboard`);
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] getStudentDashboard error:', err.message);
       return { success: false, error: err.message };
     }
   }

@@ -3319,9 +3319,80 @@ body:has(.theme-light),
 }
 
 .theme-light .live-session-item-card .session-date {
-  color: #64748b !important;
+  color: #475569 !important;
+  font-weight: 500 !important;
 }
 
+/* Fix Card Content Overflow & Button Wrapping */
+.batch-card {
+  min-width: 0 !important;
+  word-break: break-word !important;
+  overflow: hidden !important;
+}
 
+.batch-card-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
 
+.batch-card-actions .btn {
+  white-space: normal !important;
+  flex: 1 1 auto !important;
+}
 
+.live-session-item-card {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  word-break: break-word !important;
+}
+
+/* Light Theme Tab Contrast (Course Studio & Auth Roles) */
+.theme-light .auth-role-tabs {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.theme-light .auth-role-tab {
+  color: #475569 !important;
+}
+
+.theme-light .auth-role-tab:hover {
+  color: #0f172a !important;
+  background: rgba(203, 213, 225, 0.5) !important;
+}
+
+.theme-light .auth-role-tab.active {
+  background: linear-gradient(135deg, #0d9488, #10b981) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25) !important;
+}
+
+/* Light Theme Timetable & Table Text Visibility */
+.theme-light .attendance-sim-box {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-light .attendance-sim-box .custom-table th {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+
+.theme-light .attendance-sim-box .custom-table td,
+.theme-light .attendance-sim-box .custom-table td strong {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-light .attendance-sim-box .custom-table tr:hover td {
+  background: #f8fafc !important;
+}
+
+.theme-light .live-session-item-card > div:first-child {
+  color: #047857 !important;
+  font-weight: 700 !important;
+}
