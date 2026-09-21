@@ -111,6 +111,44 @@ const apiService = {
     }
   },
 
+  // 3B. Live Classes & Scheduled Halaqaat
+  getLiveClasses: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/live-classes`);
+      const data = await res.json();
+      return data.success ? data.data : null;
+    } catch (err) {
+      console.warn('[API Service] getLiveClasses fallback:', err.message);
+      return null;
+    }
+  },
+
+  createLiveClass: async (classData) => {
+    try {
+      const res = await fetch(`${API_BASE}/live-classes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(classData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] createLiveClass error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  deleteLiveClass: async (classId) => {
+    try {
+      const res = await fetch(`${API_BASE}/live-classes/${classId}`, {
+        method: 'DELETE'
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] deleteLiveClass error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
   // 4. Leave Applications
   getLeaves: async (params = {}) => {
     try {

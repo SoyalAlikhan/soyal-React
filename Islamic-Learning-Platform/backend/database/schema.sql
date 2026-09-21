@@ -96,6 +96,21 @@ CREATE TABLE IF NOT EXISTS batches (
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
+-- 6B. Scheduled Live Classes (Direct Teacher & Halaqah Scheduling)
+CREATE TABLE IF NOT EXISTS live_classes (
+    id TEXT PRIMARY KEY,
+    course_id TEXT,
+    title TEXT NOT NULL,
+    instructor_name TEXT NOT NULL,
+    class_date TEXT NOT NULL,
+    class_time TEXT,
+    recurrence TEXT DEFAULT 'Daily',
+    enrolled_count INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'Scheduled',
+    meeting_link TEXT DEFAULT '#auto-attendance',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 7. Talaba Admissions Register (Dakhila)
 CREATE TABLE IF NOT EXISTS admissions (
     id TEXT PRIMARY KEY,

@@ -1123,6 +1123,16 @@ function App() {
           }
         });
       }
+
+      // 6. Fetch Scheduled Live Classes from SQLite Database
+      if (window.apiService.getLiveClasses) {
+        window.apiService.getLiveClasses().then(dbLiveClasses => {
+          if (dbLiveClasses && dbLiveClasses.length > 0) {
+            console.log('[SQLite Backend] Loaded', dbLiveClasses.length, 'live classes from alnoor_lms.db');
+            setLiveClasses(dbLiveClasses);
+          }
+        });
+      }
     }
   }, []);
 
@@ -1271,7 +1281,15 @@ function App() {
     if (window.confirm("Kya aap waqai yeh scheduled live class delete karna chahte hain?")) {
       setLiveClasses(liveClasses.filter(c => c.id !== classId));
       setNotificationsList(notificationsList.filter(n => n.id !== classId && (!n.classObj || n.classObj.id !== classId)));
-      alert("Scheduled live class delete kar di gayi.");
+
+      // Persist delete to SQLite database
+      if (typeof window !== 'undefined' && window.apiService && window.apiService.deleteLiveClass) {
+        window.apiService.deleteLiveClass(classId).then(res => {
+          if (res && res.success) console.log('[SQLite Backend] Live class deleted from database:', classId);
+        });
+      }
+
+      alert("Scheduled live class delete kar di gayi aur database se remove ho gayi.");
     }
   };
 
@@ -1597,19 +1615,27 @@ function App() {
 
     setSchedulerModal({ ...schedulerModal, isOpen: false });
 
-    // Persist batch schedule to SQLite
-    if (typeof window !== 'undefined' && window.apiService && window.apiService.createBatch) {
-      window.apiService.createBatch({
+    // Persist scheduled live class directly to SQLite database (alnoor_lms.db)
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.createLiveClass) {
+      window.apiService.createLiveClass({
+        id: liveId,
+        course_id: 'crs-tajweed-101',
         title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
-        schedule_days: schedulerModal.recurrence || 'Mon, Wed, Fri',
+        instructor_name: currentUser.name,
+        class_date: schedulerModal.startDate + " at " + schedulerModal.startTime,
         class_time: schedulerModal.startTime || '08:30 PM PKT',
-        max_talaba: 30
+        recurrence: schedulerModal.recurrence || 'Daily',
+        enrolled_count: 48,
+        status: "Scheduled",
+        meeting_link: "#auto-attendance"
       }).then(res => {
-        if (res && res.success) console.log('[SQLite Backend] Batch schedule saved to DB:', res.data);
+        if (res && res.success) {
+          console.log('[SQLite Backend] Live class schedule saved to alnoor_lms.db:', res.data);
+        }
       });
     }
 
-    alert(`Recurring Live Class Schedule Created! Series auto-generated through course duration (${schedulerModal.recurrence} until ${schedulerModal.autoEndDate}). Alert dispatched to students' notification center.`);
+    alert(`MashaAllah! Recurring Live Class Schedule Created and saved to SQLite Database (alnoor_lms.db)!\nVisible in DB Explorer table "live_classes". Alert dispatched to students' notification center.`);
   };
 
   // Homework Creator Submit (BRD Section 10)

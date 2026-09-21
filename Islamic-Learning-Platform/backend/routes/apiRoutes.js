@@ -8,6 +8,7 @@ const attendanceController = require('../controllers/attendanceController');
 const chandaController = require('../controllers/chandaController');
 const explorerController = require('../controllers/explorerController');
 const authController = require('../controllers/authController');
+const liveClassesController = require('../controllers/liveClassesController');
 
 function handleApiRequest(req, res, pathname, query, body) {
   // CORS Headers for both Web & Mobile
@@ -78,6 +79,18 @@ function handleApiRequest(req, res, pathname, query, body) {
   if (pathname === '/api/v1/batches') {
     if (req.method === 'GET') return coursesController.getBatches(req, res);
     if (req.method === 'POST') return coursesController.createBatch(req, res, body);
+  }
+
+  // 4C. Live Scheduled Classes (SQLite direct persistence)
+  if (pathname === '/api/v1/live-classes') {
+    if (req.method === 'GET') return liveClassesController.getLiveClasses(req, res);
+    if (req.method === 'POST') return liveClassesController.createLiveClass(req, res, body);
+  }
+  if (pathname.startsWith('/api/v1/live-classes/')) {
+    const classId = pathname.replace('/api/v1/live-classes/', '').trim();
+    if (req.method === 'DELETE' || req.method === 'POST') {
+      return liveClassesController.deleteLiveClass(req, res, classId);
+    }
   }
 
   // 5. 30s Heartbeat SDK Attendance
