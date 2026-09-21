@@ -6488,6 +6488,7 @@ function App() {
                       >
                         <i className="fas fa-sign-in-alt"></i> Log In as Mufti Tariq (Verify)
                       </button>
+                    )}
                   </div>
                 </div>
               </div>
