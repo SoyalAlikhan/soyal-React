@@ -71,20 +71,120 @@ function App() {
   // Account Switcher & Role Lock Modal State
   const [accountSwitchModal, setAccountSwitchModal] = useState(false);
 
+  // Theme State: 'dark' (Emerald Luxury) or 'light' (Crisp White Luxury)
+  const [theme, setTheme] = useState('dark');
+  const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+
   // YouTube-Style Profile Dropdown Menu State
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef(null);
 
-  // Close Profile Dropdown on Click Outside or Escape Key
+  // Interactive Notification Center State
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const notifDropdownRef = useRef(null);
+
+  // Permanent Class Recordings & Past Halaqahs Archive State
+  const [recordingPlayerModal, setRecordingPlayerModal] = useState({ isOpen: false, recording: null });
+  const [liveRecordings, setLiveRecordings] = useState([
+    {
+      id: "rec-1",
+      title: "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah",
+      teacher: "Qari Abdul Basit Siddiqui",
+      course: "Ahkam-e-Tajweed & Makharij Foundation",
+      date: "2026-09-20",
+      duration: "48 Mins",
+      attendees: 48,
+      batch: "Morning Hifz & Tajweed Batch A",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      notes: "Makharij of Halq letters and rules of Ghunnah in Ayah 1-10."
+    },
+    {
+      id: "rec-2",
+      title: "Fiqh-e-Niswan Live Masael & Q&A Session",
+      teacher: "Aalima Maryam Siddiqa",
+      course: "Fiqh-e-Niswan & Taharat",
+      date: "2026-09-19",
+      duration: "52 Mins",
+      attendees: 72,
+      batch: "Evening Dars-e-Quran Batch B",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      notes: "Detailed Masa'il regarding Ghusl, Wudhu breaks, and Qaza Namaz."
+    },
+    {
+      id: "rec-3",
+      title: "Noorani Qaida Live Huroof-e-Halqi Dars",
+      teacher: "Maulana Ibrahim Qasmi",
+      course: "Noorani Qaida Foundation",
+      date: "2026-09-18",
+      duration: "35 Mins",
+      attendees: 29,
+      batch: "Weekend Foundation Batch C",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      notes: "Alif, Waw, and Ya Maddah pronunciation length and common mistakes."
+    }
+  ]);
+
+  // Dynamic Live & Homework Notifications (Multiple Live Classes & Reminders)
+  const [notificationsList, setNotificationsList] = useState([
+    {
+      id: "notif-1",
+      type: "live",
+      urgent: true,
+      title: "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah",
+      teacher: "Qari Abdul Basit Siddiqui",
+      time: "LIVE NOW 🔴",
+      classObj: { title: "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah", instructor: "Qari Abdul Basit Siddiqui", course: "Ahkam-e-Tajweed & Makharij Foundation" }
+    },
+    {
+      id: "notif-2",
+      type: "live",
+      urgent: true,
+      title: "Fiqh-e-Niswan Live Masael & Q&A Session",
+      teacher: "Aalima Maryam Siddiqa",
+      time: "Starts in 12 Mins ⏳",
+      classObj: { title: "Fiqh-e-Niswan Live Masael & Q&A Session", instructor: "Aalima Maryam Siddiqa", course: "Fiqh-e-Niswan & Taharat" }
+    },
+    {
+      id: "notif-3",
+      type: "live",
+      urgent: true,
+      title: "Noorani Qaida Live Huroof-e-Halqi Dars",
+      teacher: "Maulana Ibrahim Qasmi",
+      time: "Starts in 15 Mins ⏳",
+      classObj: { title: "Noorani Qaida Live Huroof-e-Halqi Dars", instructor: "Maulana Ibrahim Qasmi", course: "Noorani Qaida Foundation" }
+    },
+    {
+      id: "notif-4",
+      type: "homework",
+      urgent: false,
+      title: "New Homework: Surah Al-Mulk Tilawat Assigned",
+      teacher: "Qari Abdul Basit Siddiqui",
+      time: "Today, 10:00 AM"
+    },
+    {
+      id: "notif-5",
+      type: "feedback",
+      urgent: false,
+      title: "🎙️ Ustad Audio Feedback & Tajweed Remarks Received",
+      teacher: "Qari Abdul Basit Siddiqui",
+      time: "Yesterday, 04:30 PM"
+    }
+  ]);
+
+  // Close Dropdowns on Click Outside or Escape Key
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
         setUserDropdownOpen(false);
       }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(e.target)) {
+        setNotifDropdownOpen(false);
+      }
     };
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setUserDropdownOpen(false);
+        setNotifDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -1106,6 +1206,85 @@ function App() {
     }
   };
 
+  // ==========================================
+  // COMPREHENSIVE CRUD HANDLERS (EDIT & DELETE)
+  // ==========================================
+
+  // 1. Delete & Join from Notification
+  const handleJoinLiveFromNotif = (notif) => {
+    setNotifDropdownOpen(false);
+    if (notif.classObj) {
+      handleOpenLiveRoom(notif.classObj);
+    } else {
+      handleOpenLiveRoom(liveClasses[0]);
+    }
+  };
+
+  // 2. Teacher: Delete Course
+  const handleDeleteCourse = (courseId) => {
+    if (window.confirm("Kya aap waqai yeh course aur iske modules delete karna chahte hain?")) {
+      setCourses(courses.filter(c => c.id !== courseId));
+      alert("Course kamyabi se delete kar diya gaya.");
+    }
+  };
+
+  // 3. Teacher: Delete Live Class
+  const handleDeleteLiveClass = (classId) => {
+    if (window.confirm("Kya aap waqai yeh scheduled live class delete karna chahte hain?")) {
+      setLiveClasses(liveClasses.filter(c => c.id !== classId));
+      setNotificationsList(notificationsList.filter(n => n.id !== classId && (!n.classObj || n.classObj.id !== classId)));
+      alert("Scheduled live class delete kar di gayi.");
+    }
+  };
+
+  // 4. Teacher: Delete Batch
+  const handleDeleteBatch = (batchId) => {
+    if (window.confirm("Kya aap waqai yeh batch delete karna chahte hain?")) {
+      setTeacherBatches(teacherBatches.filter(b => b.id !== batchId));
+      alert("Batch delete ho gaya.");
+    }
+  };
+
+  // 5. Teacher: Delete Homework
+  const handleDeleteHomework = (hwId) => {
+    if (window.confirm("Kya aap waqai yeh homework assignment delete karna chahte hain?")) {
+      setHomeworkList(homeworkList.filter(h => h.id !== hwId));
+      alert("Homework assignment delete ho gaya.");
+    }
+  };
+
+  // 6. Institute: Delete Faculty
+  const handleDeleteFaculty = (facId) => {
+    if (window.confirm("Kya aap waqai is ustaad ko madrasa roster se delete karna chahte hain?")) {
+      setFacultyList(facultyList.filter(f => f.id !== facId));
+      alert("Ustaad ka record delete ho gaya.");
+    }
+  };
+
+  // 7. Institute: Delete Student from Admissions Roster
+  const handleDeleteStudent = (stuId) => {
+    if (window.confirm("Kya aap waqai is talib-e-ilm ka dakhila record delete karna chahte hain?")) {
+      setTeacherStudents(teacherStudents.filter(s => s.id !== stuId));
+      alert("Talib-e-ilm ka record delete ho gaya.");
+    }
+  };
+
+  // 8. Institute: Delete Department
+  const handleDeleteDepartment = (deptId) => {
+    if (window.confirm("Kya aap waqai yeh shoba/department delete karna chahte hain?")) {
+      setDepartmentsList(departmentsList.filter(d => d.id !== deptId));
+      alert("Shoba delete ho gaya.");
+    }
+  };
+
+  // 9. Student: Delete / Cancel Leave Request
+  const handleDeleteLeave = (leaveId) => {
+    if (window.confirm("Kya aap waqai apni yeh leave application cancel/delete karna chahte hain?")) {
+      setLeaveApplications(leaveApplications.filter(l => l.id !== leaveId));
+      alert("Chutti ki application cancel kar di gayi.");
+    }
+  };
+
   // Enroll Course
   const handleEnroll = (courseId) => {
     if (!enrolledIds.includes(courseId)) {
@@ -1337,19 +1516,47 @@ function App() {
   // Recurring Class Scheduler Submit (BRD Flow 5)
   const handleSchedulerSubmit = (e) => {
     e.preventDefault();
+
+    if (schedulerModal.editId) {
+      setLiveClasses(liveClasses.map(c => {
+        if (c.id === schedulerModal.editId) {
+          return {
+            ...c,
+            title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
+            date: schedulerModal.startDate + " at " + schedulerModal.startTime
+          };
+        }
+        return c;
+      }));
+      setSchedulerModal({ ...schedulerModal, isOpen: false, editId: null });
+      alert("Live class schedule updated successfully.");
+      return;
+    }
+
     const liveId = "live-" + Date.now();
-    setLiveClasses([
-      {
-        id: liveId,
-        title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
-        instructor: currentUser.name,
-        date: schedulerModal.startDate + " at " + schedulerModal.startTime,
-        enrolled: 48,
-        status: "Scheduled",
-        link: "#auto-attendance"
-      },
-      ...liveClasses
-    ]);
+    const newClassObj = {
+      id: liveId,
+      title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
+      instructor: currentUser.name,
+      date: schedulerModal.startDate + " at " + schedulerModal.startTime,
+      enrolled: 48,
+      status: "Scheduled",
+      link: "#auto-attendance"
+    };
+    setLiveClasses([newClassObj, ...liveClasses]);
+
+    // Dispatch 15-min Live Class notification to notification bell
+    const liveNotif = {
+      id: "notif-sched-" + Date.now(),
+      type: "live",
+      urgent: true,
+      title: `${newClassObj.title}`,
+      teacher: currentUser.name,
+      time: "Starts in 15 Mins ⏳",
+      classObj: newClassObj
+    };
+    setNotificationsList(prev => [liveNotif, ...prev]);
+
     setSchedulerModal({ ...schedulerModal, isOpen: false });
 
     // Persist batch schedule to SQLite
@@ -1364,12 +1571,31 @@ function App() {
       });
     }
 
-    alert(`Recurring Live Class Schedule Created! Series auto-generated through course duration (${schedulerModal.recurrence} until ${schedulerModal.autoEndDate}). Saved to SQLite database.`);
+    alert(`Recurring Live Class Schedule Created! Series auto-generated through course duration (${schedulerModal.recurrence} until ${schedulerModal.autoEndDate}). Alert dispatched to students' notification center.`);
   };
 
   // Homework Creator Submit (BRD Section 10)
   const handleHwCreateSubmit = (e) => {
     e.preventDefault();
+
+    if (hwCreateModal.editId) {
+      setHomeworkList(homeworkList.map(h => {
+        if (h.id === hwCreateModal.editId) {
+          return {
+            ...h,
+            title: hwCreateModal.title,
+            course: hwCreateModal.courseTitle,
+            dueDate: hwCreateModal.dueDate + " (" + hwCreateModal.dueTime + ")",
+            maxMarks: hwCreateModal.maxMarks
+          };
+        }
+        return h;
+      }));
+      setHwCreateModal({ ...hwCreateModal, isOpen: false, editId: null });
+      alert(`Homework assignment "${hwCreateModal.title}" updated successfully.`);
+      return;
+    }
+
     const newHw = {
       id: "hw-" + Date.now(),
       title: hwCreateModal.title,
@@ -1382,8 +1608,20 @@ function App() {
       feedback: null
     };
     setHomeworkList([newHw, ...homeworkList]);
+
+    // Dispatch Homework notification to notification bell
+    const hwNotif = {
+      id: "notif-hw-" + Date.now(),
+      type: "homework",
+      urgent: false,
+      title: `📝 New Homework Assigned: ${hwCreateModal.title}`,
+      teacher: currentUser.name,
+      time: "Just now"
+    };
+    setNotificationsList(prev => [hwNotif, ...prev]);
+
     setHwCreateModal({ ...hwCreateModal, isOpen: false });
-    alert(`New Homework Assignment "${hwCreateModal.title}" published to enrolled students!`);
+    alert(`New Homework Assignment "${hwCreateModal.title}" published and notified to enrolled students!`);
   };
 
   // Hifz Entry Submit (BRD Section 11)
@@ -1506,6 +1744,27 @@ function App() {
   // Create Batch Submit
   const handleCreateBatchSubmit = (e) => {
     e.preventDefault();
+
+    if (batchModal.editId) {
+      setTeacherBatches(teacherBatches.map(b => {
+        if (b.id === batchModal.editId) {
+          return {
+            ...b,
+            name: batchModal.batchName,
+            course: batchModal.courseTitle,
+            timing: batchModal.timing,
+            days: batchModal.days,
+            max: parseInt(batchModal.maxSeats) || b.max,
+            feeMonthly: batchModal.feeMonthly
+          };
+        }
+        return b;
+      }));
+      setBatchModal({ ...batchModal, isOpen: false, editId: null });
+      alert(`Batch "${batchModal.batchName}" updated successfully.`);
+      return;
+    }
+
     const newBatch = {
       id: "batch-" + Date.now(),
       name: batchModal.batchName,
@@ -1588,13 +1847,26 @@ function App() {
           status: "Graded",
           grade: tajweedEvalModal.grade,
           teacherNote: tajweedEvalModal.teacherNote,
-          mistakes: tajweedEvalModal.selectedMistakes
+          mistakes: tajweedEvalModal.selectedMistakes,
+          mistakeRemarks: tajweedEvalModal.mistakeRemarks || []
         };
       }
       return s;
     }));
+
+    // Dispatch Ustad Tajweed / Voice Remarks Notification
+    const evalNotif = {
+      id: "notif-eval-" + Date.now(),
+      type: "feedback",
+      urgent: false,
+      title: `🎙️ Ustad Tajweed Evaluation: Grade ${tajweedEvalModal.grade}`,
+      teacher: currentUser.name,
+      time: "Just now"
+    };
+    setNotificationsList(prev => [evalNotif, ...prev]);
+
     setTajweedEvalModal({ ...tajweedEvalModal, isOpen: false });
-    alert(`Tajweed evaluation & structured feedback submitted for ${tajweedEvalModal.studentName}!`);
+    alert(`Tajweed evaluation & structured feedback submitted for ${tajweedEvalModal.studentName}! Notification dispatched to student's bell icon.`);
   };
 
   // Open HW Grade Modal
@@ -1629,8 +1901,20 @@ function App() {
       }
       return h;
     }));
+
+    // Dispatch Homework Graded Notification
+    const gradeNotif = {
+      id: "notif-grade-" + Date.now(),
+      type: "homework",
+      urgent: false,
+      title: `✅ Homework Graded: Marks ${hwGradeModal.marksAwarded}/${hwGradeModal.maxMarks} (${hwGradeModal.grade})`,
+      teacher: currentUser.name,
+      time: "Just now"
+    };
+    setNotificationsList(prev => [gradeNotif, ...prev]);
+
     setHwGradeModal({ ...hwGradeModal, isOpen: false });
-    alert(`Assignment evaluated for ${hwGradeModal.studentName}: Marks ${hwGradeModal.marksAwarded}/${hwGradeModal.maxMarks}`);
+    alert(`Assignment evaluated for ${hwGradeModal.studentName}: Marks ${hwGradeModal.marksAwarded}/${hwGradeModal.maxMarks}. Student notified!`);
   };
 
   // Broadcast Notice Submit
@@ -1684,6 +1968,27 @@ function App() {
   // Add Faculty Submit
   const handleAddFacultySubmit = (e) => {
     e.preventDefault();
+
+    if (addFacultyModal.editId) {
+      setFacultyList(facultyList.map(f => {
+        if (f.id === addFacultyModal.editId) {
+          return {
+            ...f,
+            name: addFacultyModal.name,
+            designation: addFacultyModal.designation,
+            sanad: addFacultyModal.sanad,
+            department: addFacultyModal.department,
+            hadya: addFacultyModal.hadya,
+            gender: addFacultyModal.gender
+          };
+        }
+        return f;
+      }));
+      setAddFacultyModal({ ...addFacultyModal, isOpen: false, editId: null, name: '', email: '', phone: '' });
+      alert("Faculty record updated successfully.");
+      return;
+    }
+
     const facId = "fac-" + (facultyList.length + 1);
     const newFac = {
       id: facId,
@@ -1721,6 +2026,28 @@ function App() {
   // Talaba Admission Submit
   const handleAdmissionSubmit = (e) => {
     e.preventDefault();
+
+    if (admissionModal.editId) {
+      setMadrasaStudents(madrasaStudents.map(s => {
+        if (s.rollNo === admissionModal.editId) {
+          return {
+            ...s,
+            name: admissionModal.name,
+            guardian: admissionModal.guardian,
+            phone: admissionModal.phone,
+            dept: admissionModal.department,
+            darja: admissionModal.darja,
+            feeStatus: admissionModal.feeStatus,
+            amount: admissionModal.monthlyFee
+          };
+        }
+        return s;
+      }));
+      setAdmissionModal({ ...admissionModal, isOpen: false, editId: null, name: '', guardian: '', phone: '' });
+      alert("Talib admission record updated successfully.");
+      return;
+    }
+
     const newRoll = "TAL-" + (100 + madrasaStudents.length + 1);
     const newStudent = {
       rollNo: newRoll,
@@ -1788,6 +2115,25 @@ function App() {
   // Create Department Submit
   const handleDeptSubmit = (e) => {
     e.preventDefault();
+
+    if (deptModal.editId) {
+      setDepartmentsList(departmentsList.map(d => {
+        if (d.id === deptModal.editId) {
+          return {
+            ...d,
+            name: deptModal.name,
+            nameArabic: deptModal.nameArabic || d.nameArabic,
+            nazim: deptModal.nazim,
+            genderPolicy: deptModal.genderPolicy
+          };
+        }
+        return d;
+      }));
+      setDeptModal({ ...deptModal, isOpen: false, editId: null, name: '', nazim: '', curriculumFocus: '' });
+      alert(`Shoba "${deptModal.name}" updated successfully.`);
+      return;
+    }
+
     const newDept = {
       id: "dept-" + (departmentsList.length + 1),
       name: deptModal.name,
@@ -1890,6 +2236,29 @@ function App() {
   // Submit Leave Application with Course & Teacher Routing
   const handleLeaveSubmit = (e) => {
     e.preventDefault();
+
+    if (leaveModal.editId) {
+      setLeaveApplications(leaveApplications.map(l => {
+        if (l.id === leaveModal.editId) {
+          return {
+            ...l,
+            courseTitle: leaveModal.courseTitle,
+            assignedTeacher: leaveModal.assignedTeacher,
+            approverRole: leaveModal.approverRole,
+            leaveType: leaveModal.leaveType,
+            fromDate: leaveModal.fromDate,
+            toDate: leaveModal.toDate,
+            reason: leaveModal.reason,
+            status: "Pending Ustad Review ⏳ (Updated)"
+          };
+        }
+        return l;
+      }));
+      setLeaveModal({ ...leaveModal, isOpen: false, editId: null });
+      alert(`Leave application ${leaveModal.editId} has been updated successfully.`);
+      return;
+    }
+
     const newLeave = {
       id: "LV-" + (100 + leaveApplications.length + 1),
       studentName: currentUser.name,
@@ -2011,8 +2380,38 @@ function App() {
   };
 
   const handleLeaveRoom = () => {
+    const sessionDuration = Math.max(1, Math.floor(liveRoomModal.inClassSeconds / 60) || 45);
+    const sessionTitle = liveRoomModal.classTitle || "Interactive Tajweed Halaqah: Huroof-e-Musta'liyah";
+    const sessionTeacher = liveRoomModal.instructor || "Qari Abdul Basit Siddiqui";
+
+    // 1. Permanently Archive Session into liveRecordings for Students & Teachers
+    const newArchive = {
+      id: "rec-" + Date.now(),
+      title: sessionTitle,
+      teacher: sessionTeacher,
+      course: "Ahkam-e-Tajweed & Makharij Foundation",
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      duration: `${sessionDuration} Mins`,
+      attendees: 48,
+      batch: "Morning Hifz & Tajweed Batch A",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      notes: "Full interactive halaqah recording saved. Video, audio feed, attendee interactions, and teacher screen annotations preserved permanently."
+    };
+    setLiveRecordings(prev => [newArchive, ...prev]);
+
+    // 2. Dispatch High-Priority Notification
+    const archiveNotif = {
+      id: "notif-rec-" + Date.now(),
+      type: "feedback",
+      urgent: false,
+      title: `🔴 Class Recording Ready: ${sessionTitle}`,
+      teacher: sessionTeacher,
+      time: "Just now"
+    };
+    setNotificationsList(prev => [archiveNotif, ...prev]);
+
     setLiveRoomModal(prev => ({ ...prev, isOpen: false }));
-    alert(`Class left. Total duration recorded: ${Math.floor(liveRoomModal.inClassSeconds / 60)} mins. Attendance recorded: ${liveRoomModal.attendancePercent}% (Present ✅) via 30s Heartbeat SDK.`);
+    alert(`Class concluded. Full session recording has been permanently archived in the Recorded Halaqahs Archive for both students and teachers!\n\nDuration: ${sessionDuration} mins\nAttendance Logged: ${liveRoomModal.attendancePercent}% (Present ✅) via 30s Heartbeat SDK.`);
   };
 
   // Submit Course Rating & Review
@@ -2054,7 +2453,7 @@ function App() {
 
 
   return (
-    <div className={lang === 'ur' ? 'urdu-mode' : ''} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
+    <div className={`app-container ${theme === 'light' ? 'theme-light' : 'theme-dark'} ${lang === 'ur' ? 'urdu-mode' : ''}`} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
       {/* 1. TOP NAVIGATION */}
       <nav className="navbar">
         <div className="nav-brand" onClick={() => { setActiveCourse(null); setActiveNav('home'); }}>
@@ -2067,48 +2466,125 @@ function App() {
 
         <ul className="nav-links">
           <li className={`nav-link ${activeNav === 'home' && !activeCourse ? 'active' : ''}`} onClick={() => { setActiveNav('home'); setActiveCourse(null); }}>
-            <i className="fas fa-home"></i> Home
+            <i className="fas fa-home"></i> {t.navHome || 'Home'}
           </li>
           {currentUser.role === 'student' && (
             <li className={`nav-link ${activeNav === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveNav('dashboard'); setActiveCourse(null); }}>
-              <i className="fas fa-user-graduate"></i> My Learning Dashboard
+              <i className="fas fa-user-graduate"></i> {t.navDashboard || 'My Learning Dashboard'}
             </li>
           )}
           {currentUser.role === 'teacher' && (
             <li className={`nav-link ${activeNav === 'teacher' ? 'active' : ''}`} onClick={() => { setActiveNav('teacher'); setActiveCourse(null); }}>
-              <i className="fas fa-chalkboard-teacher"></i> Teacher Studio & Academy
+              <i className="fas fa-chalkboard-teacher"></i> {t.teacherPortal || 'Teacher Studio & Academy'}
             </li>
           )}
           {currentUser.role === 'institute' && (
             <li className={`nav-link ${activeNav === 'institute' ? 'active' : ''}`} onClick={() => { setActiveNav('institute'); setActiveCourse(null); }}>
-              <i className="fas fa-mosque"></i> Madrasa Operations Hub
+              <i className="fas fa-mosque"></i> {t.madrasaDashboard || 'Madrasa Operations Hub'}
             </li>
           )}
           {currentUser.role === 'admin' && (
             <li className={`nav-link ${activeNav === 'admin' ? 'active' : ''}`} onClick={() => { setActiveNav('admin'); setActiveCourse(null); }}>
-              <i className="fas fa-user-shield"></i> Scholar Review Pipeline
+              <i className="fas fa-user-shield"></i> {t.adminPortal || 'Scholar Review Pipeline'}
             </li>
           )}
           <li className={`nav-link ${selectedDept === 'quran' ? 'active' : ''}`} onClick={() => { setActiveNav('home'); setSelectedDept('quran'); setActiveCourse(null); }}>
-            <i className="fas fa-book-open"></i> Quran
+            <i className="fas fa-book-open"></i> {t.navQuran || 'Quran'}
           </li>
           <li className={`nav-link ${selectedDept === 'women' ? 'active' : ''}`} onClick={() => { setActiveNav('home'); setSelectedDept('women'); setActiveCourse(null); }}>
-            <i className="fas fa-female"></i> Women
+            <i className="fas fa-female"></i> {t.navWomen || 'Women'}
           </li>
           <li className={`nav-link ${activeNav === 'library' ? 'active' : ''}`} onClick={() => { setActiveNav('library'); setActiveCourse(null); }}>
-            <i className="fas fa-book"></i> Library
+            <i className="fas fa-book"></i> {t.navLibrary || 'Library'}
           </li>
         </ul>
 
         <div className="nav-actions">
-          {/* Notification Bell with 15-min Alert Badge */}
+          {/* Theme Toggle Button (Sun/Moon for White/Dark Theme) */}
           <div 
-            className="nav-notif-btn"
-            onClick={() => alert(`🔔 Live Notification (BRD Section 14):\n\n"${class15MinAlert.classTitle}" by ${class15MinAlert.teacher} shuru hone me sirf ${class15MinAlert.remainingMins} minute baqi hain!\n\nWudhu aur Mushaf tayyar rakhein.`)}
-            title="Class Reminders & Notifications"
+            className="nav-theme-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? "Switch to White Theme" : "Switch to Dark Theme"}
+            id="theme-toggle-btn"
           >
-            <i className="fas fa-bell" style={{ color: '#f59e0b' }}></i>
-            <span className="notif-badge">1</span>
+            <i className={`fas ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`} style={{ color: theme === 'dark' ? '#f59e0b' : '#38bdf8' }}></i>
+          </div>
+
+          {/* Interactive Notification Bell with Multi-Class Alerts */}
+          <div className="notif-dropdown-wrapper" ref={notifDropdownRef}>
+            <div 
+              className={`nav-notif-btn ${notifDropdownOpen ? 'active' : ''}`}
+              onClick={() => setNotifDropdownOpen(prev => !prev)}
+              title="Class Reminders & Notifications"
+            >
+              <i className="fas fa-bell" style={{ color: '#f59e0b' }}></i>
+              {notificationsList.length > 0 && (
+                <span className="notif-badge">{notificationsList.length}</span>
+              )}
+            </div>
+
+            {/* NOTIFICATION CENTER DROPDOWN */}
+            {notifDropdownOpen && (
+              <div className="notif-dropdown-menu">
+                <div className="notif-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="fas fa-bell" style={{ color: '#f59e0b' }}></i>
+                    <strong style={{ fontSize: '0.92rem' }}>{t.notifications || 'Notifications & Live Alerts'}</strong>
+                  </div>
+                  <span className="badge badge-ruby" style={{ fontSize: '0.7rem' }}>{notificationsList.length} New</span>
+                </div>
+
+                <div style={{ maxHeight: '380px', overflowY: 'auto' }}>
+                  {notificationsList.length === 0 ? (
+                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+                      {t.noNotifs || 'No active notifications'}
+                    </div>
+                  ) : (
+                    notificationsList.map(item => (
+                      <div 
+                        key={item.id} 
+                        className={`notif-item ${item.urgent ? 'urgent' : ''}`}
+                        onClick={() => {
+                          if (item.type === 'live') {
+                            handleJoinLiveFromNotif(item);
+                          } else if (item.type === 'homework') {
+                            setNotifDropdownOpen(false);
+                            setHwSubmitModal({ isOpen: true, homework: homeworkList[0], notes: '', fileName: '' });
+                          } else {
+                            setNotifDropdownOpen(false);
+                            alert("Audio review details: 2 timestamped remarks available in feedback queue.");
+                          }
+                        }}
+                      >
+                        <div className={`notif-icon-box ${item.type}`}>
+                          <i className={`fas ${item.type === 'live' ? 'fa-video' : item.type === 'homework' ? 'fa-tasks' : 'fa-microphone-alt'}`}></i>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <strong style={{ fontSize: '0.84rem', color: item.urgent ? '#f43f5e' : '#ffffff' }}>
+                              {item.title}
+                            </strong>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{item.time}</span>
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Teacher: {item.teacher}
+                          </div>
+                          {item.type === 'live' && (
+                            <button 
+                              className="btn btn-ruby btn-sm" 
+                              style={{ marginTop: '6px', padding: '2px 10px', fontSize: '0.72rem', fontWeight: 700 }}
+                              onClick={(e) => { e.stopPropagation(); handleJoinLiveFromNotif(item); }}
+                            >
+                              <i className="fas fa-door-open"></i> Join Class Room Now
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* YouTube-Style Profile Dropdown Trigger & Floating Menu */}
@@ -2328,58 +2804,28 @@ function App() {
            ========================================================================= */}
         {currentUser.role === 'student' && activeNav === 'dashboard' && !activeCourse && (
           <div>
-            {/* 15-MIN CLASS NOTIFICATION ALERT BANNER */}
-            {class15MinAlert.isVisible && (
-              <div className="live-alert-banner">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
-                  <div style={{ fontSize: '2rem', color: '#ef4444' }}>
-                    <i className="fas fa-video fa-beat"></i>
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span className="live-alert-pulse"></span>
-                      <strong style={{ color: '#ffffff', fontSize: '1rem' }}>Live Class Starting in {class15MinAlert.remainingMins} Minutes!</strong>
-                      <span className="badge badge-ruby" style={{ fontSize: '0.72rem' }}>Scheduled: {class15MinAlert.scheduledTime}</span>
-                    </div>
-                    <div style={{ fontSize: '0.88rem', color: '#f1f5f9', marginTop: '3px' }}>
-                      <strong>{class15MinAlert.classTitle}</strong> • Teacher: <em>{class15MinAlert.teacher}</em>
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '2px' }}>
-                      <i className="fas fa-info-circle"></i> Wudhu kar ke ba-wazu baithein aur Mushaf-e-Kareem khol kar tayyar rahein. 30s Heartbeat SDK auto attendance mark karega.
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <button className="btn btn-ruby" style={{ padding: '8px 18px', fontWeight: 800 }} onClick={() => handleOpenLiveRoom({ title: class15MinAlert.classTitle, instructor: class15MinAlert.teacher })}>
-                    <i className="fas fa-door-open"></i> 🔴 Join Live Class Room Now
-                  </button>
-                  <button className="btn btn-outline btn-sm" title="Dismiss Alert" onClick={() => setClass15MinAlert({ ...class15MinAlert, isVisible: false })}>
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
               <div>
-                <span className="badge badge-teal" style={{ marginBottom: '6px' }}>Student Learning Portal</span>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>Welcome, {currentUser.name}!</h2>
+                <span className="badge badge-teal" style={{ marginBottom: '6px' }}>{t.portalStudent || 'Student Learning Portal'}</span>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>
+                  {t.welcome || 'Welcome'}, {currentUser.name}!
+                </h2>
                 <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Track: <strong>{currentUser.goal}</strong> • Institution: <strong>{currentUser.instituteAffiliation}</strong>
+                  {t.track || 'Track'}: <strong>{currentUser.goal}</strong> • {t.institution || 'Institution'}: <strong>{currentUser.instituteAffiliation}</strong>
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button className="btn btn-ruby" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
-                  <i className="fas fa-video"></i> 🔴 Enter Live Classroom
+                  <i className="fas fa-video"></i> 🔴 {t.enterLiveClassroom || 'Enter Live Classroom'}
                 </button>
                 <button className="btn btn-primary" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
-                  <i className="fas fa-microphone"></i> Submit Tajweed Audio Form
+                  <i className="fas fa-microphone"></i> {t.submitTajweedAudio || 'Submit Tajweed Audio Form'}
                 </button>
                 <button className="btn btn-outline" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
-                  <i className="fas fa-calendar-minus"></i> Apply for Leave Form
+                  <i className="fas fa-calendar-minus"></i> {t.applyLeave || 'Apply for Leave Form'}
                 </button>
                 <button className="btn btn-gold" onClick={() => setCertModal({ isOpen: true, course: courses[0], studentName: currentUser.name, grade: "Mumtaz (A+)" })}>
-                  <i className="fas fa-award"></i> View Official Certificate
+                  <i className="fas fa-award"></i> {t.viewCertificate || 'View Official Certificate'}
                 </button>
               </div>
             </div>
@@ -2387,7 +2833,7 @@ function App() {
             {/* Quick Action Strip for Student */}
             <div className="quick-action-strip" style={{ marginBottom: '20px' }}>
               <button className="btn btn-ruby btn-sm" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
-                <i className="fas fa-broadcast-tower"></i> 🔴 Join Live Halaqah (Video + Audio + Chat + Reactions)
+                <i className="fas fa-broadcast-tower"></i> 🔴 {t.cardLiveHalaqah || 'Join Live Halaqah'}
               </button>
               <button className="btn btn-outline btn-sm" onClick={() => handleOpenCheckout(courses[0])}>
                 <i className="fas fa-shopping-cart"></i> Course Enrollment Checkout
@@ -2396,31 +2842,70 @@ function App() {
                 <i className="fas fa-quran"></i> Record Surah Al-Mulk Recitation
               </button>
               <button className="btn btn-outline btn-sm" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
-                <i className="fas fa-envelope-open-text"></i> Madrasa Chutti (Leave) Application
+                <i className="fas fa-envelope-open-text"></i> {t.applyLeave || 'Leave Application'}
               </button>
             </div>
 
             {/* 4 Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>1. CONTINUE LEARNING</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>1. {t.cardContinueLearning || 'CONTINUE LEARNING'}</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary-light)', marginTop: '4px' }}>{enrolledIds.length} Courses</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>Active & On Track</div>
               </div>
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>2. LIVE HALAQAH</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>2. {t.cardLiveHalaqah || 'LIVE HALAQAH'}</div>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f43f5e', marginTop: '6px' }}>Tajweed Halaqah</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>LIVE NOW (Auto Attendance)</div>
               </div>
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>3. PENDING HOMEWORK</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>3. {t.cardPendingHw || 'PENDING HOMEWORK'}</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-accent-gold)', marginTop: '4px' }}>1 Assignment</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Due Tomorrow</div>
               </div>
               <div className="glass-card" style={{ padding: '20px' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>4. MERI ATTENDANCE</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>4. {t.cardMyAttendance || 'MERI ATTENDANCE'}</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-emerald-light)', marginTop: '4px' }}>88%</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-emerald-light)' }}>Eligible for Sanad (Req 75%)</div>
+              </div>
+            </div>
+
+            {/* Permanent Class Recordings & Past Halaqahs Archive (Saved for Students & Teachers) */}
+            <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+                    <i className="fas fa-play-circle" style={{ color: 'var(--color-primary-light)' }}></i> {t.recordedHalaqahs || 'Past Recorded Classes & Halaqahs Archive'}
+                  </h3>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Live classes automatically saved after completion so students and teachers can replay anytime.
+                  </div>
+                </div>
+                <span className="badge badge-teal">{liveRecordings.length} Recorded Sessions</span>
+              </div>
+
+              <div className="recording-grid">
+                {liveRecordings.map(rec => (
+                  <div key={rec.id} className="recording-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span className="badge badge-emerald"><i className="fas fa-film"></i> Recording Saved</span>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{rec.date}</span>
+                    </div>
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '8px 0 4px' }}>{rec.title}</h4>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)' }}>Ustad: {rec.teacher}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '6px 0 12px' }}>
+                      Duration: <strong>{rec.duration}</strong> • Batch: <em>{rec.batch}</em>
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>{rec.notes}</p>
+                    <button 
+                      className="btn btn-primary btn-sm" 
+                      style={{ width: '100%' }}
+                      onClick={() => setRecordingPlayerModal({ isOpen: true, recording: rec })}
+                    >
+                      <i className="fas fa-play"></i> Watch Full Recording & Replay
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -2554,6 +3039,62 @@ function App() {
               </div>
             </div>
 
+            {/* My Submitted Tajweed Recitations & Ustad Audio Remarks */}
+            <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+                    <i className="fas fa-microphone-alt" style={{ color: 'var(--color-primary-light)' }}></i> {t.submitTajweedAudio || 'My Tajweed Recitations & Ustad Audio Remarks'}
+                  </h3>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Listen to your submitted tilawat, teacher voice annotations, and timestamped Makharij markers.
+                  </div>
+                </div>
+                <button className="btn btn-primary btn-sm" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
+                  <i className="fas fa-plus"></i> Submit New Tilawat
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                {audioSubmissions.map(sub => (
+                  <div key={sub.id} style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{sub.lessonTitle || sub.courseTitle}</h4>
+                      <span className={`badge ${sub.status === 'Graded' ? 'badge-emerald' : 'badge-gold'}`}>{sub.status}</span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)', margin: '4px 0 8px' }}>
+                      Ustad: {sub.assignedTeacher || "Qari Abdul Basit Siddiqui"} • Grade: <strong>{sub.grade || "Under Evaluation"}</strong>
+                    </div>
+
+                    <div style={{ margin: '8px 0' }}>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '3px' }}>Your Audio Recitation:</div>
+                      <audio controls src={sub.audioUrl || "https://everyayah.com/data/Husary_128kbps/001001.mp3"} style={{ width: '100%', height: '34px' }} />
+                    </div>
+
+                    {sub.mistakes && sub.mistakes.length > 0 && (
+                      <div style={{ margin: '8px 0', fontSize: '0.78rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>{t.remarks || 'Mistake Tags'}: </span>
+                        {sub.mistakes.map(m => <span key={m} className="badge badge-gold" style={{ marginRight: '4px' }}>{m}</span>)}
+                      </div>
+                    )}
+
+                    {sub.teacherNote && (
+                      <div style={{ background: 'rgba(13, 148, 136, 0.1)', padding: '10px', borderRadius: '8px', marginTop: '10px', fontSize: '0.8rem', border: '1px solid var(--border-accent)' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--color-primary-light)', marginBottom: '3px' }}>
+                          <i className="fas fa-comment-dots"></i> Ustad Remarks:
+                        </div>
+                        <div>{sub.teacherNote}</div>
+                        <div style={{ marginTop: '6px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Teacher Model Pronunciation:</span>
+                          <audio controls src={sub.modelAudioUrl || "https://everyayah.com/data/Husary_128kbps/001001.mp3"} style={{ width: '100%', height: '30px', marginTop: '3px' }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Leave Applications History */}
             <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
@@ -2581,6 +3122,7 @@ function App() {
                       <th>Leave Dates</th>
                       <th>Status</th>
                       <th>Ustad / Nazim Remarks</th>
+                      <th>{t.actions || 'Actions'}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2592,7 +3134,7 @@ function App() {
                       if (studentLeaves.length === 0) {
                         return (
                           <tr>
-                            <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                            <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
                               <i className="fas fa-info-circle" style={{ marginRight: '6px', color: 'var(--color-primary-light)' }}></i>
                               Aapki koi chutti (leave application) darj nahi hai. Naya uzr darj karne ke liye upar "+ New Leave Request" par click karein.
                             </td>
@@ -2615,6 +3157,37 @@ function App() {
                             </span>
                           </td>
                           <td style={{ fontSize: '0.84rem', color: 'var(--color-accent-gold)' }}>{l.remarks}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button 
+                                className="btn btn-outline btn-sm" 
+                                style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                                title="Edit Leave Request"
+                                onClick={() => setLeaveModal({
+                                  ...leaveModal,
+                                  isOpen: true,
+                                  editId: l.id,
+                                  courseTitle: l.courseTitle,
+                                  assignedTeacher: l.assignedTeacher,
+                                  approverRole: l.approverRole,
+                                  leaveType: l.leaveType,
+                                  fromDate: l.fromDate,
+                                  toDate: l.toDate,
+                                  reason: l.reason
+                                })}
+                              >
+                                <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                              </button>
+                              <button 
+                                className="btn btn-danger btn-sm" 
+                                style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                                title="Cancel / Delete Leave Request"
+                                onClick={() => handleDeleteLeave(l.id)}
+                              >
+                                <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ));
                     })()}
@@ -2811,6 +3384,9 @@ function App() {
                           <button className="btn btn-outline btn-sm" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true, title: crs.title })}>
                             <i className="fas fa-edit"></i> Edit in Studio
                           </button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCourse(crs.id)} title="Delete Course">
+                            <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                          </button>
                         </div>
                       </div>
                     ))
@@ -2930,12 +3506,62 @@ function App() {
                       <div key={cls.id} style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
                         <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-primary-light)' }}>{cls.title}</div>
                         <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0' }}>{cls.date}</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', flexWrap: 'wrap', gap: '6px' }}>
                           <span className="badge badge-teal">{cls.enrolled} Enrolled</span>
-                          <button className="btn btn-primary btn-sm" onClick={() => alert(`Starting Live Class: ${cls.title}`)}>
-                            <i className="fas fa-video"></i> Start Room
-                          </button>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button className="btn btn-primary btn-sm" onClick={() => handleOpenLiveRoom(cls)}>
+                              <i className="fas fa-video"></i> Start Room
+                            </button>
+                            <button 
+                              className="btn btn-outline btn-sm" 
+                              onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true, editId: cls.id, courseTitle: cls.title })}
+                            >
+                              <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                            </button>
+                            <button 
+                              className="btn btn-danger btn-sm" 
+                              onClick={() => handleDeleteLiveClass(cls.id)}
+                            >
+                              <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                            </button>
+                          </div>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Permanent Class Recordings & Past Halaqahs Archive (Teacher View) */}
+                <div className="glass-card" style={{ padding: '24px', marginTop: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
+                        <i className="fas fa-play-circle" style={{ color: 'var(--color-primary-light)' }}></i> {t.recordedHalaqahs || 'Past Recorded Classes & Halaqahs Archive'}
+                      </h4>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                        Live classes automatically saved after completion so both students and teachers can replay anytime.
+                      </div>
+                    </div>
+                    <span className="badge badge-teal">{liveRecordings.length} Saved Halaqahs</span>
+                  </div>
+
+                  <div className="recording-grid">
+                    {liveRecordings.map(rec => (
+                      <div key={rec.id} className="recording-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <span className="badge badge-emerald"><i className="fas fa-film"></i> Recording Saved</span>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{rec.date}</span>
+                        </div>
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '8px 0 4px' }}>{rec.title}</h4>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)' }}>Batch: <em>{rec.batch}</em> • Duration: <strong>{rec.duration}</strong></div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '8px 0 12px' }}>{rec.notes}</p>
+                        <button 
+                          className="btn btn-primary btn-sm" 
+                          style={{ width: '100%' }}
+                          onClick={() => setRecordingPlayerModal({ isOpen: true, recording: rec })}
+                        >
+                          <i className="fas fa-play"></i> Watch Full Recording & Replay
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -2981,13 +3607,27 @@ function App() {
                         <div><strong>Days:</strong> {b.days}</div>
                         <div><strong>Fees:</strong> {b.feeMonthly}</div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', flexWrap: 'wrap', gap: '6px' }}>
                         <span style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', fontWeight: 700 }}>
                           {b.enrolled} / {b.max} Seats Filled
                         </span>
-                        <button className="btn btn-outline btn-sm" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true, batchName: b.name })}>
-                          + Add Student
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button className="btn btn-outline btn-sm" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true, batchName: b.name })}>
+                            + Add Student
+                          </button>
+                          <button 
+                            className="btn btn-outline btn-sm" 
+                            onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: b.id, batchName: b.name, timing: b.timing, days: b.days, feeMonthly: b.feeMonthly })}
+                          >
+                            <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                          </button>
+                          <button 
+                            className="btn btn-danger btn-sm" 
+                            onClick={() => handleDeleteBatch(b.id)}
+                          >
+                            <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -3156,9 +3796,21 @@ function App() {
                         <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '6px 0' }}>
                           Course: <strong>{hw.course}</strong> • Due: <strong>{hw.dueDate}</strong> • Max: <strong>{hw.maxMarks} Marks</strong>
                         </div>
-                        <div style={{ marginTop: '12px' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
                           <button className="btn btn-primary btn-sm" onClick={() => handleOpenHwGrade(hw)}>
-                            <i className="fas fa-check-double"></i> Evaluate & Grade Submission
+                            <i className="fas fa-check-double"></i> Evaluate & Grade
+                          </button>
+                          <button 
+                            className="btn btn-outline btn-sm" 
+                            onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true, editId: hw.id, title: hw.title, courseTitle: hw.course })}
+                          >
+                            <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                          </button>
+                          <button 
+                            className="btn btn-danger btn-sm" 
+                            onClick={() => handleDeleteHomework(hw.id)}
+                          >
+                            <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
                           </button>
                         </div>
                       </div>
@@ -3601,6 +4253,7 @@ function App() {
                         <th>Batches Assigned</th>
                         <th>Enrolled Talaba</th>
                         <th>Status</th>
+                        <th>{t.actions || 'Actions'}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3614,6 +4267,34 @@ function App() {
                           <td>{t.batches.join(', ')}</td>
                           <td><strong>{t.studentsCount}</strong> Talaba</td>
                           <td><span className="badge badge-emerald">{t.status}</span></td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button 
+                                className="btn btn-outline btn-sm" 
+                                style={{ padding: '2px 8px', fontSize: '0.74rem' }}
+                                onClick={() => setAddFacultyModal({ 
+                                  ...addFacultyModal, 
+                                  isOpen: true, 
+                                  editId: t.id,
+                                  name: t.name,
+                                  designation: t.designation,
+                                  sanad: t.sanad,
+                                  department: t.department,
+                                  hadya: t.hadya,
+                                  gender: t.gender
+                                })}
+                              >
+                                <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                              </button>
+                              <button 
+                                className="btn btn-danger btn-sm" 
+                                style={{ padding: '2px 8px', fontSize: '0.74rem' }}
+                                onClick={() => handleDeleteFaculty(t.id)}
+                              >
+                                <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -3653,6 +4334,7 @@ function App() {
                         <th>Darja / Level</th>
                         <th>Fee Status</th>
                         <th>Monthly Fee</th>
+                        <th>{t.actions || 'Actions'}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3670,6 +4352,35 @@ function App() {
                             </span>
                           </td>
                           <td style={{ fontWeight: 700 }}>{s.amount}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button 
+                                className="btn btn-outline btn-sm" 
+                                style={{ padding: '2px 8px', fontSize: '0.74rem' }}
+                                onClick={() => setAdmissionModal({
+                                  ...admissionModal,
+                                  isOpen: true,
+                                  editId: s.rollNo,
+                                  name: s.name,
+                                  guardian: s.guardian,
+                                  phone: s.phone,
+                                  department: s.dept,
+                                  darja: s.darja,
+                                  feeStatus: s.feeStatus,
+                                  monthlyFee: s.amount
+                                })}
+                              >
+                                <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                              </button>
+                              <button 
+                                className="btn btn-danger btn-sm" 
+                                style={{ padding: '2px 8px', fontSize: '0.74rem' }}
+                                onClick={() => handleDeleteStudent(s.rollNo)}
+                              >
+                                <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -3767,6 +4478,30 @@ function App() {
                         <div><strong>Nazim-e-Shoba:</strong> {d.nazim}</div>
                         <div><strong>Faculty:</strong> {d.facultyCount} Asateza • <strong>Talaba:</strong> {d.studentsCount}</div>
                         <div style={{ marginTop: '4px', color: 'var(--color-emerald-light)' }}><strong>Policy:</strong> {d.genderPolicy}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                        <button 
+                          className="btn btn-outline btn-sm" 
+                          style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                          onClick={() => setDeptModal({ 
+                            ...deptModal, 
+                            isOpen: true, 
+                            editId: d.id, 
+                            name: d.name, 
+                            nameArabic: d.nameArabic, 
+                            nazim: d.nazim, 
+                            genderPolicy: d.genderPolicy 
+                          })}
+                        >
+                          <i className="fas fa-edit"></i> {t.edit || 'Edit'}
+                        </button>
+                        <button 
+                          className="btn btn-danger btn-sm" 
+                          style={{ padding: '3px 8px', fontSize: '0.75rem' }}
+                          onClick={() => handleDeleteDepartment(d.id)}
+                        >
+                          <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -3968,14 +4703,25 @@ function App() {
                 </h3>
                 <div style={{ background: 'rgba(13, 148, 136, 0.08)', border: '1px solid var(--border-accent)', borderRadius: '10px', padding: '14px', margin: '14px 0' }}>
                   <h4 style={{ color: 'var(--color-accent-gold)' }}><i className="fas fa-microphone"></i> Audio Tajweed Recitation Recorder</h4>
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button className={`btn ${isRecording ? 'btn-ruby' : 'btn-primary'}`} onClick={toggleRecording}>
-                      {isRecording ? `Stop (${recordingSeconds}s)` : "Record Recitation"}
+                      {isRecording ? `Stop (${recordingSeconds}s)` : (recordedAudioUrl ? (t.reRecord || "Re-Record Recitation") : (t.recordRecitation || "Record Recitation"))}
                     </button>
                     {recordedAudioUrl && (
-                      <button className="btn btn-gold" onClick={handleAudioSubmit}><i className="fas fa-paper-plane"></i> Submit to Teacher</button>
+                      <button className="btn btn-gold" onClick={handleAudioSubmit}><i className="fas fa-paper-plane"></i> {t.submitRecitation || "Submit to Teacher"}</button>
                     )}
                   </div>
+                  {recordedAudioUrl && (
+                    <div className="audio-preview-box" style={{ marginTop: '12px', textAlign: 'left' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-accent-gold)' }}>
+                          <i className="fas fa-headphones"></i> {t.listenPreview || 'Listen & Cross-check Before Submitting:'}
+                        </span>
+                        <span className="badge badge-emerald">Ready to Submit</span>
+                      </div>
+                      <audio controls src={recordedAudioUrl} style={{ width: '100%', height: '36px' }} />
+                    </div>
+                  )}
                 </div>
                 <button className="btn btn-primary btn-sm" onClick={markLessonComplete}>Mark Complete & Next</button>
               </div>
@@ -5172,6 +5918,93 @@ function App() {
                 </div>
               </div>
 
+              {/* Timestamped Specific Mistake Remarks List */}
+              <div className="form-group" style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: 700, color: 'var(--color-accent-gold)' }}>
+                    <i className="fas fa-list-ol"></i> Timestamped Mistake Remarks (Tafseeli Nishandehi)
+                  </label>
+                  <span className="badge badge-teal">{(tajweedEvalModal.mistakeRemarks || []).length} Remarks</span>
+                </div>
+
+                {/* Existing remarks list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                  {(tajweedEvalModal.mistakeRemarks || []).map((rem, idx) => (
+                    <div key={rem.id || idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.3)', padding: '6px 10px', borderRadius: '6px', fontSize: '0.8rem' }}>
+                      <div>
+                        <span className="badge badge-ruby" style={{ marginRight: '6px' }}>{rem.time}</span>
+                        <strong style={{ color: 'var(--color-primary-light)' }}>[{rem.category}]:</strong> {rem.note}
+                      </div>
+                      <button 
+                        type="button" 
+                        style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: '0.85rem' }}
+                        onClick={() => {
+                          const updated = (tajweedEvalModal.mistakeRemarks || []).filter((_, i) => i !== idx);
+                          setTajweedEvalModal({ ...tajweedEvalModal, mistakeRemarks: updated });
+                        }}
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add new remark row */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Time (01:15)" 
+                    style={{ width: '90px' }} 
+                    className="form-input" 
+                    value={tajweedEvalModal.newRemarkTime || ''} 
+                    onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, newRemarkTime: e.target.value })} 
+                  />
+                  <select 
+                    className="form-select" 
+                    style={{ width: '120px' }} 
+                    value={tajweedEvalModal.newRemarkCategory || 'Madd'} 
+                    onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, newRemarkCategory: e.target.value })}
+                  >
+                    <option value="Makharij">Makharij</option>
+                    <option value="Madd">Madd</option>
+                    <option value="Ghunnah">Ghunnah</option>
+                    <option value="Qalqalah">Qalqalah</option>
+                    <option value="Waqf">Waqf</option>
+                    <option value="Ikhfa">Ikhfa</option>
+                    <option value="Idgham">Idgham</option>
+                  </select>
+                  <input 
+                    type="text" 
+                    placeholder="Remark note (e.g. Madd 4 harakaat kheechein)" 
+                    className="form-input" 
+                    style={{ flex: 1, minWidth: '160px' }} 
+                    value={tajweedEvalModal.newRemarkNote || ''} 
+                    onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, newRemarkNote: e.target.value })} 
+                  />
+                  <button 
+                    type="button" 
+                    className="btn btn-outline btn-sm" 
+                    onClick={() => {
+                      if (!tajweedEvalModal.newRemarkNote) return;
+                      const newRem = {
+                        id: Date.now(),
+                        time: tajweedEvalModal.newRemarkTime || tajweedEvalModal.timestamp || "00:00",
+                        category: tajweedEvalModal.newRemarkCategory || "Madd",
+                        note: tajweedEvalModal.newRemarkNote
+                      };
+                      setTajweedEvalModal({
+                        ...tajweedEvalModal,
+                        mistakeRemarks: [...(tajweedEvalModal.mistakeRemarks || []), newRem],
+                        newRemarkNote: '',
+                        newRemarkTime: ''
+                      });
+                    }}
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Teacher Written / Voice Guidance Note</label>
                 <textarea className="form-textarea" rows="2" required value={tajweedEvalModal.teacherNote} onChange={(e) => setTajweedEvalModal({ ...tajweedEvalModal, teacherNote: e.target.value })}></textarea>
@@ -5909,15 +6742,46 @@ function App() {
                   <i className={`fas ${recitationSubmitModal.isRecordingActive ? 'fa-dot-circle fa-beat' : 'fa-microphone'}`}></i>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>
-                  {recitationSubmitModal.isRecordingActive ? "Recording Tilawat in Progress..." : "Ready to Record Audio"}
+                  {recitationSubmitModal.isRecordingActive ? "Recording Tilawat in Progress..." : (recitationSubmitModal.hasRecorded ? "Audio Tilawat Recorded (Ready to Review)" : "Ready to Record Audio")}
                 </div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 12px' }}>
                   {recitationSubmitModal.audioDuration} recorded • WebRTC Audio Encoder
                 </div>
-                <button type="button" className={`btn ${recitationSubmitModal.isRecordingActive ? 'btn-ruby' : 'btn-primary'} btn-sm`} onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isRecordingActive: !recitationSubmitModal.isRecordingActive })}>
-                  <i className={`fas ${recitationSubmitModal.isRecordingActive ? 'fa-stop' : 'fa-circle'}`}></i>
-                  {recitationSubmitModal.isRecordingActive ? " Stop Recording" : " Start Tilawat Recording"}
-                </button>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button 
+                    type="button" 
+                    className={`btn ${recitationSubmitModal.isRecordingActive ? 'btn-ruby' : 'btn-primary'} btn-sm`} 
+                    onClick={() => {
+                      const nextActive = !recitationSubmitModal.isRecordingActive;
+                      setRecitationSubmitModal({ 
+                        ...recitationSubmitModal, 
+                        isRecordingActive: nextActive,
+                        hasRecorded: true,
+                        audioDuration: nextActive ? "Recording..." : "02:45 min",
+                        audioUrl: "https://everyayah.com/data/Husary_128kbps/001001.mp3"
+                      });
+                    }}
+                  >
+                    <i className={`fas ${recitationSubmitModal.isRecordingActive ? 'fa-stop' : 'fa-circle'}`}></i>
+                    {recitationSubmitModal.isRecordingActive ? " Stop Recording" : (recitationSubmitModal.hasRecorded ? ` ${t.reRecord || 'Re-Record Tilawat'}` : " Start Tilawat Recording")}
+                  </button>
+                </div>
+
+                {/* Audio Preview and Cross-check Player */}
+                {recitationSubmitModal.hasRecorded && (
+                  <div className="audio-preview-box" style={{ marginTop: '16px', textAlign: 'left' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-accent-gold)' }}>
+                        <i className="fas fa-headphones"></i> {t.listenPreview || 'Listen & Cross-check Before Submitting:'}
+                      </span>
+                      <span className="badge badge-emerald">Ready for Ustad</span>
+                    </div>
+                    <audio controls src={recitationSubmitModal.audioUrl || "https://everyayah.com/data/Husary_128kbps/001001.mp3"} style={{ width: '100%', height: '38px', borderRadius: '8px' }} />
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Tip: Suniye aur confirm kijiye ke Makharij aur Madd ka talaffuz pukhta hai.
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -6698,6 +7562,47 @@ function App() {
                   <i className="fas fa-id-card"></i> Register New Custom Role (Multi-Step Form)
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 25. LIVE RECORDING REPLAY MODAL */}
+      {recordingPlayerModal.isOpen && recordingPlayerModal.recording && (
+        <div className="auth-overlay" onClick={() => setRecordingPlayerModal({ isOpen: false, recording: null })}>
+          <div className="auth-modal modal-large" onClick={(e) => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setRecordingPlayerModal({ isOpen: false, recording: null })}>
+              <i className="fas fa-times"></i>
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-emerald"><i className="fas fa-video"></i> Permanent Recording Archive</span>
+              <span className="badge badge-teal">{recordingPlayerModal.recording.duration}</span>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+              {recordingPlayerModal.recording.title}
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Teacher: <strong>{recordingPlayerModal.recording.teacher}</strong> • Recorded Date: <strong>{recordingPlayerModal.recording.date}</strong> • Batch: <em>{recordingPlayerModal.recording.batch}</em>
+            </p>
+
+            <div style={{ background: '#000', borderRadius: '12px', overflow: 'hidden', position: 'relative', marginBottom: '16px' }}>
+              <video 
+                controls 
+                autoPlay 
+                style={{ width: '100%', maxHeight: '420px', display: 'block' }}
+                src={recordingPlayerModal.recording.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+              >
+                Aapka browser video tag support nahi karta.
+              </video>
+            </div>
+
+            <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--color-accent-gold)', marginBottom: '4px' }}>
+                <i className="fas fa-info-circle"></i> Lesson Notes & Shariah Board Topics Covered:
+              </div>
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
+                {recordingPlayerModal.recording.notes}
+              </p>
             </div>
           </div>
         </div>
