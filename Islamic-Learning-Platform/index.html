@@ -7673,7 +7673,7 @@ function App() {
       )}
 
       {/* FOOTER */}
-      <footer style={{ marginTop: '64px', borderTop: '1px solid var(--border-subtle)', padding: '32px 20px', textAlign: 'center', background: 'rgba(4, 10, 18, 0.7)' }}>
+      <footer className="app-footer" style={{ marginTop: '64px', borderTop: '1px solid var(--border-subtle)', padding: '32px clamp(16px, 3vw, 48px)', textAlign: 'center', background: 'rgba(4, 10, 18, 0.7)', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>{t.brandName}</div>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px' }}>
           © 2026 Al-Noor Open Source Islamic Academy • Comprehensive Course Studio, Live Recurring Schedulers & Auto Attendance Engine
