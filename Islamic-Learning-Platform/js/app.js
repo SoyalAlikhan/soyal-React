@@ -71,6 +71,30 @@ function App() {
   // Account Switcher & Role Lock Modal State
   const [accountSwitchModal, setAccountSwitchModal] = useState(false);
 
+  // YouTube-Style Profile Dropdown Menu State
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef(null);
+
+  // Close Profile Dropdown on Click Outside or Escape Key
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   // Authentication & Registration Stepper Modal
   const [authModal, setAuthModal] = useState({
     isOpen: false,
@@ -998,10 +1022,88 @@ function App() {
     setCurrentUser(p);
     setActiveCourse(null);
     setAccountSwitchModal(false);
+    setUserDropdownOpen(false);
     if (roleKey === 'student') setActiveNav('dashboard');
     else if (roleKey === 'teacher') setActiveNav('teacher');
     else if (roleKey === 'institute') setActiveNav('institute');
     else if (roleKey === 'admin') setActiveNav('admin');
+  };
+
+  // Direct Instant Switch with Backend Verification
+  const handleDirectSwitch = async (roleKey) => {
+    setUserDropdownOpen(false);
+    setAccountSwitchModal(false);
+    setActiveCourse(null);
+
+    const credentials = {
+      student: { email: 'ahmad.raza@example.com', password: 'student123', role: 'student' },
+      teacher: { email: 'qari.basit@darululoom.edu', password: 'teacher123', role: 'teacher' },
+      institute: { email: 'admin@darululoom.edu', password: 'admin123', role: 'institute' },
+      admin: { email: 'mufti.tariq@shariahboard.org', password: 'scholar123', role: 'scholar' }
+    };
+
+    const cred = credentials[roleKey];
+    let targetPersona = personas[roleKey] || personas.student;
+
+    if (typeof window !== 'undefined' && window.apiService && window.apiService.login && cred) {
+      try {
+        const res = await window.apiService.login(cred);
+        if (res && res.success && res.data) {
+          const dbUser = res.data;
+          const rKey = dbUser.role === 'scholar' ? 'admin' : dbUser.role;
+          const basePersona = personas[rKey] || personas.student;
+          targetPersona = {
+            ...basePersona,
+            id: dbUser.id,
+            name: dbUser.name,
+            email: dbUser.email,
+            role: rKey,
+            phone: dbUser.phone || basePersona.phone,
+            avatarIcon: dbUser.avatar || basePersona.avatarIcon
+          };
+        }
+      } catch (err) {
+        console.warn("Direct switch error, using persona:", err);
+      }
+    }
+
+    setCurrentUser(targetPersona);
+    if (roleKey === 'student') setActiveNav('dashboard');
+    else if (roleKey === 'teacher') setActiveNav('teacher');
+    else if (roleKey === 'institute') setActiveNav('institute');
+    else if (roleKey === 'admin') setActiveNav('admin');
+  };
+
+  // Safe Logout Action
+  const handleLogout = () => {
+    setUserDropdownOpen(false);
+    if (window.confirm("Are you sure you want to sign out of this session?")) {
+      setCurrentUser(personas.student);
+      setActiveNav('home');
+      setActiveCourse(null);
+      alert("Aap kamyabi se Sign Out ho chuke hain. Session safely reset ho gaya hai.");
+    }
+  };
+
+  // Open Academy Profile & Settings
+  const handleOpenSettings = () => {
+    setUserDropdownOpen(false);
+    if (currentUser.role === 'teacher') {
+      setActiveNav('teacher');
+      setTeacherSubTab('settings');
+      setAcademyProfileModal(prev => ({ ...prev, isOpen: true }));
+    } else if (currentUser.role === 'institute') {
+      setActiveNav('institute');
+      setInstituteSubTab('settings');
+      setAcademyProfileModal(prev => ({ ...prev, isOpen: true }));
+    } else {
+      setAcademyProfileModal(prev => ({
+        ...prev,
+        isOpen: true,
+        academyName: currentUser.name + " (" + (currentUser.role === 'student' ? "Talib-e-Ilm" : "Scholar") + ")",
+        bio: currentUser.email + " | Registered Islamic Learning Platform Account"
+      }));
+    }
   };
 
   // Enroll Course
@@ -2009,65 +2111,214 @@ function App() {
             <span className="notif-badge">1</span>
           </div>
 
-          <div 
-            className="nav-user-pill"
-            onClick={() => setAccountSwitchModal(true)}
-            title="Click to Switch Account or Role"
-          >
-            <i className={`fas ${currentUser.avatarIcon}`} style={{ color: 'var(--color-primary-light)' }}></i>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>{currentUser.name}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-accent-gold)' }}>
-                {currentUser.role === 'student' ? 'Student' : currentUser.role === 'teacher' ? 'Teacher' : currentUser.role === 'institute' ? 'Madrasa Admin' : 'Scholar'}
+          {/* YouTube-Style Profile Dropdown Trigger & Floating Menu */}
+          <div className="profile-dropdown-wrapper" ref={userDropdownRef}>
+            <div 
+              className={`nav-user-pill ${userDropdownOpen ? 'active' : ''}`}
+              onClick={() => setUserDropdownOpen(prev => !prev)}
+              title="Click for Profile, Role Switching & Settings"
+              id="user-profile-menu-btn"
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+            >
+              <i className={`fas ${currentUser.avatarIcon}`} style={{ color: 'var(--color-primary-light)' }}></i>
+              <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>{currentUser.name}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--color-accent-gold)' }}>
+                  {currentUser.role === 'student' ? 'Student' : currentUser.role === 'teacher' ? 'Teacher' : currentUser.role === 'institute' ? 'Madrasa Admin' : 'Scholar'}
+                </div>
               </div>
+              <i className={`fas fa-chevron-${userDropdownOpen ? 'up' : 'down'}`} style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}></i>
             </div>
-            <i className="fas fa-chevron-down" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}></i>
-          </div>
 
-          {/* Database Explorer Direct Button */}
-          <a 
-            href="./db-explorer.html" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="nav-db-btn"
-            title="Open SQLite Database Explorer GUI"
-          >
-            <i className="fas fa-database"></i> DB Explorer
-          </a>
+            {/* FLOATING DROPDOWN MENU */}
+            {userDropdownOpen && (
+              <div className="profile-dropdown-menu">
+                {/* 1. Profile Header Card */}
+                <div className="profile-dropdown-header">
+                  <div className="dropdown-user-top">
+                    <div className={`dropdown-avatar-circle ${currentUser.role}`}>
+                      <i className={`fas ${currentUser.avatarIcon}`}></i>
+                    </div>
+                    <div className="dropdown-user-meta">
+                      <div className="dropdown-user-name" title={currentUser.name}>{currentUser.name}</div>
+                      <div className="dropdown-user-role-badge badge badge-gold">
+                        <i className="fas fa-shield-alt"></i> {currentUser.role === 'student' ? 'Talib-e-Ilm' : currentUser.role === 'teacher' ? 'Ustad (Teacher)' : currentUser.role === 'institute' ? 'Jamia Admin' : 'Shariah Scholar'}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {currentUser.email}
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="lang-switcher">
-            <button className={`lang-btn ${lang === 'ru' ? 'active' : ''}`} onClick={() => setLang('ru')}>Roman</button>
-            <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
-            <button className={`lang-btn ${lang === 'ur' ? 'active' : ''}`} onClick={() => setLang('ur')}>اردو</button>
+                  <div className="dropdown-session-scope">
+                    <span className="dropdown-session-dot"></span>
+                    <span>Role-Locked Private Session: <strong>{currentUser.name}</strong></span>
+                  </div>
+                </div>
+
+                <div className="profile-dropdown-body">
+                  {/* 2. Switch Account / Login As... (YouTube Style) */}
+                  <div className="profile-dropdown-section-title">
+                    <span><i className="fas fa-users-cog"></i> Switch Account / Login As...</span>
+                    <button 
+                      onClick={() => { setUserDropdownOpen(false); setAccountSwitchModal(true); }}
+                      style={{ background: 'none', border: 'none', color: 'var(--color-accent-gold)', fontSize: '0.68rem', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      All Accounts →
+                    </button>
+                  </div>
+
+                  <div className="profile-switch-grid">
+                    <div 
+                      className={`profile-role-chip ${currentUser.role === 'student' ? 'active' : ''}`}
+                      onClick={() => handleDirectSwitch('student')}
+                      title="Switch to Ahmad Raza (Student Portal)"
+                    >
+                      <i className="fas fa-user-graduate" style={{ color: '#14b8a6' }}></i>
+                      <div style={{ lineHeight: 1.15 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Ahmad Raza</div>
+                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Student</div>
+                      </div>
+                    </div>
+
+                    <div 
+                      className={`profile-role-chip ${currentUser.role === 'teacher' ? 'active' : ''}`}
+                      onClick={() => handleDirectSwitch('teacher')}
+                      title="Switch to Qari Abdul Basit (Teacher Studio)"
+                    >
+                      <i className="fas fa-chalkboard-teacher" style={{ color: '#f59e0b' }}></i>
+                      <div style={{ lineHeight: 1.15 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Qari Basit</div>
+                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Teacher</div>
+                      </div>
+                    </div>
+
+                    <div 
+                      className={`profile-role-chip ${currentUser.role === 'institute' ? 'active' : ''}`}
+                      onClick={() => handleDirectSwitch('institute')}
+                      title="Switch to Jamia Darul Uloom (Madrasa Operations)"
+                    >
+                      <i className="fas fa-mosque" style={{ color: '#38bdf8' }}></i>
+                      <div style={{ lineHeight: 1.15 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Darul Uloom</div>
+                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Madrasa</div>
+                      </div>
+                    </div>
+
+                    <div 
+                      className={`profile-role-chip ${currentUser.role === 'admin' ? 'active' : ''}`}
+                      onClick={() => handleDirectSwitch('admin')}
+                      title="Switch to Mufti Tariq (Shariah Scholar)"
+                    >
+                      <i className="fas fa-user-shield" style={{ color: '#f43f5e' }}></i>
+                      <div style={{ lineHeight: 1.15 }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Mufti Tariq</div>
+                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Scholar</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="profile-dropdown-divider"></div>
+
+                  {/* 3. Academy Profile & Settings */}
+                  <button 
+                    className="profile-dropdown-item"
+                    onClick={handleOpenSettings}
+                  >
+                    <i className="fas fa-sliders-h menu-icon"></i>
+                    <span>Academy Profile & Settings</span>
+                    <span className="menu-badge badge badge-teal">Configure</span>
+                  </button>
+
+                  {/* 4. SQLite DB Explorer */}
+                  <a 
+                    href="./db-explorer.html" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="profile-dropdown-item"
+                    onClick={() => setUserDropdownOpen(false)}
+                  >
+                    <i className="fas fa-database menu-icon" style={{ color: '#10b981' }}></i>
+                    <span>SQLite Database Explorer</span>
+                    <span className="menu-badge badge badge-emerald">Live DB</span>
+                  </a>
+
+                  {/* 5. Language Selector Row */}
+                  <div className="profile-lang-row">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.86rem', color: '#e2e8f0' }}>
+                      <i className="fas fa-globe menu-icon" style={{ color: '#38bdf8' }}></i>
+                      <span>Language / زبان</span>
+                    </div>
+                    <div className="profile-lang-pills">
+                      <button 
+                        className={`profile-lang-pill ${lang === 'ru' ? 'active' : ''}`} 
+                        onClick={() => setLang('ru')}
+                      >
+                        Roman
+                      </button>
+                      <button 
+                        className={`profile-lang-pill ${lang === 'en' ? 'active' : ''}`} 
+                        onClick={() => setLang('en')}
+                      >
+                        EN
+                      </button>
+                      <button 
+                        className={`profile-lang-pill ${lang === 'ur' ? 'active' : ''}`} 
+                        onClick={() => setLang('ur')}
+                      >
+                        اردو
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="profile-dropdown-divider"></div>
+
+                  {/* 6. Register New Role */}
+                  <button 
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 });
+                    }}
+                  >
+                    <i className="fas fa-user-plus menu-icon" style={{ color: 'var(--color-accent-gold)' }}></i>
+                    <span>Register New Role</span>
+                    <span className="menu-badge badge badge-gold">Multi-Step</span>
+                  </button>
+
+                  {/* 7. Login with Custom Password */}
+                  <button 
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      setAuthModal({
+                        isOpen: true,
+                        mode: 'login',
+                        roleTab: currentUser.role,
+                        errorMsg: '',
+                        successMsg: '',
+                        isLoading: false
+                      });
+                    }}
+                  >
+                    <i className="fas fa-sign-in-alt menu-icon"></i>
+                    <span>Login with Credentials</span>
+                  </button>
+
+                  {/* 8. Log Out */}
+                  <button 
+                    className="profile-dropdown-item danger"
+                    onClick={handleLogout}
+                  >
+                    <i className="fas fa-sign-out-alt menu-icon"></i>
+                    <span>Log Out / Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>
-
-      {/* 2. ROLE-LOCKED PRIVATE SESSION BAR */}
-      <div className="session-lock-bar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <span className="session-lock-badge">
-            <i className="fas fa-lock"></i> Role-Locked Private Session
-          </span>
-          <span style={{ fontSize: '0.84rem', color: '#cbd5e1' }}>
-            Active Portal: <strong style={{ color: '#ffffff' }}>
-              {currentUser.role === 'student' ? '🎓 Talib-e-Ilm (Student Hub)' : currentUser.role === 'teacher' ? '👨‍🏫 Teacher Studio (Ustad Workspace)' : currentUser.role === 'institute' ? '🏛️ Jamia Darul Uloom (Madrasa Operations)' : '⚖️ Shariah Board (Scholar Review)'}
-            </strong>
-          </span>
-          <span className="badge badge-teal" style={{ fontSize: '0.72rem' }}>
-            Private Data Scoped to: {currentUser.name}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button className="btn btn-outline btn-sm" onClick={() => setAccountSwitchModal(true)} style={{ borderColor: 'var(--color-accent-gold)', color: 'var(--color-accent-gold)' }}>
-            <i className="fas fa-user-shield"></i> Switch Account / Login As...
-          </button>
-          <button className="btn btn-gold btn-sm" onClick={() => setAuthModal({ isOpen: true, mode: 'signup', roleTab: currentUser.role, step: 1 })}>
-            <i className="fas fa-user-plus"></i> Register New Role
-          </button>
-        </div>
-      </div>
 
       {/* MAIN CONTAINER */}
       <main className="main-content">
@@ -6322,24 +6573,9 @@ function App() {
                       <button 
                         className="btn btn-primary btn-sm" 
                         style={{ width: '100%', fontWeight: 700 }}
-                        onClick={() => {
-                          setAccountSwitchModal(false);
-                          setAuthModal({
-                            isOpen: true,
-                            mode: 'login',
-                            roleTab: 'student',
-                            errorMsg: '',
-                            successMsg: '',
-                            isLoading: false
-                          });
-                          setAuthForm(prev => ({
-                            ...prev,
-                            email: 'ahmad.raza@example.com',
-                            password: 'student123'
-                          }));
-                        }}
+                        onClick={() => handleDirectSwitch('student')}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Ahmad Raza (Verify)
+                        <i className="fas fa-check-circle"></i> Switch to Ahmad Raza (Instant)
                       </button>
                     )}
                   </div>
@@ -6371,24 +6607,9 @@ function App() {
                       <button 
                         className="btn btn-gold btn-sm" 
                         style={{ width: '100%', fontWeight: 700 }}
-                        onClick={() => {
-                          setAccountSwitchModal(false);
-                          setAuthModal({
-                            isOpen: true,
-                            mode: 'login',
-                            roleTab: 'teacher',
-                            errorMsg: '',
-                            successMsg: '',
-                            isLoading: false
-                          });
-                          setAuthForm(prev => ({
-                            ...prev,
-                            email: 'qari.basit@darululoom.edu',
-                            password: 'teacher123'
-                          }));
-                        }}
+                        onClick={() => handleDirectSwitch('teacher')}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Qari Abdul Basit (Verify)
+                        <i className="fas fa-check-circle"></i> Switch to Qari Abdul Basit (Instant)
                       </button>
                     )}
                   </div>
@@ -6420,24 +6641,9 @@ function App() {
                       <button 
                         className="btn btn-outline btn-sm" 
                         style={{ width: '100%', fontWeight: 700, borderColor: '#38bdf8', color: '#38bdf8' }}
-                        onClick={() => {
-                          setAccountSwitchModal(false);
-                          setAuthModal({
-                            isOpen: true,
-                            mode: 'login',
-                            roleTab: 'institute',
-                            errorMsg: '',
-                            successMsg: '',
-                            isLoading: false
-                          });
-                          setAuthForm(prev => ({
-                            ...prev,
-                            email: 'admin@darululoom.edu',
-                            password: 'admin123'
-                          }));
-                        }}
+                        onClick={() => handleDirectSwitch('institute')}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Jamia Admin (Verify)
+                        <i className="fas fa-check-circle"></i> Switch to Jamia Admin (Instant)
                       </button>
                     )}
                   </div>
@@ -6469,24 +6675,9 @@ function App() {
                       <button 
                         className="btn btn-ruby btn-sm" 
                         style={{ width: '100%', fontWeight: 700 }}
-                        onClick={() => {
-                          setAccountSwitchModal(false);
-                          setAuthModal({
-                            isOpen: true,
-                            mode: 'login',
-                            roleTab: 'scholar',
-                            errorMsg: '',
-                            successMsg: '',
-                            isLoading: false
-                          });
-                          setAuthForm(prev => ({
-                            ...prev,
-                            email: 'mufti.tariq@shariahboard.org',
-                            password: 'scholar123'
-                          }));
-                        }}
+                        onClick={() => handleDirectSwitch('admin')}
                       >
-                        <i className="fas fa-sign-in-alt"></i> Log In as Mufti Tariq (Verify)
+                        <i className="fas fa-check-circle"></i> Switch to Mufti Tariq (Instant)
                       </button>
                     )}
                   </div>
