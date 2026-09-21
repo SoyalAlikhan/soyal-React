@@ -281,6 +281,84 @@ const apiService = {
       console.warn('[API Service] sendHeartbeat error:', err.message);
       return { success: false, error: err.message };
     }
+  },
+
+  // 9. Relational Students & Batch Enrollments
+  getStudents: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/students`);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getStudents fallback:', err.message);
+      return [];
+    }
+  },
+
+  getAvailableStudents: async (batchId) => {
+    try {
+      const url = batchId ? `${API_BASE}/students/available?batch_id=${encodeURIComponent(batchId)}` : `${API_BASE}/students/available`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getAvailableStudents error:', err.message);
+      return [];
+    }
+  },
+
+  getBatchStudents: async (batchId) => {
+    try {
+      const url = batchId ? `${API_BASE}/batches/${encodeURIComponent(batchId)}/students` : `${API_BASE}/batch-students`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getBatchStudents error:', err.message);
+      return [];
+    }
+  },
+
+  enrollStudentInBatch: async (batchId, studentId, paymentStatus = 'Paid') => {
+    try {
+      const res = await fetch(`${API_BASE}/batch-students`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batch_id: batchId, student_id: studentId, payment_status: paymentStatus })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] enrollStudentInBatch error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  removeStudentFromBatch: async (batchId, studentId) => {
+    try {
+      const res = await fetch(`${API_BASE}/batch-students/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batch_id: batchId, student_id: studentId })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] removeStudentFromBatch error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  createStudent: async (studentData) => {
+    try {
+      const res = await fetch(`${API_BASE}/students`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(studentData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] createStudent error:', err.message);
+      return { success: false, error: err.message };
+    }
   }
 };
 

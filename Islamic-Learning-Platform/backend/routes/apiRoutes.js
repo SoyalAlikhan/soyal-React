@@ -9,6 +9,7 @@ const chandaController = require('../controllers/chandaController');
 const explorerController = require('../controllers/explorerController');
 const authController = require('../controllers/authController');
 const liveClassesController = require('../controllers/liveClassesController');
+const studentsController = require('../controllers/studentsController');
 
 function handleApiRequest(req, res, pathname, query, body) {
   // CORS Headers for both Web & Mobile
@@ -91,6 +92,38 @@ function handleApiRequest(req, res, pathname, query, body) {
     if (req.method === 'DELETE' || req.method === 'POST') {
       return liveClassesController.deleteLiveClass(req, res, classId);
     }
+  }
+
+  // 4D. Students & Batch Enrollments (Relational SQLite with JOINs)
+  if (pathname === '/api/v1/students') {
+    if (req.method === 'GET') return studentsController.getStudents(req, res);
+    if (req.method === 'POST') return studentsController.createStudent(req, res, body);
+  }
+  if (pathname === '/api/v1/students/available' && req.method === 'GET') {
+    return studentsController.getAvailableStudentsForBatch(req, res, query);
+  }
+  if (pathname === '/api/v1/batch-students') {
+    if (req.method === 'GET') return studentsController.getBatchStudents(req, res, query ? query.batch_id : null);
+    if (req.method === 'POST') return studentsController.enrollStudentInBatch(req, res, body ? body.batch_id : null, body);
+  }
+  if (pathname === '/api/v1/batch-students/remove' && (req.method === 'POST' || req.method === 'DELETE')) {
+    const bId = (body && body.batch_id) || (query && query.batch_id);
+    const sId = (body && body.student_id) || (query && query.student_id);
+    return studentsController.removeStudentFromBatch(req, res, bId, sId);
+  }
+  if (pathname.startsWith('/api/v1/batches/') && pathname.includes('/students')) {
+    const parts = pathname.split('/');
+    const batchId = parts[4];
+    const studentId = parts[6];
+    if (req.method === 'GET') return studentsController.getBatchStudents(req, res, batchId);
+    if ((req.method === 'DELETE' || req.method === 'POST') && studentId) {
+      return studentsController.removeStudentFromBatch(req, res, batchId, studentId);
+    }
+  }
+  if (pathname.startsWith('/api/v1/batches/') && pathname.endsWith('/enroll')) {
+    const parts = pathname.split('/');
+    const batchId = parts[4];
+    if (req.method === 'POST') return studentsController.enrollStudentInBatch(req, res, batchId, body);
   }
 
   // 5. 30s Heartbeat SDK Attendance

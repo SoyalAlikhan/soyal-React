@@ -17,6 +17,22 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 1B. Talaba / Students Table (Dedicated Student Directory & Batch Enrollment)
+CREATE TABLE IF NOT EXISTS students (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    phone TEXT,
+    roll_number TEXT UNIQUE,
+    guardian_name TEXT,
+    gender TEXT DEFAULT 'Male',
+    age INTEGER DEFAULT 18,
+    institute_affiliation TEXT DEFAULT 'Jamia Darul Uloom',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- 2. Institutes & Madaris Table (Jamia / Madrasa Hub)
 CREATE TABLE IF NOT EXISTS institutes (
     id TEXT PRIMARY KEY,
@@ -138,8 +154,9 @@ CREATE TABLE IF NOT EXISTS enrollments (
     payment_method TEXT DEFAULT 'UPI / Card',
     waiver_code TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (student_id) REFERENCES users(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id)
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL
 );
 
 -- 9. 30s Heartbeat SDK Attendance Engine Logs

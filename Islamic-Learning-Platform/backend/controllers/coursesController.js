@@ -178,7 +178,8 @@ function createCourse(req, res, body) {
 function getBatches(req, res) {
   try {
     const batches = queryAll(`
-      SELECT b.*, c.title as course_title, c.instructor_name
+      SELECT b.*, c.title as course_title, c.instructor_name,
+             (SELECT COUNT(*) FROM enrollments WHERE batch_id = b.id) as enrolled
       FROM batches b
       LEFT JOIN courses c ON b.course_id = c.id
       ORDER BY b.created_at DESC

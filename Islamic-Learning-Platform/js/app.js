@@ -382,14 +382,19 @@ function App() {
   // Teacher Student Enrollment Modal
   const [enrollModal, setEnrollModal] = useState({
     isOpen: false,
+    batchId: "",
+    batchName: "Morning Hifz & Tajweed Batch A",
+    mode: "existing", // "existing" (select from non-enrolled students) or "new" (register new)
+    selectedStudentId: "",
     studentName: "",
     studentEmail: "",
     studentPhone: "",
-    batchName: "Morning Hifz & Tajweed Batch A",
     courseTitle: "Ahkam-e-Tajweed & Makharij Foundation",
     enrollType: "Paid (Standard)",
     feeDueDate: "2026-10-05"
   });
+  const [availableStudentsList, setAvailableStudentsList] = useState([]);
+  const [selectedBatchFilter, setSelectedBatchFilter] = useState('all');
 
   // Teacher Offline Fee Collection Entry Modal (BRD Section 13.4)
   const [offlineFeeModal, setOfflineFeeModal] = useState({
@@ -1095,6 +1100,46 @@ function App() {
           }
         });
       }
+
+      // 7. Fetch Batches & Halaqaat from SQLite Database
+      if (window.apiService.getBatches) {
+        window.apiService.getBatches().then(dbBatches => {
+          if (dbBatches && dbBatches.length > 0) {
+            console.log('[SQLite Backend] Loaded', dbBatches.length, 'batches from alnoor_lms.db');
+            setTeacherBatches(dbBatches.map(b => ({
+              id: b.id,
+              name: b.title || b.name,
+              course: b.course_title || b.course || "Ahkam-e-Tajweed & Makharij Foundation",
+              timing: b.class_time || b.timing || "06:30 AM - 07:15 AM",
+              days: b.schedule_days || b.days || "Mon - Thu",
+              enrolled: b.enrolled || 0,
+              max: b.max_talaba || b.max || 30,
+              feeMonthly: b.monthly_fee ? `₹${b.monthly_fee}` : "₹650",
+              status: "Active"
+            })));
+          }
+        });
+      }
+
+      // 8. Fetch Enrolled Students with Relational JOINs from SQLite Database
+      if (window.apiService.getBatchStudents) {
+        window.apiService.getBatchStudents().then(enrolledData => {
+          if (enrolledData && enrolledData.length > 0) {
+            console.log('[SQLite Backend] Loaded', enrolledData.length, 'joined enrolled students from alnoor_lms.db');
+            setTeacherStudents(enrolledData.map(e => ({
+              id: e.enrollment_id || e.id,
+              student_id: e.student_id,
+              name: e.student_name,
+              email: e.email,
+              phone: e.phone || "—",
+              batch: e.batch_name,
+              batch_id: e.batch_id,
+              attendance: "92%",
+              feeStatus: e.payment_status === 'Paid' ? "Paid ✅" : (e.payment_status === '100% Waqf' ? "100% Waqf 🎁" : "Due ⚠️")
+            })));
+          }
+        });
+      }
     }
   }, []);
 
@@ -1767,8 +1812,100 @@ function App() {
     alert(`Quiz "${quizModal.title}" attached to course module!`);
   };
 
-  // Create Batch Submit
-  const handleCreateBatchSubmit = (e) => {
+  // Open Enroll Student Modal with Available Students Filtering
+  const handleOpenEnrollModal = (batch = null) => {
+    const targetBatch = batch || teacherBatches[0];
+    const bId = targetBatch ? targetBatch.id : '';
+    const bName = targetBatch ? targetBatch.name : '';
+
+    setEnrollModal({
+      isOpen: true,
+      batchId: bId,
+      batchName: bName,
+      mode: "existing",
+      selectedStudentId: "",
+      studentName: "",
+      studentEmail: "",
+      studentPhone: "",
+      courseTitle: targetBatch ? targetBatch.course : "Ahkam-e-Tajweed & Makharij Foundation",
+      enrollType: "Paid (Standard)",
+      feeDueDate: "2026-10-05"
+    });
+
+    if (window.apiService && window.apiService.getAvailableStudents && bId) {
+      window.apiService.getAvailableStudents(bId).then(list => {
+        setAvailableStudentsList(list || []);
+        if (list && list.length > 0) {
+          setEnrollModal(prev => ({ ...prev, selectedStudentId: list[0].id }));
+        }
+      });
+    }
+  };
+
+  // Change batch selection inside enroll modal
+  const handleEnrollBatchChange = (batchName) => {
+    const found = teacherBatches.find(b => b.name === batchName);
+    const bId = found ? found.id : '';
+    setEnrollModal(prev => ({ ...prev, batchName: batchName, batchId: bId, selectedStudentId: "" }));
+    if (window.apiService && window.apiService.getAvailableStudents && bId) {
+      window.apiService.getAvailableStudents(bId).then(list => {
+        setAvailableStudentsList(list || []);
+        if (list && list.length > 0) {
+          setEnrollModal(prev => ({ ...prev, selectedStudentId: list[0].id }));
+        }
+      });
+    }
+  };
+
+  // Remove / Un-enroll student from batch with SQLite DELETE
+  const handleRemoveStudentFromBatch = async (student) => {
+    if (!window.confirm(`Kya aap waqai talib-e-ilm "${student.name}" ko batch "${student.batch}" se kharij (remove) karna chahte hain?`)) {
+      return;
+    }
+    const bId = student.batch_id || (teacherBatches.find(b => b.name === student.batch)?.id);
+    const sId = student.student_id || student.id;
+
+    if (window.apiService && window.apiService.removeStudentFromBatch && bId && sId) {
+      const res = await window.apiService.removeStudentFromBatch(bId, sId);
+      if (res && res.success) {
+        alert(`Talib-e-Ilm "${student.name}" ko batch se kamyabi se remove kar diya gaya.`);
+        const freshStudents = await window.apiService.getBatchStudents();
+        if (freshStudents) {
+          setTeacherStudents(freshStudents.map(e => ({
+            id: e.enrollment_id || e.id,
+            student_id: e.student_id,
+            name: e.student_name,
+            email: e.email,
+            phone: e.phone || "—",
+            batch: e.batch_name,
+            batch_id: e.batch_id,
+            attendance: "90%",
+            feeStatus: e.payment_status === 'Paid' ? "Paid ✅" : (e.payment_status === '100% Waqf' ? "100% Waqf 🎁" : "Due ⚠️")
+          })));
+        }
+        const freshBatches = await window.apiService.getBatches();
+        if (freshBatches) {
+          setTeacherBatches(freshBatches.map(b => ({
+            id: b.id,
+            name: b.title || b.name,
+            course: b.course_title || b.course,
+            timing: b.class_time || b.timing,
+            days: b.schedule_days || b.days,
+            enrolled: b.enrolled || 0,
+            max: b.max_talaba || b.max || 30,
+            feeMonthly: b.monthly_fee ? `₹${b.monthly_fee}` : "₹650",
+            status: "Active"
+          })));
+        }
+        return;
+      }
+    }
+    setTeacherStudents(prev => prev.filter(s => s.id !== student.id));
+    alert("Student remove kar diya gaya.");
+  };
+
+  // Create Batch Submit with SQLite direct persistence
+  const handleCreateBatchSubmit = async (e) => {
     e.preventDefault();
 
     if (batchModal.editId) {
@@ -1791,6 +1928,38 @@ function App() {
       return;
     }
 
+    if (window.apiService && window.apiService.createBatch) {
+      try {
+        const res = await window.apiService.createBatch({
+          title: batchModal.batchName,
+          course_id: 'crs-tajweed-101',
+          schedule_days: batchModal.days || 'Mon, Wed, Fri',
+          class_time: batchModal.timing || '06:30 AM - 07:15 AM',
+          max_talaba: parseInt(batchModal.maxSeats) || 30
+        });
+        if (res && res.success && res.data) {
+          console.log('[SQLite Backend] New Batch created in database:', res.data);
+          const savedBatch = {
+            id: res.data.id,
+            name: res.data.title,
+            course: batchModal.courseTitle,
+            timing: res.data.class_time,
+            days: res.data.schedule_days,
+            enrolled: 0,
+            max: res.data.max_talaba || 30,
+            feeMonthly: batchModal.feeMonthly,
+            status: "Active"
+          };
+          setTeacherBatches(prev => [savedBatch, ...prev]);
+          setBatchModal({ ...batchModal, isOpen: false });
+          alert(`MashaAllah! New Batch "${batchModal.batchName}" created and saved to SQLite Database!`);
+          return;
+        }
+      } catch (err) {
+        console.warn('createBatch error:', err);
+      }
+    }
+
     const newBatch = {
       id: "batch-" + Date.now(),
       name: batchModal.batchName,
@@ -1807,25 +1976,102 @@ function App() {
     alert(`New Batch "${batchModal.batchName}" created successfully!`);
   };
 
-  // Enroll Student Submit
-  const handleEnrollStudentSubmit = (e) => {
+  // Enroll Student Submit with SQLite direct persistence and exclusion validation
+  const handleEnrollStudentSubmit = async (e) => {
     e.preventDefault();
-    if (!enrollModal.studentName) {
-      alert("Student name is required!");
+
+    const targetBatch = teacherBatches.find(b => b.id === enrollModal.batchId || b.name === enrollModal.batchName) || teacherBatches[0];
+    if (!targetBatch) {
+      alert("Baraye meherbani batch muntakhab karein.");
       return;
     }
-    const newStudent = {
-      id: "stud-" + Date.now(),
-      name: enrollModal.studentName,
-      email: enrollModal.studentEmail || "talib@example.com",
-      phone: enrollModal.studentPhone || "+91 90000 00000",
-      batch: enrollModal.batchName,
-      attendance: "100%",
-      feeStatus: enrollModal.enrollType.includes("Free") ? "Scholarship ✅" : "Paid ✅"
-    };
-    setTeacherStudents([...teacherStudents, newStudent]);
-    setEnrollModal({ ...enrollModal, isOpen: false });
-    alert(`Talib-e-Ilm "${enrollModal.studentName}" enrolled in "${enrollModal.batchName}"!`);
+
+    let studentToEnroll = null;
+    let studentIdToEnroll = null;
+
+    if (enrollModal.mode === 'existing') {
+      if (!enrollModal.selectedStudentId) {
+        alert("Baraye meherbani talib-e-ilm muntakhab karein ya naya register karein.");
+        return;
+      }
+      studentToEnroll = availableStudentsList.find(s => s.id === enrollModal.selectedStudentId);
+      studentIdToEnroll = enrollModal.selectedStudentId;
+    } else {
+      if (!enrollModal.studentName.trim()) {
+        alert("Talib-e-Ilm ka mukammal naam lazmi hai.");
+        return;
+      }
+      studentToEnroll = {
+        name: enrollModal.studentName.trim(),
+        email: enrollModal.studentEmail.trim() || `talib-${Date.now()}@alnoor.edu`,
+        phone: enrollModal.studentPhone.trim() || '+91 98765 00000',
+        roll_number: 'ROL-' + Math.floor(1000 + Math.random() * 9000)
+      };
+      studentIdToEnroll = studentToEnroll;
+    }
+
+    const paymentStatus = enrollModal.enrollType.includes("Free") ? "100% Waqf" : "Paid";
+
+    if (window.apiService && window.apiService.enrollStudentInBatch) {
+      const res = await window.apiService.enrollStudentInBatch(targetBatch.id, studentIdToEnroll, paymentStatus);
+      if (res && res.success) {
+        alert(`MashaAllah! Talib-e-Ilm "${studentToEnroll ? studentToEnroll.name : 'Student'}" ko batch "${targetBatch.name}" me kamyabi se dakhil kar liya gaya aur SQLite database me save ho gaya!`);
+
+        // Refresh Batches from DB
+        if (window.apiService.getBatches) {
+          const freshBatches = await window.apiService.getBatches();
+          if (freshBatches && freshBatches.length > 0) {
+            setTeacherBatches(freshBatches.map(b => ({
+              id: b.id,
+              name: b.title || b.name,
+              course: b.course_title || b.course || targetBatch.course,
+              timing: b.class_time || b.timing || targetBatch.timing,
+              days: b.schedule_days || b.days || targetBatch.days,
+              enrolled: b.enrolled || 0,
+              max: b.max_talaba || b.max || 30,
+              feeMonthly: b.monthly_fee ? `₹${b.monthly_fee}` : targetBatch.feeMonthly,
+              status: "Active"
+            })));
+          }
+        }
+
+        // Refresh Enrolled Students from DB
+        if (window.apiService.getBatchStudents) {
+          const freshStudents = await window.apiService.getBatchStudents();
+          if (freshStudents && freshStudents.length > 0) {
+            setTeacherStudents(freshStudents.map(e => ({
+              id: e.enrollment_id || e.id,
+              student_id: e.student_id,
+              name: e.student_name,
+              email: e.email,
+              phone: e.phone || "—",
+              batch: e.batch_name,
+              batch_id: e.batch_id,
+              attendance: "92%",
+              feeStatus: e.payment_status === 'Paid' ? "Paid ✅" : (e.payment_status === '100% Waqf' ? "100% Waqf 🎁" : "Due ⚠️")
+            })));
+          }
+        }
+      } else {
+        alert(res.error || "Dakhila fail ho gaya. Baraye meherbani dobara koshish karein.");
+        return;
+      }
+    } else {
+      const fallback = {
+        id: "stud-" + Date.now(),
+        name: studentToEnroll.name,
+        email: studentToEnroll.email || "talib@example.com",
+        phone: studentToEnroll.phone || "+91 90000 00000",
+        batch: targetBatch.name,
+        batch_id: targetBatch.id,
+        attendance: "100%",
+        feeStatus: paymentStatus === 'Paid' ? "Paid ✅" : "100% Waqf 🎁"
+      };
+      setTeacherStudents(prev => [...prev, fallback]);
+      alert(`Talib-e-Ilm "${studentToEnroll.name}" enrolled in "${targetBatch.name}"!`);
+    }
+
+    setEnrollModal(prev => ({ ...prev, isOpen: false }));
   };
 
   // Offline Fee Submit
@@ -3508,7 +3754,7 @@ function App() {
                     </div>
                   </div>
 
-                  <table className="custom-table" style={{ background: 'rgba(0,0,0,0.3)', marginTop: '16px' }}>
+                  <table className="custom-table" style={{ marginTop: '16px' }}>
                     <thead>
                       <tr>
                         <th>Student Name</th>
@@ -3560,9 +3806,9 @@ function App() {
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
                     {liveClasses.map(cls => (
-                      <div key={cls.id} style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                      <div key={cls.id} className="live-session-item-card">
                         <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-primary-light)' }}>{cls.title}</div>
-                        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0' }}>{cls.date}</div>
+                        <div className="session-date" style={{ fontSize: '0.82rem', margin: '4px 0' }}>{cls.date}</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', flexWrap: 'wrap', gap: '6px' }}>
                           <span className="badge badge-teal">{cls.enrolled} Enrolled</span>
                           <div style={{ display: 'flex', gap: '6px' }}>
@@ -3641,10 +3887,10 @@ function App() {
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn btn-outline" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true })}>
+                    <button className="btn btn-outline" onClick={() => handleOpenEnrollModal()}>
                       <i className="fas fa-user-plus"></i> + Enroll Student
                     </button>
-                    <button className="btn btn-primary" onClick={() => setBatchModal({ ...batchModal, isOpen: true })}>
+                    <button className="btn btn-primary" onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: null })}>
                       <i className="fas fa-layer-group"></i> + Create New Batch
                     </button>
                   </div>
@@ -3654,47 +3900,104 @@ function App() {
                 <div className="batch-grid" style={{ marginBottom: '24px' }}>
                   {teacherBatches.map(b => (
                     <div key={b.id} className="batch-card">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>{b.name}</h4>
-                        <span className="badge badge-emerald">{b.status}</span>
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)', marginTop: '4px' }}>{b.course}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '8px 0' }}>
-                        <div><strong>Timing:</strong> {b.timing}</div>
-                        <div><strong>Days:</strong> {b.days}</div>
-                        <div><strong>Fees:</strong> {b.feeMonthly}</div>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', flexWrap: 'wrap', gap: '6px' }}>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', fontWeight: 700 }}>
-                          {b.enrolled} / {b.max} Seats Filled
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button className="btn btn-outline btn-sm" onClick={() => setEnrollModal({ ...enrollModal, isOpen: true, batchName: b.name })}>
-                            + Add Student
-                          </button>
-                          <button 
-                            className="btn btn-outline btn-sm" 
-                            onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: b.id, batchName: b.name, timing: b.timing, days: b.days, feeMonthly: b.feeMonthly })}
-                          >
-                            <i className="fas fa-edit"></i> {t.edit || 'Edit'}
-                          </button>
-                          <button 
-                            className="btn btn-danger btn-sm" 
-                            onClick={() => handleDeleteBatch(b.id)}
-                          >
-                            <i className="fas fa-trash-alt"></i> {t.delete || 'Delete'}
-                          </button>
+                      <div className="batch-card-body">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{b.name}</h4>
+                          <span className="badge badge-emerald" style={{ flexShrink: 0 }}>{b.status || 'Active'}</span>
                         </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)', marginTop: '4px', fontWeight: 600 }}>{b.course}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '10px 0', lineHeight: 1.6 }}>
+                          <div><strong><i className="far fa-clock"></i> Timing:</strong> {b.timing}</div>
+                          <div><strong><i className="far fa-calendar-alt"></i> Days:</strong> {b.days}</div>
+                          <div><strong><i className="fas fa-tag"></i> Fees:</strong> {b.feeMonthly}</div>
+                        </div>
+                        {/* Seats Progress Indicator */}
+                        <div style={{ marginTop: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700 }}>
+                            <span style={{ color: 'var(--color-primary-light)' }}>
+                              <i className="fas fa-user-friends"></i> {b.enrolled || 0} / {b.max} Seats Filled
+                            </span>
+                            <span style={{ color: 'var(--text-muted)' }}>
+                              {Math.round(((b.enrolled || 0) / (b.max || 30)) * 100)}%
+                            </span>
+                          </div>
+                          <div className="batch-seats-bar">
+                            <div 
+                              className="batch-seats-fill" 
+                              style={{ width: `${Math.min(100, Math.round(((b.enrolled || 0) / (b.max || 30)) * 100))}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dedicated Action Buttons Row - Never Overflows */}
+                      <div className="batch-card-actions">
+                        <button 
+                          className="btn btn-primary btn-sm" 
+                          style={{ flex: 1, padding: '6px 8px', fontSize: '0.78rem' }}
+                          onClick={() => handleOpenEnrollModal(b)}
+                        >
+                          <i className="fas fa-user-plus"></i> + Add Student
+                        </button>
+                        <button 
+                          className="btn btn-outline btn-sm" 
+                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+                          onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: b.id, batchName: b.name, timing: b.timing, days: b.days, feeMonthly: b.feeMonthly })}
+                          title={t.edit || 'Edit'}
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button 
+                          className="btn btn-danger btn-sm" 
+                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+                          onClick={() => handleDeleteBatch(b.id)}
+                          title={t.delete || 'Delete'}
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Talaba Directory Table */}
+                {/* Talaba Directory Table with Batch Filter Tabs */}
                 <div className="glass-card" style={{ padding: '20px' }}>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '14px' }}>
-                    Enrolled Talaba (Students) List
-                  </h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                    <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                      <i className="fas fa-user-graduate" style={{ color: 'var(--color-primary-light)' }}></i> Enrolled Talaba (Students) Directory
+                    </h4>
+                    <span className="badge badge-teal">
+                      {teacherStudents.filter(st => selectedBatchFilter === 'all' || st.batch_id === selectedBatchFilter || st.batch === teacherBatches.find(b => b.id === selectedBatchFilter)?.name).length} Talaba Displayed
+                    </span>
+                  </div>
+
+                  {/* Batch Selector Filter Tabs */}
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-secondary)', marginRight: '4px' }}>
+                      <i className="fas fa-filter"></i> Filter Batch:
+                    </span>
+                    <button 
+                      className={`btn btn-sm ${selectedBatchFilter === 'all' ? 'btn-primary' : 'btn-outline'}`}
+                      style={{ fontSize: '0.78rem', padding: '4px 12px' }}
+                      onClick={() => setSelectedBatchFilter('all')}
+                    >
+                      All Batches ({teacherStudents.length})
+                    </button>
+                    {teacherBatches.map(b => {
+                      const count = teacherStudents.filter(st => st.batch_id === b.id || st.batch === b.name).length;
+                      return (
+                        <button 
+                          key={b.id}
+                          className={`btn btn-sm ${selectedBatchFilter === b.id ? 'btn-primary' : 'btn-outline'}`}
+                          style={{ fontSize: '0.78rem', padding: '4px 12px' }}
+                          onClick={() => setSelectedBatchFilter(b.id)}
+                        >
+                          {b.name} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <table className="custom-table">
                     <thead>
                       <tr>
@@ -3707,27 +4010,49 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {teacherStudents.map(st => (
-                        <tr key={st.id}>
-                          <td><strong>{st.name}</strong></td>
-                          <td>
-                            <div style={{ fontSize: '0.82rem' }}>{st.email}</div>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{st.phone}</div>
-                          </td>
-                          <td><span className="badge badge-teal">{st.batch}</span></td>
-                          <td><strong>{st.attendance}</strong></td>
-                          <td><span className={`badge ${st.feeStatus.includes('Paid') ? 'badge-emerald' : 'badge-gold'}`}>{st.feeStatus}</span></td>
-                          <td>
-                            <button 
-                              className="btn btn-outline btn-sm" 
-                              style={{ padding: '2px 8px', fontSize: '0.72rem' }}
-                              onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true, studentName: st.name, batchName: st.batch })}
-                            >
-                              Collect Fee
-                            </button>
+                      {teacherStudents
+                        .filter(st => selectedBatchFilter === 'all' || st.batch_id === selectedBatchFilter || st.batch === teacherBatches.find(b => b.id === selectedBatchFilter)?.name)
+                        .map(st => (
+                          <tr key={st.id}>
+                            <td>
+                              <strong>{st.name}</strong>
+                              {st.student_id && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {st.student_id}</div>}
+                            </td>
+                            <td>
+                              <div style={{ fontSize: '0.82rem' }}>{st.email}</div>
+                              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{st.phone}</div>
+                            </td>
+                            <td><span className="badge badge-teal">{st.batch}</span></td>
+                            <td><strong>{st.attendance}</strong></td>
+                            <td><span className={`badge ${st.feeStatus && st.feeStatus.includes('Paid') ? 'badge-emerald' : 'badge-gold'}`}>{st.feeStatus}</span></td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button 
+                                  className="btn btn-outline btn-sm" 
+                                  style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                                  onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true, studentName: st.name, batchName: st.batch })}
+                                >
+                                  Collect Fee
+                                </button>
+                                <button 
+                                  className="btn btn-danger btn-sm" 
+                                  style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                                  onClick={() => handleRemoveStudentFromBatch(st)}
+                                  title="Kharij / Remove from Batch"
+                                >
+                                  <i className="fas fa-trash-alt"></i> Remove
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      {teacherStudents.filter(st => selectedBatchFilter === 'all' || st.batch_id === selectedBatchFilter || st.batch === teacherBatches.find(b => b.id === selectedBatchFilter)?.name).length === 0 && (
+                        <tr>
+                          <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                            Is batch me abhi koi talib-e-ilm dakhil nahi hai. Upar diye gaye <strong>+ Add Student</strong> button se dakhil karein.
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -5788,57 +6113,160 @@ function App() {
         </div>
       )}
 
-      {/* 12. ENROLL STUDENT MODAL */}
+      {/* 12. ENROLL STUDENT MODAL WITH DYNAMIC EXCLUSION */}
       {enrollModal.isOpen && (
         <div className="auth-overlay" onClick={() => setEnrollModal({ ...enrollModal, isOpen: false })}>
-          <div className="auth-modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="auth-modal" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
             <button className="auth-close-btn" onClick={() => setEnrollModal({ ...enrollModal, isOpen: false })}>
               <i className="fas fa-times"></i>
             </button>
-            <span className="badge badge-emerald">Dakhila Form</span>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span className="badge badge-emerald">Dakhila Form (Relational Enrollment)</span>
+              <span className="badge badge-teal">SQLite alnoor_lms.db</span>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '6px 0 2px' }}>
               <i className="fas fa-user-plus" style={{ color: 'var(--color-primary-light)' }}></i> Enroll Student in Batch
             </h3>
             <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
-              Add a new talib-e-ilm directly to your roster with automatic email & WhatsApp invitation.
+              Batch muntakhab karein. Jo talaba pehle se is batch me dakhil hain wo list me show nahi honge.
             </p>
 
             <form onSubmit={handleEnrollStudentSubmit}>
+              {/* Batch Selector */}
               <div className="form-group">
-                <label className="form-label">Student Full Name</label>
-                <input type="text" className="form-input" required placeholder="e.g. Muhammad Bilal" value={enrollModal.studentName} onChange={(e) => setEnrollModal({ ...enrollModal, studentName: e.target.value })} />
+                <label className="form-label" style={{ fontWeight: 700 }}>
+                  <i className="fas fa-layer-group"></i> Target Batch
+                </label>
+                <select 
+                  className="form-select" 
+                  value={enrollModal.batchName} 
+                  onChange={(e) => handleEnrollBatchChange(e.target.value)}
+                >
+                  {teacherBatches.map(b => (
+                    <option key={b.id} value={b.name}>
+                      {b.name} ({b.timing} • {b.enrolled || 0}/{b.max} Seats)
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
-                  <input type="email" className="form-input" placeholder="bilal@example.com" value={enrollModal.studentEmail} onChange={(e) => setEnrollModal({ ...enrollModal, studentEmail: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">WhatsApp / Phone</label>
-                  <input type="text" className="form-input" placeholder="+91 98765 00000" value={enrollModal.studentPhone} onChange={(e) => setEnrollModal({ ...enrollModal, studentPhone: e.target.value })} />
-                </div>
+              {/* Mode Toggle: Existing Student vs New Student */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'rgba(0,0,0,0.15)', padding: '4px', borderRadius: '8px' }}>
+                <button 
+                  type="button"
+                  className={`btn btn-sm ${enrollModal.mode === 'existing' ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ flex: 1, fontSize: '0.82rem' }}
+                  onClick={() => setEnrollModal({ ...enrollModal, mode: 'existing' })}
+                >
+                  <i className="fas fa-users"></i> Available Students ({availableStudentsList.length})
+                </button>
+                <button 
+                  type="button"
+                  className={`btn btn-sm ${enrollModal.mode === 'new' ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ flex: 1, fontSize: '0.82rem' }}
+                  onClick={() => setEnrollModal({ ...enrollModal, mode: 'new' })}
+                >
+                  <i className="fas fa-user-plus"></i> + Naya Talib-e-Ilm Register Karein
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {enrollModal.mode === 'existing' ? (
                 <div className="form-group">
-                  <label className="form-label">Select Batch</label>
-                  <select className="form-select" value={enrollModal.batchName} onChange={(e) => setEnrollModal({ ...enrollModal, batchName: e.target.value })}>
-                    {teacherBatches.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                  </select>
+                  <label className="form-label">
+                    Select Talib-e-Ilm (Non-Enrolled Students)
+                  </label>
+                  {availableStudentsList.length > 0 ? (
+                    <select 
+                      className="form-select" 
+                      required 
+                      value={enrollModal.selectedStudentId} 
+                      onChange={(e) => setEnrollModal({ ...enrollModal, selectedStudentId: e.target.value })}
+                    >
+                      {availableStudentsList.map(s => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.roll_number || s.id}) — {s.phone || s.email}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div style={{ padding: '12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', fontSize: '0.84rem', color: 'var(--color-accent-gold)' }}>
+                      <i className="fas fa-info-circle"></i> Tamam registered talaba pehle se is batch me dakhil hain! Naye student ke liye upar diye gaye <strong>+ Naya Talib-e-Ilm</strong> tab par click karein.
+                    </div>
+                  )}
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    <i className="fas fa-check-shield"></i> SQL Subquery Rule: Students already enrolled in this batch are permanently excluded from this list.
+                  </div>
                 </div>
+              ) : (
+                <div>
+                  <div className="form-group">
+                    <label className="form-label">Student Full Name *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      required 
+                      placeholder="e.g. Abdullah Khan" 
+                      value={enrollModal.studentName} 
+                      onChange={(e) => setEnrollModal({ ...enrollModal, studentName: e.target.value })} 
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label">Email Address</label>
+                      <input 
+                        type="email" 
+                        className="form-input" 
+                        placeholder="abdullah@example.com" 
+                        value={enrollModal.studentEmail} 
+                        onChange={(e) => setEnrollModal({ ...enrollModal, studentEmail: e.target.value })} 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">WhatsApp / Phone</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="+91 98765 00000" 
+                        value={enrollModal.studentPhone} 
+                        onChange={(e) => setEnrollModal({ ...enrollModal, studentPhone: e.target.value })} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '10px' }}>
                 <div className="form-group">
                   <label className="form-label">Enrollment Type</label>
-                  <select className="form-select" value={enrollModal.enrollType} onChange={(e) => setEnrollModal({ ...enrollModal, enrollType: e.target.value })}>
+                  <select 
+                    className="form-select" 
+                    value={enrollModal.enrollType} 
+                    onChange={(e) => setEnrollModal({ ...enrollModal, enrollType: e.target.value })}
+                  >
                     <option value="Paid (Standard)">Paid (Standard)</option>
-                    <option value="Scholarship / Free">Scholarship / Free (Zakat/Waqf Funded)</option>
+                    <option value="Scholarship / Free">Scholarship / Free (100% Waqf Funded)</option>
                     <option value="Installments">Installment Plan</option>
                   </select>
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Monthly Fee Due Date</label>
+                  <input 
+                    type="date" 
+                    className="form-input" 
+                    value={enrollModal.feeDueDate} 
+                    onChange={(e) => setEnrollModal({ ...enrollModal, feeDueDate: e.target.value })} 
+                  />
+                </div>
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '10px' }}>
-                <i className="fas fa-check-circle"></i> Confirm Enrollment & Add to Batch
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                style={{ width: '100%', marginTop: '14px' }}
+                disabled={enrollModal.mode === 'existing' && availableStudentsList.length === 0}
+              >
+                <i className="fas fa-check-circle"></i> Confirm Enrollment & Save to SQLite Database
               </button>
             </form>
           </div>
