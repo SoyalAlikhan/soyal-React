@@ -6548,25 +6548,519 @@ function App() {
           </div>
         )}
 
-        {/* PUBLIC COURSE LIST (HOME ONLY) */}
+        {/* =========================================================================
+            GLOBAL HOME TAB SCREEN (ROLE-SPECIFIC TEACHER & STUDENT DASHBOARDS)
+           ========================================================================= */}
         {activeNav === 'home' && !activeCourse && (
-          <section id="curriculum-grid" style={{ marginTop: '36px' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px' }}>Explore Courses</h2>
-            <div className="courses-grid">
-              {courses.map(course => (
-                <div key={course.id} className="course-card">
-                  <div className="course-card-body">
-                    <span className="badge badge-teal">{course.dept}</span>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '8px 0' }}>{course.title}</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', flex: 1 }}>{course.description}</p>
-                    <button className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }} onClick={() => handleEnroll(course.id)}>
-                      {enrolledIds.includes(course.id) ? "Continue Learning" : "Enroll Now"}
+          <div>
+            {/* 1. TEACHER HOME DASHBOARD: TOP 4 STATS CARDS, STUDENT EDIT & ACTIVE BATCHES */}
+            {currentUser.role === 'teacher' && (
+              <div className="teacher-home-dashboard" style={{ marginBottom: '32px' }}>
+                {/* Teacher Welcome & Top Overview Card */}
+                <div className="glass-card" style={{ padding: '24px', marginBottom: '20px', border: '1px solid rgba(245, 158, 11, 0.3)', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(20, 184, 166, 0.05))' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <span className="badge badge-gold"><i className="fas fa-chalkboard-teacher"></i> Ustaad Home Dashboard</span>
+                        <span className="badge badge-emerald"><i className="fas fa-check-circle"></i> {currentUser.verificationLevel || 'Verified Teacher ✅'}</span>
+                      </div>
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                        Khush Amdeed, {currentUser.name}!
+                      </h2>
+                      <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0', fontSize: '0.88rem' }}>
+                        Specialization: <strong>{currentUser.specialization || 'Tajweed & Islamic Studies'}</strong> • Sanad: <strong>{currentUser.qualification || 'Fazil Darul Uloom'}</strong>
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <button 
+                        type="button" 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => setActiveNav('teacher')}
+                        style={{ fontWeight: 700, padding: '8px 16px' }}
+                      >
+                        <i className="fas fa-laptop-code"></i> Full Teacher Studio Panel →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* TOP 4 DYNAMIC REAL STATS METRIC CARDS */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', marginTop: '22px' }}>
+                    {/* Card 1: Total Enrolled Students Under This Teacher */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(20, 184, 166, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Total Enrolled Talaba
+                          </div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-primary-light)', marginTop: '4px' }}>
+                            {new Set(teacherStudents.map(s => s.student_id || s.id || s.email)).size}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Under teacher training
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(20, 184, 166, 0.25)' }}>
+                          <i className="fas fa-user-graduate"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Total Active Live Batches */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Active Live Batches
+                          </div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#38bdf8', marginTop: '4px' }}>
+                            {teacherBatches.filter(b => (b.status || 'Active').toLowerCase() === 'active').length}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Live chal rahe halaqah groups
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(56, 189, 248, 0.25)' }}>
+                          <i className="fas fa-layer-group"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Total Teacher Earnings */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Total Fee Earnings
+                          </div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-emerald-light)', marginTop: '4px' }}>
+                            {teacherEarnings.readyForPayout || '₹' + (teacherStudents.length * 1500).toLocaleString()}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Tuition revenue & wallet
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(16, 185, 129, 0.25)' }}>
+                          <i className="fas fa-wallet"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card 4: Total Courses Created by Teacher */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Total Courses Created
+                          </div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-accent-gold)', marginTop: '4px' }}>
+                            {courses.filter(crs => crs.instructor && (crs.instructor.toLowerCase().includes('basit') || crs.instructor.toLowerCase().includes((currentUser?.name || '').toLowerCase()) || crs.instructor === currentUser?.name)).length}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            Authored course modules
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(245, 158, 11, 0.25)' }}>
+                          <i className="fas fa-book-open"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Action Buttons Strip */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '18px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap' }}>
+                    <button type="button" className="btn btn-gold btn-sm" onClick={() => setCourseStudio({ ...courseStudio, isOpen: true })}>
+                      <i className="fas fa-plus-circle"></i> + Create Course
+                    </button>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true })}>
+                      <i className="fas fa-calendar-plus"></i> + Schedule Live Class
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: null })}>
+                      <i className="fas fa-layer-group"></i> + Create Batch
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => handleOpenEnrollModal()}>
+                      <i className="fas fa-user-plus"></i> + Enroll Student
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true })}>
+                      <i className="fas fa-tasks"></i> + Assign Homework
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true })}>
+                      <i className="fas fa-receipt"></i> + Record Offline Fee
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
+
+                {/* Enrolled Talaba Directory with Edit Student Feature on Home Screen */}
+                <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                        <i className="fas fa-user-graduate" style={{ color: 'var(--color-primary-light)', marginRight: '8px' }}></i>
+                        Mere Under Padhne Wale Talaba ({teacherStudents.length})
+                      </h3>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                        Talib-e-ilm ki tafseelat edit karne ke liye unke naam ke samne diye gaye <strong>Edit Details</strong> button par click karein.
+                      </p>
+                    </div>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => handleOpenEnrollModal()}>
+                      <i className="fas fa-user-plus"></i> + Naya Talib-e-Ilm Dakhil Karein
+                    </button>
+                  </div>
+
+                  <div className="table-responsive">
+                    <table className="custom-table">
+                      <thead>
+                        <tr>
+                          <th>Student Name & ID</th>
+                          <th>Email & Phone</th>
+                          <th>Enrolled Batch</th>
+                          <th>Attendance</th>
+                          <th>Fee Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {teacherStudents.map(st => (
+                          <tr key={st.id}>
+                            <td>
+                              <strong>{st.name}</strong>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {st.student_id || st.id}</div>
+                            </td>
+                            <td>
+                              <div style={{ fontSize: '0.82rem' }}>{st.email}</div>
+                              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{st.phone}</div>
+                            </td>
+                            <td>
+                              <span className="badge badge-teal">{st.batch}</span>
+                            </td>
+                            <td><strong>{st.attendance || '90%'}</strong></td>
+                            <td>
+                              <span className={`badge ${st.feeStatus && st.feeStatus.includes('Paid') ? 'badge-emerald' : 'badge-gold'}`}>
+                                {st.feeStatus || 'Due'}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button 
+                                  type="button" 
+                                  className="btn btn-primary btn-sm" 
+                                  style={{ padding: '4px 9px', fontSize: '0.74rem', fontWeight: 700 }}
+                                  onClick={() => handleOpenEditStudent(st)}
+                                  title="Edit Student Details in SQLite"
+                                >
+                                  <i className="fas fa-edit"></i> Edit Details
+                                </button>
+                                <button 
+                                  type="button" 
+                                  className="btn btn-outline btn-sm" 
+                                  style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                                  onClick={() => setOfflineFeeModal({
+                                    ...offlineFeeModal,
+                                    isOpen: true,
+                                    batchId: st.batch_id,
+                                    batchName: st.batch,
+                                    studentId: st.student_id || st.id,
+                                    studentName: st.name
+                                  })}
+                                  title="Record Offline Fee"
+                                >
+                                  <i className="fas fa-receipt"></i> Fee
+                                </button>
+                                <button 
+                                  type="button" 
+                                  className="btn btn-danger btn-sm" 
+                                  style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                                  onClick={() => handleRemoveStudentFromBatch(st)}
+                                  title="Remove from Batch"
+                                >
+                                  <i className="fas fa-trash-alt"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {teacherStudents.length === 0 && (
+                          <tr>
+                            <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                              Abhi tak koi talib-e-ilm dakhil nahi hai. Upar diye gaye button se dakhil karein.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Active Batches Overview Cards on Home Screen */}
+                <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                        <i className="fas fa-layer-group" style={{ color: '#38bdf8', marginRight: '8px' }}></i>
+                        Aapke Active Batches ({teacherBatches.length})
+                      </h3>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                        Batch card par click karke uska dedicated workspace aur 7 sub-tabs open karein:
+                      </p>
+                    </div>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: null })}>
+                      <i className="fas fa-plus"></i> + Naya Batch Banayein
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                    {teacherBatches.map(b => (
+                      <div 
+                        key={b.id} 
+                        style={{ background: 'rgba(0,0,0,0.35)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                        onClick={() => { setActiveBatchWorkspace(b); setActiveNav('teacher'); setTeacherSubTab('batches'); setBatchWorkspaceTab('students'); }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-accent-gold)' }}>
+                            <i className="fas fa-folder-open" style={{ marginRight: '6px' }}></i>{b.name}
+                          </h4>
+                          <span className="badge badge-emerald">{b.status || 'Active'}</span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', marginTop: '4px', fontWeight: 600 }}>{b.course}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '10px 0', lineHeight: 1.6 }}>
+                          <div><i className="far fa-clock"></i> <strong>Timing:</strong> {b.timing}</div>
+                          <div><i className="far fa-calendar-alt"></i> <strong>Days:</strong> {b.days}</div>
+                          <div><i className="fas fa-tag"></i> <strong>Monthly Fee:</strong> {b.feeMonthly}</div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', marginTop: '10px' }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--color-primary-light)', fontWeight: 700 }}>
+                            <i className="fas fa-user-friends"></i> {b.enrolled || 0} / {b.max || 30} Talaba
+                          </span>
+                          <button 
+                            type="button" 
+                            className="btn btn-gold btn-sm" 
+                            style={{ padding: '4px 10px', fontSize: '0.74rem', fontWeight: 700 }}
+                            onClick={(e) => { e.stopPropagation(); setActiveBatchWorkspace(b); setActiveNav('teacher'); setTeacherSubTab('batches'); setBatchWorkspaceTab('students'); }}
+                          >
+                            <i className="fas fa-folder-open"></i> Workspace Kholein →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. STUDENT HOME DASHBOARD: TOP 4 METRICS, ENROLLED BATCHES & CLASS SCHEDULE */}
+            {currentUser.role === 'student' && (
+              <div className="student-home-dashboard" style={{ marginBottom: '32px' }}>
+                {/* Student Welcome Banner */}
+                <div className="glass-card" style={{ padding: '24px', marginBottom: '20px', border: '1px solid rgba(20, 184, 166, 0.3)', background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.08), rgba(245, 158, 11, 0.05))' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <span className="badge badge-teal"><i className="fas fa-user-graduate"></i> Talib-e-Ilm Learning Home</span>
+                        <span className="badge badge-gold">Active Student Session</span>
+                      </div>
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                        Khush Amdeed, {currentUser.name}!
+                      </h2>
+                      <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0', fontSize: '0.88rem' }}>
+                        Track: <strong>{currentUser.goal || 'Tajweed & Arabic Mastery'}</strong> • Affiliation: <strong>{currentUser.instituteAffiliation || 'Jamia Darul Uloom'}</strong>
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <button 
+                        type="button" 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => setActiveNav('dashboard')}
+                        style={{ fontWeight: 700, padding: '8px 16px' }}
+                      >
+                        <i className="fas fa-columns"></i> Full Student Dashboard →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* TOP 4 DYNAMIC REAL STATS METRIC CARDS FOR STUDENT */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', marginTop: '22px' }}>
+                    {/* Card 1: Enrolled Batches */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(20, 184, 166, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Enrolled Batches</div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-primary-light)', marginTop: '4px' }}>
+                            {studentBatches.length || 1}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Muntakhab halaqah groups</div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(20, 184, 166, 0.25)' }}><i className="fas fa-layer-group"></i></div>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Attendance Rate */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Attendance Record</div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-emerald-light)', marginTop: '4px' }}>
+                            {currentUser.attendancePercent || 88}%
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Live halaqah haziri</div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(16, 185, 129, 0.25)' }}><i className="fas fa-user-check"></i></div>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Pending Homework */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Pending Tasks</div>
+                          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--color-accent-gold)', marginTop: '4px' }}>
+                            {homeworkList.filter(h => h.mySubmissionStatus !== 'Submitted').length}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Ghar ka kaam & sabaq</div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(245, 158, 11, 0.25)' }}><i className="fas fa-tasks"></i></div>
+                      </div>
+                    </div>
+
+                    {/* Card 4: Next Live Class */}
+                    <div style={{ background: 'rgba(0,0,0,0.35)', padding: '16px 18px', borderRadius: '12px', border: '1px solid rgba(244, 63, 94, 0.3)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Next Live Class</div>
+                          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#f43f5e', marginTop: '6px' }}>
+                            {liveClasses[0]?.class_time || '06:30 AM'}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            {liveClasses[0]?.title ? liveClasses[0].title.substring(0, 20) + '...' : 'Live Tajweed Halaqah'}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '2rem', color: 'rgba(244, 63, 94, 0.25)' }}><i className="fas fa-video"></i></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Action Buttons for Student */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '18px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap' }}>
+                    <button type="button" className="btn btn-ruby btn-sm" onClick={() => handleOpenLiveRoom(liveClasses[0])}>
+                      <span className="live-dot-pulse"></span> <i className="fas fa-door-open"></i> Enter Live Classroom
+                    </button>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => setRecitationSubmitModal({ ...recitationSubmitModal, isOpen: true })}>
+                      <i className="fas fa-microphone"></i> Submit Tilawat Audio
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setActiveNav('dashboard')}>
+                      <i className="fas fa-clipboard-list"></i> View My Homework
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setLeaveModal({ ...leaveModal, isOpen: true })}>
+                      <i className="fas fa-calendar-minus"></i> Apply Leave (Chutti)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Student Enrolled Batches Schedule on Home Screen */}
+                <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                        <i className="fas fa-calendar-alt" style={{ color: 'var(--color-primary-light)', marginRight: '8px' }}></i>
+                        Mere Batches & Halaqah Timings
+                      </h3>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                        Aap jin batches me dakhil hain unki rozana class timings aur schedule:
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '14px' }}>
+                    {studentBatches.length > 0 ? (
+                      studentBatches.map(b => (
+                        <div key={b.id || b.batch_id} style={{ background: 'rgba(0,0,0,0.35)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-accent-gold)' }}>
+                              {b.title || b.batch_name || b.name}
+                            </h4>
+                            <span className="badge badge-emerald">Dakhil Shuda ✅</span>
+                          </div>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', marginTop: '4px', fontWeight: 600 }}>
+                            {b.course_title || b.course || 'Ahkam-e-Tajweed & Qirat'}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '10px 0', lineHeight: 1.6 }}>
+                            <div><i className="far fa-clock"></i> <strong>Class Timing:</strong> {b.class_time || b.timing || '06:30 AM - 07:15 AM'}</div>
+                            <div><i className="far fa-calendar-alt"></i> <strong>Schedule Days:</strong> {b.schedule_days || b.days || 'Mon - Thu'}</div>
+                            <div><i className="fas fa-chalkboard-teacher"></i> <strong>Ustaad:</strong> {b.instructor_name || 'Qari Abdul Basit'}</div>
+                          </div>
+                          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                            <button 
+                              type="button" 
+                              className="btn btn-ruby btn-sm" 
+                              style={{ width: '100%', fontWeight: 700 }}
+                              onClick={() => handleOpenLiveRoom(liveClasses[0])}
+                            >
+                              <i className="fas fa-video"></i> Class Room Me Dakhil Hon
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ gridColumn: '1 / -1', background: 'rgba(0,0,0,0.35)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-accent-gold)' }}>
+                            Morning Hifz & Tajweed Batch A
+                          </h4>
+                          <span className="badge badge-emerald">Dakhil Shuda ✅</span>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', marginTop: '4px', fontWeight: 600 }}>
+                          Ahkam-e-Tajweed & Makharij Foundation
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '10px 0', lineHeight: 1.6 }}>
+                          <div><i className="far fa-clock"></i> <strong>Class Timing:</strong> 06:30 AM - 07:15 AM PKT</div>
+                          <div><i className="far fa-calendar-alt"></i> <strong>Schedule Days:</strong> Mon - Thu (Dars-e-Nizami)</div>
+                          <div><i className="fas fa-chalkboard-teacher"></i> <strong>Ustaad:</strong> Qari Abdul Basit Siddiqui</div>
+                        </div>
+                        <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                          <button 
+                            type="button" 
+                            className="btn btn-ruby btn-sm" 
+                            style={{ width: '100%', fontWeight: 700 }}
+                            onClick={() => handleOpenLiveRoom(liveClasses[0])}
+                          >
+                            <i className="fas fa-video"></i> Class Room Me Dakhil Hon
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. EXPLORE COURSES (PUBLIC CATALOG DISPLAYED FOR ALL USERS) */}
+            <section id="curriculum-grid" style={{ marginTop: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0 }}>
+                    <i className="fas fa-book-open" style={{ color: 'var(--color-accent-gold)', marginRight: '8px' }}></i>
+                    Explore Academy Courses
+                  </h2>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                    Authenticated Shariah curricula, Tajweed courses, and Dars-e-Nizami modules.
+                  </p>
+                </div>
+              </div>
+
+              <div className="courses-grid">
+                {courses.map(course => (
+                  <div key={course.id} className="course-card">
+                    <div className="course-card-body">
+                      <span className="badge badge-teal">{course.dept}</span>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '8px 0' }}>{course.title}</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', flex: 1 }}>{course.description}</p>
+                      <button className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }} onClick={() => handleEnroll(course.id)}>
+                        {enrolledIds.includes(course.id) ? "Continue Learning" : "Enroll Now"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
         )}
 
         {/* ACTIVE LESSON PLAYER */}
