@@ -373,10 +373,15 @@ function enrollStudentInBatch(req, res, batchId, body) {
     } else if (typeof body.studentId === 'object' && body.studentId !== null) {
       studentObj = body.studentId;
       studentId = studentObj.id || null;
+    } else if (typeof body.student === 'object' && body.student !== null) {
+      studentObj = body.student;
+      studentId = studentObj.id || null;
     } else if (typeof body.student_id === 'string') {
       studentId = body.student_id.trim();
     } else if (typeof body.studentId === 'string') {
       studentId = body.studentId.trim();
+    } else if (body.name) {
+      studentObj = body;
     }
 
     const targetBatchId = (batchId || body.batch_id || body.batchId || '').toString().trim();
@@ -418,7 +423,11 @@ function enrollStudentInBatch(req, res, batchId, body) {
 
       const newStuId = 'stu-' + Date.now();
       const finalEmail = studentEmail || `${studentName.toLowerCase().replace(/[^a-z0-9]/g, '')}${Math.floor(100 + Math.random() * 900)}@student.alnoor.edu`;
-      const rollNo = (studentObj && studentObj.roll_number) || body.roll_number || ('ROL-' + Math.floor(8000 + Math.random() * 1999));
+      let rollNo = (studentObj && studentObj.roll_number) || body.roll_number || ('ROL-' + Math.floor(10000 + Math.random() * 89999));
+      const existingRoll = queryOne('SELECT id FROM students WHERE roll_number = ?', [rollNo]);
+      if (existingRoll) {
+        rollNo = 'ROL-' + Date.now().toString().slice(-6);
+      }
       
       generatedCreds = generateStudentCredentials(studentName);
       const userId = 'usr-' + newStuId;
@@ -498,14 +507,27 @@ function enrollStudentInBatch(req, res, batchId, body) {
     };
 
     if (generatedCreds) {
+      const msg = `Assalamu Alaikum ${student.name}!\n\nAapko Al-Noor Islamic Platform ke batch "${batch.title}" me dakhil kar liya gaya hai.\n\n📚 BATCH DETAILS:\n• Batch: ${batch.title} (${batch.batch_code || ''})\n• Class Timings: ${batch.class_time || '07:00 AM'}\n• Schedule Days: ${batch.schedule_days || 'Mon, Wed, Fri'}\n\n🔐 LOGIN CREDENTIALS:\n• Portal: http://localhost:8085\n• Username: ${generatedCreds.username}\n• 8-Digit Password: ${generatedCreds.password}\n• Registered Email: ${student.email}\n\nJazakAllahu Khaira.`;
+
+      console.log(`[DISPATCH EMAIL SIMULATION] To: ${student.email} | Subject: Welcome to ${batch.title} | Password: ${generatedCreds.password}`);
+      console.log(`[DISPATCH WHATSAPP SIMULATION] To: ${student.phone} | Batch: ${batch.title} | Username: ${generatedCreds.username}`);
+
       responsePayload.credentials = {
         student_id: student.id,
         name: student.name,
         username: generatedCreds.username,
         plain_password: generatedCreds.password,
         email: student.email,
+        phone: student.phone,
+        batch_id: batch.id,
         batch_name: batch.title,
-        dispatch_message: `Assalamu Alaikum ${student.name}! Aapko Jamia Darul Uloom ke batch "${batch.title}" me dakhil kar liya gaya hai.\n\nAapke Login Credentials:\nUsername: ${generatedCreds.username}\nPassword: ${generatedCreds.password}\nLogin Portal: http://localhost:8085`
+        batch_code: batch.batch_code || '',
+        timings: batch.class_time || '07:00 AM',
+        class_time: batch.class_time || '07:00 AM',
+        schedule_days: batch.schedule_days || 'Mon, Wed, Fri',
+        portal_url: 'http://localhost:8085',
+        dispatch_message: msg,
+        email_subject: `Welcome to Al-Noor Academy — ${batch.title} Credentials`
       };
     }
 
@@ -695,6 +717,82 @@ function getStudentDashboard(req, res, studentId) {
   }
 }
 
+function updateStudent(req, res, studentId, body) {
+  try {
+    if (!studentId) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'studentId required' }));
+    }
+
+    const {
+      name,
+      email,
+      phone,
+      roll_number,
+      guardian_name,
+      gender,
+      age,
+      institute_affiliation
+    } = body || {};
+
+    const existing = queryOne('SELECT * FROM students WHERE id = ?', [studentId]);
+    if (!existing) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Talib-e-Ilm nahi mila.' }));
+    }
+
+    execute(`
+      UPDATE students 
+      SET name = COALESCE(?, name),
+          email = COALESCE(?, email),
+          phone = COALESCE(?, phone),
+          roll_number = COALESCE(?, roll_number),
+          guardian_name = COALESCE(?, guardian_name),
+          gender = COALESCE(?, gender),
+          age = COALESCE(?, age),
+          institute_affiliation = COALESCE(?, institute_affiliation)
+      WHERE id = ?
+    `, [
+      name ?? null,
+      email ?? null,
+      phone ?? null,
+      roll_number ?? null,
+      guardian_name ?? null,
+      gender ?? null,
+      age ?? null,
+      institute_affiliation ?? null,
+      studentId
+    ]);
+
+    if (existing.user_id) {
+      execute(`
+        UPDATE users
+        SET name = COALESCE(?, name),
+            email = COALESCE(?, email),
+            phone = COALESCE(?, phone)
+        WHERE id = ?
+      `, [
+        name ?? null,
+        email ?? null,
+        phone ?? null,
+        existing.user_id
+      ]);
+    }
+
+    const updated = queryOne('SELECT * FROM students WHERE id = ?', [studentId]);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      message: `Talib-e-Ilm "${updated.name}" ki detail kamyabi se update ho gayi!`,
+      data: updated
+    }));
+  } catch (err) {
+    console.error('[updateStudent ERROR]', err);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
+}
+
 module.exports = {
   getStudents,
   getAvailableStudentsForBatch,
@@ -702,6 +800,7 @@ module.exports = {
   enrollStudentInBatch,
   removeStudentFromBatch,
   createStudent,
+  updateStudent,
   getStudentDashboard
 };
 

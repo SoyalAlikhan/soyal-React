@@ -31,11 +31,18 @@ if (!count || count.cnt === 0) {
   console.log('[SQLite Backend] Seeded default live_classes into alnoor_lms.db');
 }
 
-function getLiveClasses(req, res) {
+function getLiveClasses(req, res, query) {
   try {
-    const classes = queryAll(`SELECT * FROM live_classes ORDER BY created_at DESC`);
+    let classes = [];
+    if (query && query.batch_id) {
+      classes = queryAll(`SELECT * FROM live_classes WHERE batch_id = ? ORDER BY created_at DESC`, [query.batch_id]);
+    } else {
+      classes = queryAll(`SELECT * FROM live_classes ORDER BY created_at DESC`);
+    }
     const mapped = classes.map(c => ({
       id: c.id,
+      batch_id: c.batch_id,
+      course_id: c.course_id,
       title: c.title,
       instructor: c.instructor_name,
       date: c.class_date,
@@ -66,20 +73,25 @@ function createLiveClass(req, res, body) {
     const actualLink = body.meeting_link || body.link || '#auto-attendance';
     const recurrence = body.recurrence || 'Daily';
     const status = body.status || 'Scheduled';
-    const course_id = body.course_id || 'crs-tajweed-101';
+    
+    let batch_id = body.batch_id || null;
+    let course_id = body.course_id || null;
+
+    if (batch_id) {
+      const batchRow = queryOne('SELECT * FROM batches WHERE id = ? OR title = ?', [batch_id, batch_id]);
+      if (batchRow) {
+        batch_id = batchRow.id;
+        course_id = course_id || batchRow.course_id;
+      }
+    }
+    if (!course_id) {
+      course_id = 'crs-tajweed-101';
+    }
 
     execute(`
-      INSERT INTO live_classes (id, course_id, title, instructor_name, class_date, class_time, recurrence, enrolled_count, status, meeting_link)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [id, course_id, actualTitle, actualInstructor, actualDate, actualTime, recurrence, actualEnrolled, status, actualLink]);
-
-    // Also persist corresponding record in batches table so both tables stay synced
-    const batchId = 'bat-' + Date.now();
-    const batchCode = 'BCH-' + Math.floor(100 + Math.random() * 900);
-    execute(`
-      INSERT OR IGNORE INTO batches (id, course_id, batch_code, title, schedule_days, class_time, max_talaba)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [batchId, course_id, batchCode, actualTitle, recurrence, actualTime, actualEnrolled]);
+      INSERT INTO live_classes (id, batch_id, course_id, title, instructor_name, class_date, class_time, recurrence, enrolled_count, status, meeting_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, batch_id, course_id, actualTitle, actualInstructor, actualDate, actualTime, recurrence, actualEnrolled, status, actualLink]);
 
     const created = queryOne('SELECT * FROM live_classes WHERE id = ?', [id]);
     res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -88,6 +100,8 @@ function createLiveClass(req, res, body) {
       message: 'Live class schedule persisted to SQLite database successfully',
       data: {
         id: created.id,
+        batch_id: created.batch_id,
+        course_id: created.course_id,
         title: created.title,
         instructor: created.instructor_name,
         date: created.class_date,

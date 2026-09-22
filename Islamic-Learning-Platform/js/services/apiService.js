@@ -486,6 +486,57 @@ const apiService = {
       console.warn('[API Service] getStudentDashboard error:', err.message);
       return { success: false, error: err.message };
     }
+  },
+
+  updateStudent: async (studentId, studentData) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${encodeURIComponent(studentId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(studentData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] updateStudent error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  getLinkedAccounts: async (email) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/linked-accounts?email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getLinkedAccounts error:', err.message);
+      return [];
+    }
+  },
+
+  getRecitations: async (batchId = null) => {
+    try {
+      const url = batchId ? `${API_BASE}/recitations?batch_id=${encodeURIComponent(batchId)}` : `${API_BASE}/recitations`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getRecitations error:', err.message);
+      return [];
+    }
+  },
+
+  submitTajweedEvaluation: async (recitationId, evalData) => {
+    try {
+      const res = await fetch(`${API_BASE}/recitations/${encodeURIComponent(recitationId)}/grade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(evalData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] submitTajweedEvaluation error:', err.message);
+      return { success: false, error: err.message };
+    }
   }
 };
 

@@ -90,6 +90,13 @@ function runMigrations() {
   } catch (e) {
     console.error('[db.js migration error]', e);
   }
+
+  // Ensure live_classes and recitations have batch_id and teacher_voice_url
+  try { db.exec('ALTER TABLE live_classes ADD COLUMN batch_id TEXT;'); } catch {}
+  try { db.exec('ALTER TABLE recitations ADD COLUMN batch_id TEXT;'); } catch {}
+  try { db.exec('ALTER TABLE recitations ADD COLUMN teacher_voice_url TEXT;'); } catch {}
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_live_batch ON live_classes(batch_id);'); } catch {}
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_rec_batch ON recitations(batch_id);'); } catch {}
 }
 
 initSchema();

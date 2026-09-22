@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS batches (
 -- 6B. Scheduled Live Classes (Direct Teacher & Halaqah Scheduling)
 CREATE TABLE IF NOT EXISTS live_classes (
     id TEXT PRIMARY KEY,
+    batch_id TEXT,
     course_id TEXT,
     title TEXT NOT NULL,
     instructor_name TEXT NOT NULL,
@@ -124,7 +125,9 @@ CREATE TABLE IF NOT EXISTS live_classes (
     enrolled_count INTEGER DEFAULT 0,
     status TEXT DEFAULT 'Scheduled',
     meeting_link TEXT DEFAULT '#auto-attendance',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
 -- 7. Talaba Admissions Register (Dakhila)
@@ -191,6 +194,7 @@ CREATE TABLE IF NOT EXISTS leave_applications (
 -- 11. Student Tajweed Tilawat Audio Submissions & Grading
 CREATE TABLE IF NOT EXISTS recitations (
     id TEXT PRIMARY KEY,
+    batch_id TEXT,
     student_id TEXT NOT NULL,
     student_name TEXT NOT NULL,
     course_title TEXT NOT NULL,
@@ -200,9 +204,12 @@ CREATE TABLE IF NOT EXISTS recitations (
     duration TEXT,
     student_notes TEXT,
     teacher_feedback TEXT,
+    teacher_voice_url TEXT,
     tajweed_score INTEGER DEFAULT 0,
     status TEXT DEFAULT 'Pending Evaluation',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
 -- 12. Mahana Chanda & Waqf Ledger (Interest-free)

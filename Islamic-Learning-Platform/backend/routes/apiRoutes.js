@@ -11,6 +11,7 @@ const authController = require('../controllers/authController');
 const liveClassesController = require('../controllers/liveClassesController');
 const studentsController = require('../controllers/studentsController');
 const homeworkController = require('../controllers/homeworkController');
+const recitationsController = require('../controllers/recitationsController');
 
 function handleApiRequest(req, res, pathname, query, body) {
   // CORS Headers for both Web & Mobile
@@ -41,6 +42,10 @@ function handleApiRequest(req, res, pathname, query, body) {
   }
   if (pathname === '/api/v1/auth/change-password' && req.method === 'POST') {
     return authController.changePassword(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/linked-accounts' && req.method === 'GET') {
+    const email = query && query.email;
+    return authController.getLinkedAccounts(req, res, email);
   }
 
   // 1. Health Check
@@ -92,9 +97,9 @@ function handleApiRequest(req, res, pathname, query, body) {
     if (req.method === 'POST') return coursesController.createBatch(req, res, body);
   }
 
-  // 4C. Live Scheduled Classes (SQLite direct persistence)
+  // 4C. Live Scheduled Classes & Halaqaat
   if (pathname === '/api/v1/live-classes') {
-    if (req.method === 'GET') return liveClassesController.getLiveClasses(req, res);
+    if (req.method === 'GET') return liveClassesController.getLiveClasses(req, res, query);
     if (req.method === 'POST') return liveClassesController.createLiveClass(req, res, body);
   }
   if (pathname.startsWith('/api/v1/live-classes/')) {
@@ -139,6 +144,22 @@ function handleApiRequest(req, res, pathname, query, body) {
     const parts = pathname.split('/');
     const studentId = parts[4];
     return studentsController.getStudentDashboard(req, res, studentId);
+  }
+  if (pathname.startsWith('/api/v1/students/') && (req.method === 'PUT' || req.method === 'PATCH' || req.method === 'POST')) {
+    const parts = pathname.split('/');
+    const studentId = parts[4];
+    return studentsController.updateStudent(req, res, studentId, body);
+  }
+
+  // 4E. Recitations & Tajweed Audio Evaluation
+  if (pathname === '/api/v1/recitations') {
+    if (req.method === 'GET') return recitationsController.getRecitations(req, res, query);
+    if (req.method === 'POST') return recitationsController.createRecitation(req, res, body);
+  }
+  if (pathname.startsWith('/api/v1/recitations/') && pathname.endsWith('/grade') && (req.method === 'PATCH' || req.method === 'POST')) {
+    const parts = pathname.split('/');
+    const recId = parts[4];
+    return recitationsController.gradeRecitation(req, res, recId, body);
   }
 
   // 4E. Relational Homework & Submissions (SQLite per BRD Section 10)

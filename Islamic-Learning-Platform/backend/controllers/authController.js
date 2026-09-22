@@ -342,6 +342,34 @@ function getUsers(req, res) {
   }
 }
 
+function getLinkedAccounts(req, res, email) {
+  try {
+    if (!email) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Email required' }));
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const accounts = queryAll(`
+      SELECT id, name, username, email, role, phone, avatar, institute_affiliation, created_at
+      FROM users
+      WHERE LOWER(email) = ?
+      ORDER BY role ASC
+    `, [cleanEmail]);
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      count: accounts.length,
+      data: accounts
+    }));
+  } catch (err) {
+    console.error('[getLinkedAccounts ERROR]', err);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
+}
+
 module.exports = {
   login,
   register,
@@ -349,5 +377,6 @@ module.exports = {
   resetPassword,
   changePassword,
   getUsers,
+  getLinkedAccounts,
   hashPassword
 };

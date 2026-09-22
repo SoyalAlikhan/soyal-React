@@ -428,6 +428,40 @@ function App() {
   const [availableStudentsList, setAvailableStudentsList] = useState([]);
   const [selectedBatchFilter, setSelectedBatchFilter] = useState('all');
 
+  // Active Dedicated Batch Workspace Panel State
+  const [activeBatchWorkspace, setActiveBatchWorkspace] = useState(null);
+  const [batchWorkspaceTab, setBatchWorkspaceTab] = useState('students'); // 'students', 'homework', 'live', 'fees', 'notices', 'certificates', 'tajweed'
+
+  // Student Edit Details Modal State
+  const [editStudentModal, setEditStudentModal] = useState({
+    isOpen: false,
+    studentId: '',
+    enrollmentId: '',
+    name: '',
+    email: '',
+    phone: '',
+    guardian_name: '',
+    roll_number: '',
+    gender: 'Male',
+    age: '',
+    batch_name: '',
+    isLoading: false
+  });
+
+  // Dynamic Linked Accounts for Single-Email Role Switcher
+  const [linkedAccounts, setLinkedAccounts] = useState([]);
+
+  // Batch Specific Recitations & Voice Evaluation State
+  const [batchRecitations, setBatchRecitations] = useState([]);
+  const [recitationEvalModal, setRecitationEvalModal] = useState({
+    isOpen: false,
+    recitation: null,
+    tajweedScore: 90,
+    remarks: '',
+    teacherVoiceUrl: null,
+    isRecording: false
+  });
+
   // Teacher Offline Fee Collection Entry Modal (BRD Section 13.4)
   const [offlineFeeModal, setOfflineFeeModal] = useState({
     isOpen: false,
@@ -1193,6 +1227,15 @@ function App() {
   useEffect(() => {
     if (!currentUser) return;
 
+    // Sync Linked Accounts for Single-Email Role Switcher
+    if (currentUser && currentUser.email && window.apiService && window.apiService.getLinkedAccounts) {
+      window.apiService.getLinkedAccounts(currentUser.email).then(res => {
+        if (res && res.success && Array.isArray(res.data)) {
+          setLinkedAccounts(res.data);
+        }
+      }).catch(err => console.warn('[Linked Accounts error]', err));
+    }
+
     if (currentUser.role === 'student') {
       const studentIdentifier = currentUser.studentId || currentUser.id;
       if (window.apiService && window.apiService.getStudentDashboard) {
@@ -1300,6 +1343,166 @@ function App() {
   };
 
   // Direct Instant Switch with Backend Verification
+  // Load Recitations for Active Batch Workspace
+  useEffect(() => {
+    if (activeBatchWorkspace && activeBatchWorkspace.id && window.apiService && window.apiService.getRecitations) {
+      window.apiService.getRecitations(activeBatchWorkspace.id).then(res => {
+        if (res && res.success && Array.isArray(res.data)) {
+          setBatchRecitations(res.data);
+        }
+      }).catch(err => console.warn('[Batch Recitations error]', err));
+    }
+  }, [activeBatchWorkspace?.id]);
+
+  const loadBatchRecitations = async (batchId) => {
+    if (window.apiService && window.apiService.getRecitations && batchId) {
+      try {
+        const res = await window.apiService.getRecitations(batchId);
+        if (res && res.success && Array.isArray(res.data)) {
+          setBatchRecitations(res.data);
+        }
+      } catch (err) {
+        console.warn('Could not refresh batch recitations:', err);
+      }
+    }
+  };
+
+  // Switch between linked accounts sharing the EXACT same email
+  const handleLinkedAccountSwitch = async (acc) => {
+    setUserDropdownOpen(false);
+    setAccountSwitchModal(false);
+    setActiveCourse(null);
+
+    const rKey = acc.role === 'scholar' ? 'admin' : acc.role;
+    const basePersona = personas[rKey] || personas.student;
+    const targetPersona = {
+      ...basePersona,
+      id: acc.id,
+      name: acc.name,
+      email: acc.email,
+      role: rKey,
+      phone: acc.phone || basePersona.phone,
+      avatarIcon: acc.avatar || basePersona.avatarIcon
+    };
+
+    setCurrentUser(targetPersona);
+    if (rKey === 'student') setActiveNav('dashboard');
+    else if (rKey === 'teacher') setActiveNav('teacher');
+    else if (rKey === 'institute') setActiveNav('institute');
+    else if (rKey === 'admin') setActiveNav('admin');
+  };
+
+  // Student Edit Details Handlers
+  const handleOpenEditStudent = (st) => {
+    setEditStudentModal({
+      isOpen: true,
+      studentId: st.student_id || st.id,
+      enrollmentId: st.id,
+      name: st.name || '',
+      email: st.email || '',
+      phone: (st.phone && st.phone !== '—') ? st.phone : '',
+      guardian_name: st.guardian_name || '',
+      roll_number: st.roll_number || st.student_id || '',
+      gender: st.gender || 'Male',
+      age: st.age || '',
+      batch_name: st.batch || '',
+      isLoading: false
+    });
+  };
+
+  const handleEditStudentSubmit = async (e) => {
+    e.preventDefault();
+    setEditStudentModal(prev => ({ ...prev, isLoading: true }));
+    try {
+      const updateData = {
+        name: editStudentModal.name,
+        email: editStudentModal.email,
+        phone: editStudentModal.phone,
+        guardian_name: editStudentModal.guardian_name,
+        roll_number: editStudentModal.roll_number,
+        gender: editStudentModal.gender,
+        age: editStudentModal.age ? parseInt(editStudentModal.age) : null
+      };
+
+      if (window.apiService && window.apiService.updateStudent) {
+        await window.apiService.updateStudent(editStudentModal.studentId, updateData);
+      }
+
+      setTeacherStudents(prev => prev.map(s => {
+        if (s.student_id === editStudentModal.studentId || s.id === editStudentModal.enrollmentId) {
+          return {
+            ...s,
+            name: editStudentModal.name,
+            email: editStudentModal.email,
+            phone: editStudentModal.phone,
+            guardian_name: editStudentModal.guardian_name,
+            roll_number: editStudentModal.roll_number,
+            gender: editStudentModal.gender,
+            age: editStudentModal.age
+          };
+        }
+        return s;
+      }));
+
+      setEditStudentModal({ isOpen: false, studentId: '', enrollmentId: '', name: '', email: '', phone: '', guardian_name: '', roll_number: '', gender: 'Male', age: '', batch_name: '', isLoading: false });
+      alert(`MashaAllah! Talib-e-Ilm "${editStudentModal.name}" ki tafseelat SQLite database me kamyabi se update ho gayi hain.`);
+    } catch (err) {
+      console.error('Error updating student:', err);
+      alert('Student update karte waqt khata pesh aayi: ' + (err.message || err));
+      setEditStudentModal(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  // Recitation Evaluation Handlers
+  const handleOpenRecitationEval = (rec) => {
+    setRecitationEvalModal({
+      isOpen: true,
+      recitation: rec,
+      tajweedScore: rec.tajweed_score !== null && rec.tajweed_score !== undefined ? rec.tajweed_score : 90,
+      remarks: rec.teacher_feedback || '',
+      teacherVoiceUrl: rec.teacher_voice_url || null,
+      isRecording: false
+    });
+  };
+
+  const handleSubmitRecitationEval = async (e) => {
+    e.preventDefault();
+    if (!recitationEvalModal.recitation) return;
+    const recId = recitationEvalModal.recitation.id;
+    try {
+      const evalData = {
+        tajweed_score: parseInt(recitationEvalModal.tajweedScore) || 90,
+        teacher_feedback: recitationEvalModal.remarks || 'MashaAllah, achhi tilawat hai.',
+        teacher_voice_url: recitationEvalModal.teacherVoiceUrl || null
+      };
+
+      if (window.apiService && window.apiService.submitTajweedEvaluation) {
+        const res = await window.apiService.submitTajweedEvaluation(recId, evalData);
+        if (res && res.success) {
+          alert('MashaAllah! Audio feedback & remarks kamyabi se record aur submit ho gaye!');
+        }
+      }
+
+      setBatchRecitations(prev => prev.map(r => {
+        if (r.id === recId) {
+          return {
+            ...r,
+            tajweed_score: evalData.tajweed_score,
+            teacher_feedback: evalData.teacher_feedback,
+            teacher_voice_url: evalData.teacher_voice_url,
+            status: 'Graded'
+          };
+        }
+        return r;
+      }));
+
+      setRecitationEvalModal({ isOpen: false, recitation: null, tajweedScore: 90, remarks: '', teacherVoiceUrl: null, isRecording: false });
+    } catch (err) {
+      console.error('Evaluation submit error:', err);
+      alert('Khata: ' + (err.message || err));
+    }
+  };
+
   const handleDirectSwitch = async (roleKey) => {
     setUserDropdownOpen(false);
     setAccountSwitchModal(false);
@@ -1769,6 +1972,8 @@ function App() {
     const liveId = "live-" + Date.now();
     const newClassObj = {
       id: liveId,
+      batch_id: schedulerModal.batchId || null,
+      batch_title: schedulerModal.batchName || '',
       title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
       instructor: currentUser.name,
       date: schedulerModal.startDate + " at " + schedulerModal.startTime,
@@ -1778,11 +1983,13 @@ function App() {
     };
     setLiveClasses([newClassObj, ...liveClasses]);
 
-    // Dispatch 15-min Live Class notification to notification bell
+    // Dispatch 15-min Live Class notification isolated to target batch talaba
     const liveNotif = {
       id: "notif-sched-" + Date.now(),
       type: "live",
       urgent: true,
+      batch_id: schedulerModal.batchId || null,
+      batch_name: schedulerModal.batchName || '',
       title: `${newClassObj.title}`,
       teacher: currentUser.name,
       time: "Starts in 15 Mins ⏳",
@@ -1797,6 +2004,7 @@ function App() {
       window.apiService.createLiveClass({
         id: liveId,
         course_id: 'crs-tajweed-101',
+        batch_id: schedulerModal.batchId || null,
         title: schedulerModal.courseTitle + " (" + schedulerModal.recurrence + ")",
         instructor_name: currentUser.name,
         class_date: schedulerModal.startDate + " at " + schedulerModal.startTime,
@@ -2210,8 +2418,12 @@ function App() {
             username: res.credentials.username || '',
             plain_password: res.credentials.plain_password || '',
             email: res.credentials.email || studentToEnroll.email,
-            batch_name: targetBatch.name,
-            dispatch_message: res.credentials.dispatch_message || `Assalamu Alaikum ${studentToEnroll.name}! Al-Noor Islamic Platform par aapka account create ho gaya hai.\nUsername: ${res.credentials.username}\nPassword: ${res.credentials.plain_password}\nBatch: ${targetBatch.name}\nPortal: http://localhost:8085`
+            batch_name: res.credentials.batch_name || targetBatch.name,
+            batch_code: res.credentials.batch_code || targetBatch.id,
+            timings: res.credentials.timings || targetBatch.timing,
+            schedule_days: res.credentials.schedule_days || targetBatch.days,
+            portal_url: res.credentials.portal_url || window.location.origin || 'http://localhost:8085',
+            dispatch_message: res.credentials.dispatch_message || `Assalamu Alaikum ${studentToEnroll.name}! Al-Noor Islamic Platform par aapka account create ho gaya hai.\nUsername: ${res.credentials.username}\nPassword: ${res.credentials.plain_password}\nBatch: ${targetBatch.name}\nTimings: ${targetBatch.timing}\nSchedule: ${targetBatch.days}\nPortal: ${window.location.origin || 'http://localhost:8085'}`
           });
         }
 
@@ -3388,63 +3600,49 @@ function App() {
                 <div className="profile-dropdown-body">
                   {/* 2. Switch Account / Login As... (YouTube Style) */}
                   <div className="profile-dropdown-section-title">
-                    <span><i className="fas fa-users-cog"></i> Switch Account / Login As...</span>
-                    <button 
-                      onClick={() => { setUserDropdownOpen(false); setAccountSwitchModal(true); }}
-                      style={{ background: 'none', border: 'none', color: 'var(--color-accent-gold)', fontSize: '0.68rem', cursor: 'pointer', fontWeight: 700 }}
-                    >
-                      All Accounts →
-                    </button>
+                    <span><i className="fas fa-users-cog"></i> Linked Accounts ({currentUser.email})</span>
                   </div>
 
                   <div className="profile-switch-grid">
-                    <div 
-                      className={`profile-role-chip ${currentUser.role === 'student' ? 'active' : ''}`}
-                      onClick={() => handleDirectSwitch('student')}
-                      title="Switch to Ahmad Raza (Student Portal)"
-                    >
-                      <i className="fas fa-user-graduate" style={{ color: '#14b8a6' }}></i>
-                      <div style={{ lineHeight: 1.15 }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Ahmad Raza</div>
-                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Student</div>
+                    {linkedAccounts && linkedAccounts.length > 1 ? (
+                      linkedAccounts.map(acc => {
+                        const isCurrent = (currentUser.id === acc.id) || (currentUser.email === acc.email && currentUser.role === (acc.role === 'scholar' ? 'admin' : acc.role));
+                        const roleDisplay = acc.role === 'student' ? 'Student' : acc.role === 'teacher' ? 'Teacher' : acc.role === 'institute' ? 'Madrasa' : 'Scholar';
+                        const roleColor = acc.role === 'student' ? '#14b8a6' : acc.role === 'teacher' ? '#f59e0b' : acc.role === 'institute' ? '#38bdf8' : '#f43f5e';
+                        const roleIcon = acc.avatar || (acc.role === 'student' ? 'fa-user-graduate' : acc.role === 'teacher' ? 'fa-chalkboard-teacher' : acc.role === 'institute' ? 'fa-mosque' : 'fa-user-shield');
+                        return (
+                          <div 
+                            key={acc.id}
+                            className={`profile-role-chip ${isCurrent ? 'active' : ''}`}
+                            onClick={() => handleLinkedAccountSwitch(acc)}
+                            title={`Switch to ${acc.name} (${roleDisplay})`}
+                          >
+                            <i className={`fas ${roleIcon}`} style={{ color: roleColor }}></i>
+                            <div style={{ lineHeight: 1.15 }}>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>{acc.name}</div>
+                              <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{roleDisplay} {isCurrent ? '(Active)' : ''}</div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div style={{ gridColumn: '1 / -1', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-primary-light)', fontWeight: 700, marginBottom: '4px' }}>
+                          <i className="fas fa-user-lock"></i> Single Account Active ({currentUser.email})
+                        </div>
+                        <div>Is email par koi doosra linked account nahi hai. Strict account privacy active hai.</div>
                       </div>
-                    </div>
-
-                    <div 
-                      className={`profile-role-chip ${currentUser.role === 'teacher' ? 'active' : ''}`}
-                      onClick={() => handleDirectSwitch('teacher')}
-                      title="Switch to Qari Abdul Basit (Teacher Studio)"
+                    )}
+                  </div>
+                  <div style={{ marginTop: '8px' }}>
+                    <button 
+                      type="button"
+                      className="btn btn-outline btn-sm" 
+                      style={{ width: '100%', fontSize: '0.74rem', padding: '5px 8px' }}
+                      onClick={() => { setUserDropdownOpen(false); setAccountSwitchModal(true); }}
                     >
-                      <i className="fas fa-chalkboard-teacher" style={{ color: '#f59e0b' }}></i>
-                      <div style={{ lineHeight: 1.15 }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Qari Basit</div>
-                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Teacher</div>
-                      </div>
-                    </div>
-
-                    <div 
-                      className={`profile-role-chip ${currentUser.role === 'institute' ? 'active' : ''}`}
-                      onClick={() => handleDirectSwitch('institute')}
-                      title="Switch to Jamia Darul Uloom (Madrasa Operations)"
-                    >
-                      <i className="fas fa-mosque" style={{ color: '#38bdf8' }}></i>
-                      <div style={{ lineHeight: 1.15 }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Darul Uloom</div>
-                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Madrasa</div>
-                      </div>
-                    </div>
-
-                    <div 
-                      className={`profile-role-chip ${currentUser.role === 'admin' ? 'active' : ''}`}
-                      onClick={() => handleDirectSwitch('admin')}
-                      title="Switch to Mufti Tariq (Shariah Scholar)"
-                    >
-                      <i className="fas fa-user-shield" style={{ color: '#f43f5e' }}></i>
-                      <div style={{ lineHeight: 1.15 }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 700 }}>Mufti Tariq</div>
-                        <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>Scholar</div>
-                      </div>
-                    </div>
+                      <i className="fas fa-sign-in-alt"></i> Sign in with another account
+                    </button>
                   </div>
 
                   <div className="profile-dropdown-divider"></div>
@@ -4134,7 +4332,9 @@ function App() {
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ENROLLED TALABA</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>142</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>
+                      {new Set(teacherStudents.map(s => s.student_id || s.id || s.email)).size}
+                    </div>
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ACTIVE COURSES</div>
@@ -4142,11 +4342,15 @@ function App() {
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ACTIVE BATCHES</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>{teacherBatches.length}</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>
+                      {teacherBatches.filter(b => (b.status || 'Active').toLowerCase() === 'active').length}
+                    </div>
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>WALLET PAYOUT</div>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-emerald-light)' }}>{teacherEarnings.readyForPayout}</div>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-emerald-light)' }}>
+                      {teacherEarnings.readyForPayout || '₹' + (teacherStudents.length * 1500).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -4481,69 +4685,731 @@ function App() {
                   </div>
                 </div>
 
-                {/* Batches Grid */}
-                <div className="batch-grid" style={{ marginBottom: '24px' }}>
-                  {teacherBatches.map(b => (
-                    <div key={b.id} className="batch-card">
-                      <div className="batch-card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>{b.name}</h4>
-                          <span className="badge badge-emerald" style={{ flexShrink: 0 }}>{b.status || 'Active'}</span>
-                        </div>
-                        <div style={{ fontSize: '0.82rem', color: 'var(--color-accent-gold)', marginTop: '4px', fontWeight: 600 }}>{b.course}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '10px 0', lineHeight: 1.6 }}>
-                          <div><strong><i className="far fa-clock"></i> Timing:</strong> {b.timing}</div>
-                          <div><strong><i className="far fa-calendar-alt"></i> Days:</strong> {b.days}</div>
-                          <div><strong><i className="fas fa-tag"></i> Fees:</strong> {b.feeMonthly}</div>
-                        </div>
-                        {/* Seats Progress Indicator */}
-                        <div style={{ marginTop: '12px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700 }}>
-                            <span style={{ color: 'var(--color-primary-light)' }}>
-                              <i className="fas fa-user-friends"></i> {b.enrolled || 0} / {b.max} Seats Filled
-                            </span>
-                            <span style={{ color: 'var(--text-muted)' }}>
-                              {Math.round(((b.enrolled || 0) / (b.max || 30)) * 100)}%
-                            </span>
+{activeBatchWorkspace ? (
+                  /* =========================================================
+                     DEDICATED BATCH WORKSPACE PANEL (7 INTEGRATED SUB-TABS)
+                     ========================================================= */
+                  <div className="batch-workspace-panel" style={{ marginBottom: '32px' }}>
+                    {/* Top Navigation & Breadcrumb */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline btn-sm" 
+                        onClick={() => setActiveBatchWorkspace(null)}
+                        style={{ fontWeight: 700, padding: '6px 14px' }}
+                      >
+                        <i className="fas fa-arrow-left"></i> ← Wapas Tamam Batches Par (All Batches)
+                      </button>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span className="badge badge-gold"><i className="fas fa-layer-group"></i> Batch ID: {activeBatchWorkspace.id}</span>
+                        <span className="badge badge-emerald"><i className="fas fa-check-circle"></i> {activeBatchWorkspace.status || 'Active'}</span>
+                      </div>
+                    </div>
+
+                    {/* Batch Hero Header Card */}
+                    <div className="glass-card" style={{ padding: '24px', marginBottom: '20px', border: '1px solid rgba(245, 158, 11, 0.3)', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(245, 158, 11, 0.08))' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                        <div>
+                          <span className="badge badge-teal" style={{ marginBottom: '8px', display: 'inline-block' }}>
+                            <i className="fas fa-book-reader"></i> {activeBatchWorkspace.course || 'Islamic Course'}
+                          </span>
+                          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, margin: '2px 0 8px', color: '#ffffff' }}>
+                            {activeBatchWorkspace.name}
+                          </h2>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                            <div><i className="far fa-clock" style={{ color: 'var(--color-accent-gold)' }}></i> <strong>Timings:</strong> {activeBatchWorkspace.timing}</div>
+                            <div><i className="far fa-calendar-alt" style={{ color: 'var(--color-primary-light)' }}></i> <strong>Days:</strong> {activeBatchWorkspace.days}</div>
+                            <div><i className="fas fa-tag" style={{ color: '#38bdf8' }}></i> <strong>Monthly Fee:</strong> {activeBatchWorkspace.feeMonthly}</div>
                           </div>
-                          <div className="batch-seats-bar">
-                            <div 
-                              className="batch-seats-fill" 
-                              style={{ width: `${Math.min(100, Math.round(((b.enrolled || 0) / (b.max || 30)) * 100))}%` }}
-                            ></div>
-                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                          <button 
+                            type="button" 
+                            className="btn btn-primary btn-sm" 
+                            onClick={() => handleOpenEnrollModal(activeBatchWorkspace)}
+                          >
+                            <i className="fas fa-user-plus"></i> + Add Student
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn btn-gold btn-sm" 
+                            onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true, batchId: activeBatchWorkspace.id, batchTitle: activeBatchWorkspace.name, courseTitle: activeBatchWorkspace.course })}
+                          >
+                            <i className="fas fa-tasks"></i> + Assign Homework
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn btn-outline btn-sm" 
+                            onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true, batchId: activeBatchWorkspace.id, batchName: activeBatchWorkspace.name, courseTitle: activeBatchWorkspace.course })}
+                          >
+                            <i className="fas fa-video"></i> + Schedule Class
+                          </button>
                         </div>
                       </div>
 
-                      {/* Dedicated Action Buttons Row - Never Overflows */}
-                      <div className="batch-card-actions">
-                        <button 
-                          className="btn btn-primary btn-sm" 
-                          style={{ flex: 1, padding: '6px 8px', fontSize: '0.78rem' }}
-                          onClick={() => handleOpenEnrollModal(b)}
-                        >
-                          <i className="fas fa-user-plus"></i> + Add Student
-                        </button>
-                        <button 
-                          className="btn btn-outline btn-sm" 
-                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                          onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: b.id, batchName: b.name, timing: b.timing, days: b.days, feeMonthly: b.feeMonthly })}
-                          title={t.edit || 'Edit'}
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button 
-                          className="btn btn-danger btn-sm" 
-                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                          onClick={() => handleDeleteBatch(b.id)}
-                          title={t.delete || 'Delete'}
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </button>
+                      {/* 4 Summary Chips */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginTop: '20px' }}>
+                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>ENROLLED TALABA</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>
+                            {teacherStudents.filter(s => s.batch_id === activeBatchWorkspace.id || s.batch === activeBatchWorkspace.name).length}
+                          </div>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>HOMEWORK TASKS</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-accent-gold)' }}>
+                            {homeworkList.filter(h => h.batchId === activeBatchWorkspace.id || h.batchName === activeBatchWorkspace.name).length}
+                          </div>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>LIVE SESSIONS</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#38bdf8' }}>
+                            {liveClasses.filter(c => c.batch_id === activeBatchWorkspace.id).length}
+                          </div>
+                        </div>
+                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>TILAWAT AUDIOS</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#a78bfa' }}>
+                            {batchRecitations.length}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* 7 Dedicated Sub-Tabs Navigation Bar */}
+                    <div className="teacher-subnav-tabs" style={{ marginBottom: '20px' }}>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'students' ? 'active' : ''}`} 
+                        onClick={() => setBatchWorkspaceTab('students')}
+                      >
+                        <i className="fas fa-user-graduate"></i> 1. Talaba Directory ({teacherStudents.filter(s => s.batch_id === activeBatchWorkspace.id || s.batch === activeBatchWorkspace.name).length})
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'homework' ? 'active' : ''}`} 
+                        onClick={() => setBatchWorkspaceTab('homework')}
+                      >
+                        <i className="fas fa-tasks"></i> 2. Homework ({homeworkList.filter(h => h.batchId === activeBatchWorkspace.id || h.batchName === activeBatchWorkspace.name).length})
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'live' ? 'active' : ''}`} 
+                        onClick={() => setBatchWorkspaceTab('live')}
+                      >
+                        <i className="fas fa-video"></i> 3. Schedule Live Class ({liveClasses.filter(c => c.batch_id === activeBatchWorkspace.id).length})
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'fees' ? 'active' : ''}`} 
+                        onClick={() => setBatchWorkspaceTab('fees')}
+                      >
+                        <i className="fas fa-receipt"></i> 4. Record Offline Fee
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'notices' ? 'active' : ''}`} 
+                        onClick={() => setBatchWorkspaceTab('notices')}
+                      >
+                        <i className="fas fa-bullhorn"></i> 5. Broadcast Notice
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'certificates' ? 'active' : ''}`} 
+                        onClick={() => setBatchWorkspaceTab('certificates')}
+                      >
+                        <i className="fas fa-award"></i> 6. Issue Certificate
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`teacher-subnav-tab ${batchWorkspaceTab === 'tajweed' ? 'active' : ''}`} 
+                        onClick={() => { setBatchWorkspaceTab('tajweed'); loadBatchRecitations(activeBatchWorkspace.id); }}
+                      >
+                        <i className="fas fa-microphone-alt"></i> 7. Tajweed Audio Studio ({batchRecitations.length})
+                      </button>
+                    </div>
+
+                    {/* SUB-TAB 1: TALABA DIRECTORY FOR THIS BATCH */}
+                    {batchWorkspaceTab === 'students' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-user-graduate" style={{ color: 'var(--color-primary-light)' }}></i> "{activeBatchWorkspace.name}" Ke Talaba
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Is batch me dakhil talaba ki fehrist. Aap talib-e-ilm ki tafseelat edit kar sakte hain, offline fee jama kar sakte hain ya batch se remove kar sakte hain.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-primary btn-sm" 
+                            onClick={() => handleOpenEnrollModal(activeBatchWorkspace)}
+                          >
+                            <i className="fas fa-user-plus"></i> + Naya Talib-e-Ilm Dakhil Karein
+                          </button>
+                        </div>
+
+                        <table className="custom-table">
+                          <thead>
+                            <tr>
+                              <th>Student Name & ID</th>
+                              <th>Email & Contact</th>
+                              <th>Attendance</th>
+                              <th>Fee Status</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {teacherStudents
+                              .filter(s => s.batch_id === activeBatchWorkspace.id || s.batch === activeBatchWorkspace.name)
+                              .map(st => (
+                                <tr key={st.id}>
+                                  <td>
+                                    <strong>{st.name}</strong>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {st.student_id || st.id}</div>
+                                  </td>
+                                  <td>
+                                    <div style={{ fontSize: '0.82rem' }}>{st.email}</div>
+                                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{st.phone}</div>
+                                  </td>
+                                  <td><strong>{st.attendance || '90%'}</strong></td>
+                                  <td>
+                                    <span className={`badge ${st.feeStatus && st.feeStatus.includes('Paid') ? 'badge-emerald' : 'badge-gold'}`}>
+                                      {st.feeStatus || 'Due'}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                      <button 
+                                        type="button" 
+                                        className="btn btn-outline btn-sm" 
+                                        style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                                        onClick={() => handleOpenEditStudent(st)}
+                                        title="Edit Student Details"
+                                      >
+                                        <i className="fas fa-edit"></i> Edit
+                                      </button>
+                                      <button 
+                                        type="button" 
+                                        className="btn btn-outline btn-sm" 
+                                        style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                                        onClick={() => setOfflineFeeModal({
+                                          ...offlineFeeModal,
+                                          isOpen: true,
+                                          batchId: activeBatchWorkspace.id,
+                                          batchName: activeBatchWorkspace.name,
+                                          studentId: st.student_id || st.id,
+                                          studentName: st.name
+                                        })}
+                                        title="Record Offline Fee"
+                                      >
+                                        <i className="fas fa-receipt"></i> Fee
+                                      </button>
+                                      <button 
+                                        type="button" 
+                                        className="btn btn-danger btn-sm" 
+                                        style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                                        onClick={() => handleRemoveStudentFromBatch(st)}
+                                        title="Remove from this batch"
+                                      >
+                                        <i className="fas fa-trash-alt"></i> Remove
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            {teacherStudents.filter(s => s.batch_id === activeBatchWorkspace.id || s.batch === activeBatchWorkspace.name).length === 0 && (
+                              <tr>
+                                <td colSpan="5" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                                  Is batch me abhi koi talib-e-ilm dakhil nahi hai. Upar diye gaye <strong>+ Naya Talib-e-Ilm Dakhil Karein</strong> button par click karein.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 2: HOMEWORK FOR THIS BATCH */}
+                    {batchWorkspaceTab === 'homework' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-tasks" style={{ color: 'var(--color-accent-gold)' }}></i> "{activeBatchWorkspace.name}" Ke Homework Assignments
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Yeh assignments sirf is batch ke talaba ko show hote hain aur unke submissions yahan jama hote hain.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-gold btn-sm" 
+                            onClick={() => setHwCreateModal({ ...hwCreateModal, isOpen: true, batchId: activeBatchWorkspace.id, batchTitle: activeBatchWorkspace.name, courseTitle: activeBatchWorkspace.course })}
+                          >
+                            <i className="fas fa-plus-circle"></i> + Naya Homework Assign Karein
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                          {homeworkList
+                            .filter(h => h.batchId === activeBatchWorkspace.id || h.batchName === activeBatchWorkspace.name)
+                            .map(hw => (
+                              <div key={hw.id} style={{ background: 'rgba(0,0,0,0.35)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                  <span className="badge badge-gold" style={{ fontSize: '0.68rem' }}>Max Marks: {hw.maxMarks || 20}</span>
+                                  <span className="badge badge-teal" style={{ fontSize: '0.68rem' }}>Due: {hw.dueDate}</span>
+                                </div>
+                                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '8px 0 4px' }}>{hw.title}</h4>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                                  {hw.notes || 'Hidayat: Tilawat recording upload karein aur sawalat ke jawabat dein.'}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', fontSize: '0.78rem' }}>
+                                  <span style={{ color: 'var(--color-primary-light)' }}>
+                                    <i className="fas fa-check-circle"></i> {hw.submissionsCount || 0} Submissions
+                                  </span>
+                                  <button 
+                                    type="button" 
+                                    className="btn btn-outline btn-sm" 
+                                    style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                                    onClick={() => setTeacherSubTab('homework')}
+                                  >
+                                    Submissions Dekhein →
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          {homeworkList.filter(h => h.batchId === activeBatchWorkspace.id || h.batchName === activeBatchWorkspace.name).length === 0 && (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                              Is batch ke liye koi homework nahi banaya gaya. Upar diye gaye button se naya homework assign karein.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 3: SCHEDULE LIVE CLASS FOR THIS BATCH */}
+                    {batchWorkspaceTab === 'live' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-video" style={{ color: '#38bdf8' }}></i> "{activeBatchWorkspace.name}" Ki Live Halaqah Classes
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Live class schedule karne par sirf is batch ke talaba ko 15 minute pehle isolated notification send hota hai.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-primary btn-sm" 
+                            onClick={() => setSchedulerModal({ ...schedulerModal, isOpen: true, batchId: activeBatchWorkspace.id, batchName: activeBatchWorkspace.name, courseTitle: activeBatchWorkspace.course })}
+                          >
+                            <i className="fas fa-calendar-plus"></i> + Nayi Class Schedule Karein
+                          </button>
+                        </div>
+
+                        <div style={{ background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', fontSize: '0.84rem' }}>
+                          <i className="fas fa-bell" style={{ color: '#38bdf8', marginRight: '6px' }}></i>
+                          <strong>Isolated Pre-Notification Active:</strong> Scheduled time se 15 minute pehle sirf is batch <strong>({activeBatchWorkspace.name})</strong> ke talaba ke portal bell icon par "Class Starts in 15 Mins ⏳" notification trigger hoga.
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                          {liveClasses
+                            .filter(c => c.batch_id === activeBatchWorkspace.id)
+                            .map(cls => (
+                              <div key={cls.id} style={{ background: 'rgba(0,0,0,0.35)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span className="badge badge-ruby"><i className="fas fa-circle"></i> {cls.status || 'Scheduled'}</span>
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{cls.recurrence || 'Daily'}</span>
+                                </div>
+                                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '8px 0 4px' }}>{cls.title}</h4>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--color-accent-gold)', marginBottom: '8px' }}>
+                                  <i className="far fa-calendar-alt"></i> {cls.date || cls.class_date}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                                    <i className="fas fa-users"></i> {cls.enrolled || 30} Talaba
+                                  </span>
+                                  <button 
+                                    type="button" 
+                                    className="btn btn-primary btn-sm" 
+                                    style={{ padding: '3px 10px', fontSize: '0.74rem' }}
+                                    onClick={() => handleJoinLiveClass(cls)}
+                                  >
+                                    <i className="fas fa-door-open"></i> Start Class Room
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          {liveClasses.filter(c => c.batch_id === activeBatchWorkspace.id).length === 0 && (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                              Is batch ke liye abhi koi live class scheduled nahi hai. Upar diye gaye <strong>+ Nayi Class Schedule Karein</strong> button se schedule karein.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 4: RECORD OFFLINE FEE FOR THIS BATCH */}
+                    {batchWorkspaceTab === 'fees' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-receipt" style={{ color: 'var(--color-emerald-light)' }}></i> "{activeBatchWorkspace.name}" Offline Fee Records
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Offline cash/UPI fee wasooli ka record. Yahan se save karne par student dropdown sirf is batch ke talaba tak mehdood rehta hai.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-gold btn-sm" 
+                            onClick={() => setOfflineFeeModal({
+                              ...offlineFeeModal,
+                              isOpen: true,
+                              batchId: activeBatchWorkspace.id,
+                              batchName: activeBatchWorkspace.name,
+                              studentId: '',
+                              studentName: ''
+                            })}
+                          >
+                            <i className="fas fa-plus-circle"></i> + Is Batch Ki Fee Jama Karein
+                          </button>
+                        </div>
+
+                        <table className="custom-table">
+                          <thead>
+                            <tr>
+                              <th>Receipt No</th>
+                              <th>Student Name</th>
+                              <th>Amount</th>
+                              <th>Payment Mode</th>
+                              <th>Date</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {feeLedger
+                              .filter(f => f.batch === activeBatchWorkspace.name || f.batch_id === activeBatchWorkspace.id || f.batch === activeBatchWorkspace.id)
+                              .map(fee => (
+                                <tr key={fee.id}>
+                                  <td><code>{fee.receipt || fee.receiptNo || 'RCP-2026-X'}</code></td>
+                                  <td><strong>{fee.student || fee.student_name}</strong></td>
+                                  <td><strong style={{ color: 'var(--color-emerald-light)' }}>{fee.amount}</strong></td>
+                                  <td><span className="badge badge-teal">{fee.mode || 'Cash'}</span></td>
+                                  <td>{fee.date || fee.paymentDate}</td>
+                                  <td><span className="badge badge-emerald"><i className="fas fa-check"></i> {fee.status || 'Received'}</span></td>
+                                </tr>
+                              ))}
+                            {feeLedger.filter(f => f.batch === activeBatchWorkspace.name || f.batch_id === activeBatchWorkspace.id || f.batch === activeBatchWorkspace.id).length === 0 && (
+                              <tr>
+                                <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                                  Is batch ke liye abhi koi fee receipt record nahi hui. Upar diye gaye button se pehla fee record darj karein.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 5: BROADCAST NOTICE TO THIS BATCH */}
+                    {batchWorkspaceTab === 'notices' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-bullhorn" style={{ color: '#f59e0b' }}></i> "{activeBatchWorkspace.name}" Ke Notices & I'laan
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Yahan se broadcast kiya gaya notice sirf is batch ke talaba ke notification bell aur notice board par jata hai.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-outline btn-sm" 
+                            onClick={() => setNoticeModal({ ...noticeModal, isOpen: true, targetBatchId: activeBatchWorkspace.id, targetBatchName: activeBatchWorkspace.name })}
+                          >
+                            <i className="fas fa-plus"></i> + Naya Notice Bhejein
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {noticesList
+                            .filter(n => n.target === activeBatchWorkspace.name || n.targetBatchId === activeBatchWorkspace.id || (n.target && n.target.includes(activeBatchWorkspace.name)) || n.target === 'All Enrolled Students')
+                            .map(notif => (
+                              <div key={notif.id} style={{ background: 'rgba(0,0,0,0.35)', padding: '14px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span className="badge badge-gold" style={{ fontSize: '0.68rem' }}>{notif.priority || 'Normal'}</span>
+                                    <strong style={{ fontSize: '0.92rem' }}>{notif.title}</strong>
+                                  </div>
+                                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                    Target: <strong>{notif.target}</strong> • Tarikh: {notif.date}
+                                  </div>
+                                </div>
+                                <span className="badge badge-teal"><i className="fas fa-check"></i> Broadcasted</span>
+                              </div>
+                            ))}
+                          {noticesList.filter(n => n.target === activeBatchWorkspace.name || n.targetBatchId === activeBatchWorkspace.id || (n.target && n.target.includes(activeBatchWorkspace.name)) || n.target === 'All Enrolled Students').length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                              Is batch ke liye abhi koi notice broadcast nahi hua.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 6: ISSUE CERTIFICATE FOR THIS BATCH */}
+                    {batchWorkspaceTab === 'certificates' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-award" style={{ color: 'var(--color-accent-gold)' }}></i> "{activeBatchWorkspace.name}" Sanad (Certificates)
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Is batch ke kamyab talaba ko official verified Sanad-e-Fazeelat issue karein.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-gold btn-sm" 
+                            onClick={() => setCertModal({ ...certModal, isOpen: true, batchId: activeBatchWorkspace.id, courseTitle: activeBatchWorkspace.course })}
+                          >
+                            <i className="fas fa-certificate"></i> + Sanad (Certificate) Issue Karein
+                          </button>
+                        </div>
+
+                        <table className="custom-table">
+                          <thead>
+                            <tr>
+                              <th>Sanad ID</th>
+                              <th>Talib-e-Ilm</th>
+                              <th>Course / Dora</th>
+                              <th>Grade</th>
+                              <th>Tarikh</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {issuedCerts
+                              .filter(c => c.course === activeBatchWorkspace.course || c.batchId === activeBatchWorkspace.id)
+                              .map(crt => (
+                                <tr key={crt.id}>
+                                  <td><code>{crt.id}</code></td>
+                                  <td><strong>{crt.student}</strong></td>
+                                  <td>{crt.course}</td>
+                                  <td><span className="badge badge-gold">{crt.grade || 'Mumtaz (A+)'}</span></td>
+                                  <td>{crt.date}</td>
+                                  <td><span className="badge badge-emerald"><i className="fas fa-check-double"></i> Verified</span></td>
+                                </tr>
+                              ))}
+                            {issuedCerts.filter(c => c.course === activeBatchWorkspace.course || c.batchId === activeBatchWorkspace.id).length === 0 && (
+                              <tr>
+                                <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                                  Is batch ke kisi talib-e-ilm ko abhi sanad issue nahi hui.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 7: TAJWEED AUDIO STUDIO FOR THIS BATCH */}
+                    {batchWorkspaceTab === 'tajweed' && (
+                      <div className="glass-card" style={{ padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                          <div>
+                            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                              <i className="fas fa-microphone-alt" style={{ color: '#a78bfa' }}></i> "{activeBatchWorkspace.name}" Tajweed Audio Studio
+                            </h4>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                              Is batch ke talaba ki tilawat sunein, apni awaz me real voice note feedback record karein aur written guidance marks ke sath jama karein.
+                            </p>
+                          </div>
+                          <button 
+                            type="button" 
+                            className="btn btn-outline btn-sm" 
+                            onClick={() => loadBatchRecitations(activeBatchWorkspace.id)}
+                          >
+                            <i className="fas fa-sync-alt"></i> Refresh Tilawat Queue
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {batchRecitations.map(rec => (
+                            <div key={rec.id} style={{ background: 'rgba(0,0,0,0.4)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span className="badge badge-teal"><i className="fas fa-quran"></i> {rec.surah_name}</span>
+                                    <span className="badge badge-gold">{rec.verses || 'Ayat 1-5'}</span>
+                                    <span className={`badge ${rec.status === 'Graded' ? 'badge-emerald' : 'badge-ruby'}`}>
+                                      {rec.status === 'Graded' ? 'Evaluated ✅' : 'Pending Review ⏳'}
+                                    </span>
+                                  </div>
+                                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '6px 0 2px' }}>
+                                    {rec.student_name} <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>({rec.student_id})</span>
+                                  </h4>
+                                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                                    Submitted: {rec.created_at} • Duration: {rec.duration || '02:10'}
+                                  </div>
+                                </div>
+                                {rec.tajweed_score !== null && rec.tajweed_score !== undefined && (
+                                  <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>TAJWEED SCORE</div>
+                                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-primary-light)' }}>
+                                      {rec.tajweed_score}/100
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Student Audio Player */}
+                              <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                                  <i className="fas fa-play-circle"></i> Talib-e-Ilm Ki Tilawat Audio:
+                                </div>
+                                <audio controls src={rec.audio_url} style={{ width: '100%', height: '36px' }}></audio>
+                                {rec.student_notes && (
+                                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '6px', fontStyle: 'italic' }}>
+                                    Talib-e-Ilm Note: "{rec.student_notes}"
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Teacher Feedback Display if Graded */}
+                              {rec.status === 'Graded' && (
+                                <div style={{ marginTop: '12px', background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.25)', padding: '12px 14px', borderRadius: '8px' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                    <strong style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)' }}>
+                                      <i className="fas fa-chalkboard-teacher"></i> Ustad Ka Feedback & Rahnumai:
+                                    </strong>
+                                    <span className="badge badge-emerald" style={{ fontSize: '0.68rem' }}>Score: {rec.tajweed_score}/100</span>
+                                  </div>
+                                  <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', marginBottom: '8px', lineHeight: 1.5 }}>
+                                    {rec.teacher_feedback || 'MashaAllah, achhi tilawat hai.'}
+                                  </div>
+                                  {rec.teacher_voice_url && (
+                                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                      <div style={{ fontSize: '0.74rem', color: 'var(--color-accent-gold)', marginBottom: '4px', fontWeight: 600 }}>
+                                        <i className="fas fa-microphone"></i> Ustad Ki Awaz Me Voice Guidance Audio:
+                                      </div>
+                                      <audio controls src={rec.teacher_voice_url} style={{ width: '100%', height: '36px' }}></audio>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Action Button: Evaluate / Re-Evaluate */}
+                              <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                <button 
+                                  type="button" 
+                                  className={`btn ${rec.status === 'Graded' ? 'btn-outline' : 'btn-primary'} btn-sm`}
+                                  onClick={() => handleOpenRecitationEval(rec)}
+                                >
+                                  <i className="fas fa-microphone"></i> {rec.status === 'Graded' ? 'Re-Evaluate / Update Voice & Remarks' : 'Voice Feedback Record Karein & Remarks Dein'}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {batchRecitations.length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                              <i className="fas fa-microphone-slash" style={{ fontSize: '2rem', marginBottom: '8px', display: 'block', opacity: 0.5 }}></i>
+                              Is batch ke kisi talib-e-ilm ne abhi tilawat submit nahi ki hai.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* =========================================================
+                     STANDARD BATCHES GRID (CLICK ANY BATCH TO OPEN WORKSPACE)
+                     ========================================================= */
+                  <div className="batch-grid" style={{ marginBottom: '24px' }}>
+                    {teacherBatches.map(b => (
+                      <div key={b.id} className="batch-card" style={{ cursor: 'pointer' }} onClick={() => { setActiveBatchWorkspace(b); setBatchWorkspaceTab('students'); }}>
+                        <div className="batch-card-body">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                            <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--color-accent-gold)' }}>
+                              <i className="fas fa-folder-open" style={{ marginRight: '6px', fontSize: '0.9rem' }}></i>{b.name}
+                            </h4>
+                            <span className="badge badge-emerald" style={{ flexShrink: 0 }}>{b.status || 'Active'}</span>
+                          </div>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--color-primary-light)', marginTop: '4px', fontWeight: 600 }}>{b.course}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '10px 0', lineHeight: 1.6 }}>
+                            <div><strong><i className="far fa-clock"></i> Timing:</strong> {b.timing}</div>
+                            <div><strong><i className="far fa-calendar-alt"></i> Days:</strong> {b.days}</div>
+                            <div><strong><i className="fas fa-tag"></i> Fees:</strong> {b.feeMonthly}</div>
+                          </div>
+                          {/* Seats Progress Indicator */}
+                          <div style={{ marginTop: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700 }}>
+                              <span style={{ color: 'var(--color-primary-light)' }}>
+                                <i className="fas fa-user-friends"></i> {b.enrolled || 0} / {b.max} Seats Filled
+                              </span>
+                              <span style={{ color: 'var(--text-muted)' }}>
+                                {Math.round(((b.enrolled || 0) / (b.max || 30)) * 100)}%
+                              </span>
+                            </div>
+                            <div className="batch-seats-bar">
+                              <div 
+                                className="batch-seats-fill" 
+                                style={{ width: `${Math.min(100, Math.round(((b.enrolled || 0) / (b.max || 30)) * 100))}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Dedicated Action Buttons Row */}
+                        <div className="batch-card-actions" onClick={e => e.stopPropagation()}>
+                          <button 
+                            type="button"
+                            className="btn btn-gold btn-sm" 
+                            style={{ flex: 1, padding: '6px 8px', fontSize: '0.78rem', fontWeight: 700 }}
+                            onClick={() => { setActiveBatchWorkspace(b); setBatchWorkspaceTab('students'); }}
+                          >
+                            <i className="fas fa-folder-open"></i> Workspace Kholein
+                          </button>
+                          <button 
+                            type="button"
+                            className="btn btn-primary btn-sm" 
+                            style={{ padding: '6px 8px', fontSize: '0.78rem' }}
+                            onClick={() => handleOpenEnrollModal(b)}
+                            title="Add Student"
+                          >
+                            <i className="fas fa-user-plus"></i>
+                          </button>
+                          <button 
+                            type="button"
+                            className="btn btn-outline btn-sm" 
+                            style={{ padding: '6px 8px', fontSize: '0.78rem' }}
+                            onClick={() => setBatchModal({ ...batchModal, isOpen: true, editId: b.id, batchName: b.name, timing: b.timing, days: b.days, feeMonthly: b.feeMonthly })}
+                            title={t.edit || 'Edit'}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button 
+                            type="button"
+                            className="btn btn-danger btn-sm" 
+                            style={{ padding: '6px 8px', fontSize: '0.78rem' }}
+                            onClick={() => handleDeleteBatch(b.id)}
+                            title={t.delete || 'Delete'}
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Talaba Directory Table with Batch Filter Tabs */}
                 <div className="glass-card" style={{ padding: '20px' }}>
@@ -4613,6 +5479,16 @@ function App() {
                             <td>
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 <button 
+                                  type="button"
+                                  className="btn btn-outline btn-sm" 
+                                  style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                                  onClick={() => handleOpenEditStudent(st)}
+                                  title="Edit Student Details"
+                                >
+                                  <i className="fas fa-edit"></i> Edit
+                                </button>
+                                <button 
+                                  type="button"
                                   className="btn btn-outline btn-sm" 
                                   style={{ padding: '3px 8px', fontSize: '0.72rem' }}
                                   onClick={() => setOfflineFeeModal({ ...offlineFeeModal, isOpen: true, studentName: st.name, batchName: st.batch })}
@@ -6028,8 +6904,27 @@ function App() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Batch Selection</label>
-                  <input type="text" className="form-input" value={schedulerModal.batchName} onChange={(e) => setSchedulerModal({ ...schedulerModal, batchName: e.target.value })} />
+                  <label className="form-label">Target Batch (Kiske Liye Class Set Ho Rahi Hai) *</label>
+                  <select 
+                    className="form-select" 
+                    required 
+                    value={schedulerModal.batchId || ''} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const b = teacherBatches.find(x => x.id === val);
+                      setSchedulerModal({
+                        ...schedulerModal,
+                        batchId: val,
+                        batchName: b ? b.name : '',
+                        courseTitle: b ? b.course : schedulerModal.courseTitle
+                      });
+                    }}
+                  >
+                    <option value="">-- Batch Muntakhab Karein --</option>
+                    {teacherBatches.map(b => (
+                      <option key={b.id} value={b.id}>{b.name} ({b.course})</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Recurrence Pattern</label>
@@ -6055,6 +6950,10 @@ function App() {
 
               <div style={{ background: 'rgba(245, 158, 11, 0.08)', padding: '12px', borderRadius: '10px', margin: '12px 0', fontSize: '0.82rem' }}>
                 <strong>Auto-Calculated Series End Date:</strong> {schedulerModal.autoEndDate}
+              </div>
+
+              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px', fontSize: '0.8rem', color: '#38bdf8' }}>
+                <i className="fas fa-bell"></i> <strong>15-Minute Pre-Notification Alert:</strong> Live class shuru hone se 15 minute pehle auto-notification sirf is muntakhab batch <strong>({schedulerModal.batchName || 'Selected Batch'})</strong> ke dakhil talaba ko send hoga.
               </div>
 
               <div className="form-group">
@@ -6509,7 +7408,7 @@ function App() {
               </p>
             </div>
 
-            {/* Credentials Card */}
+            {/* Credentials Card with Full Batch Details */}
             <div style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid var(--border-light)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div>
@@ -6526,13 +7425,15 @@ function App() {
                 </div>
               </div>
 
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-                <div><strong>Enrolled Batch:</strong> {studentCredsModal.batch_name || 'General Batch'}</div>
-                <div><strong>Registered Email:</strong> {studentCredsModal.email}</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div><strong>Enrolled Batch:</strong> {studentCredsModal.batch_name || 'General Batch'} {studentCredsModal.batch_code ? `(${studentCredsModal.batch_code})` : ''}</div>
+                <div><strong>Class Timings & Days:</strong> {studentCredsModal.timings || '06:30 AM - 07:15 AM'} • {studentCredsModal.schedule_days || 'Mon - Thu'}</div>
+                <div><strong>Student Email:</strong> {studentCredsModal.email}</div>
+                <div><strong>Portal Link:</strong> <a href={studentCredsModal.portal_url || '#'} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-accent-gold)' }}>{studentCredsModal.portal_url || 'http://localhost:8085'}</a></div>
               </div>
             </div>
 
-            {/* Action Buttons: Copy, WhatsApp, Email */}
+            {/* Action Buttons: WhatsApp Direct, Email Direct (mailto:), Copy */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <a 
                 href={`https://api.whatsapp.com/send?text=${encodeURIComponent(studentCredsModal.dispatch_message)}`}
@@ -6542,6 +7443,13 @@ function App() {
                 style={{ width: '100%', background: '#25D366', borderColor: '#25D366', color: '#ffffff', fontWeight: 700, textAlign: 'center', textDecoration: 'none' }}
               >
                 <i className="fab fa-whatsapp" style={{ fontSize: '1.2rem', marginRight: '6px' }}></i> Share Credentials Directly on WhatsApp
+              </a>
+              <a 
+                href={`mailto:${studentCredsModal.email || ''}?subject=${encodeURIComponent('Al-Noor LMS - Aapka Login & Batch Dakhila Tafseelat')}&body=${encodeURIComponent(studentCredsModal.dispatch_message || '')}`}
+                className="btn btn-outline"
+                style={{ width: '100%', borderColor: '#38bdf8', color: '#38bdf8', fontWeight: 700, textAlign: 'center', textDecoration: 'none' }}
+              >
+                <i className="fas fa-envelope" style={{ marginRight: '6px' }}></i> Share Credentials Directly via Email (mailto:)
               </a>
               <button 
                 type="button" 
@@ -8936,141 +9844,60 @@ function App() {
               </p>
 
               <div className="account-switch-grid">
-                {/* 1. Student Card */}
-                <div className={`account-card ${currentUser.role === 'student' ? 'active' : ''}`}>
-                  <div>
-                    <div className="account-card-header">
-                      <div className="account-card-avatar student">
-                        <i className="fas fa-user-graduate"></i>
+                {linkedAccounts && linkedAccounts.length > 0 ? (
+                  linkedAccounts.map(acc => {
+                    const isCurrent = (currentUser.id === acc.id) || (currentUser.email === acc.email && currentUser.role === (acc.role === 'scholar' ? 'admin' : acc.role));
+                    const roleDisplay = acc.role === 'student' ? 'Talib-e-Ilm (Student)' : acc.role === 'teacher' ? 'Ustad (Teacher)' : acc.role === 'institute' ? 'Madrasa Admin' : 'Shariah Scholar';
+                    const roleColor = acc.role === 'student' ? '#14b8a6' : acc.role === 'teacher' ? '#f59e0b' : acc.role === 'institute' ? '#38bdf8' : '#f43f5e';
+                    const roleIcon = acc.avatar || (acc.role === 'student' ? 'fa-user-graduate' : acc.role === 'teacher' ? 'fa-chalkboard-teacher' : acc.role === 'institute' ? 'fa-mosque' : 'fa-user-shield');
+                    return (
+                      <div key={acc.id} className={`account-card ${isCurrent ? 'active' : ''}`}>
+                        <div>
+                          <div className="account-card-header">
+                            <div className="account-card-avatar" style={{ background: `rgba(${roleColor === '#14b8a6' ? '20, 184, 166' : roleColor === '#f59e0b' ? '245, 158, 11' : roleColor === '#38bdf8' ? '56, 189, 248' : '244, 63, 94'}, 0.2)`, color: roleColor }}>
+                              <i className={`fas ${roleIcon}`}></i>
+                            </div>
+                            <div>
+                              <span className="badge" style={{ fontSize: '0.68rem', background: 'rgba(255,255,255,0.06)', color: roleColor }}>{roleDisplay}</span>
+                              <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>{acc.name}</h4>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
+                            <div>• <strong>Registered Email:</strong> {acc.email}</div>
+                            <div>• <strong>Access Role:</strong> {roleDisplay}</div>
+                            <div>• <strong>Linked Status:</strong> Verified linked profile on single email address.</div>
+                          </div>
+                        </div>
+                        <div>
+                          {isCurrent ? (
+                            <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(20, 184, 166, 0.15)', borderRadius: '8px', color: 'var(--color-primary-light)', fontWeight: 700, fontSize: '0.82rem' }}>
+                              <i className="fas fa-check-circle"></i> Currently Active Account
+                            </div>
+                          ) : (
+                            <button 
+                              type="button"
+                              className="btn btn-primary btn-sm" 
+                              style={{ width: '100%', fontWeight: 700 }}
+                              onClick={() => handleLinkedAccountSwitch(acc)}
+                            >
+                              <i className="fas fa-sync-alt"></i> Switch to {acc.name}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <span className="badge badge-teal" style={{ fontSize: '0.68rem' }}>Talib-e-Ilm (Student)</span>
-                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Ahmad Raza</h4>
-                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ gridColumn: '1 / -1', padding: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '2rem', color: 'var(--color-primary-light)', marginBottom: '8px' }}>
+                      <i className="fas fa-user-lock"></i>
                     </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
-                      <div>• <strong>Access Scope:</strong> Personal learning portal</div>
-                      <div>• <strong>Private Data:</strong> Enrolled courses, personal daily Hifz log, homework submissions, and personal leave applications.</div>
-                    </div>
+                    <h4 style={{ margin: '0 0 6px', fontSize: '1.1rem' }}>Active Profile: {currentUser.name}</h4>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
+                      Aapke email (<strong>{currentUser.email}</strong>) ke sath koi doosra linked account nahi hai. Strict user isolation ki wajah se kisi doosre user ka account display nahi kiya ja sakta.
+                    </p>
                   </div>
-                  <div>
-                    {currentUser.role === 'student' ? (
-                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(20, 184, 166, 0.15)', borderRadius: '8px', color: 'var(--color-primary-light)', fontWeight: 700, fontSize: '0.82rem' }}>
-                        <i className="fas fa-check-circle"></i> Currently Active Account
-                      </div>
-                    ) : (
-                      <button 
-                        className="btn btn-primary btn-sm" 
-                        style={{ width: '100%', fontWeight: 700 }}
-                        onClick={() => handleDirectSwitch('student')}
-                      >
-                        <i className="fas fa-check-circle"></i> Switch to Ahmad Raza (Instant)
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 2. Teacher Card */}
-                <div className={`account-card ${currentUser.role === 'teacher' ? 'active' : ''}`}>
-                  <div>
-                    <div className="account-card-header">
-                      <div className="account-card-avatar teacher">
-                        <i className="fas fa-chalkboard-teacher"></i>
-                      </div>
-                      <div>
-                        <span className="badge badge-gold" style={{ fontSize: '0.68rem' }}>Ustad / Educator</span>
-                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Qari Abdul Basit</h4>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
-                      <div>• <strong>Access Scope:</strong> Teacher Studio & Mini-Academy</div>
-                      <div>• <strong>Private Data:</strong> Courses created by Qari Abdul Basit, assigned batches, student leave approval queue, tilawat grading, and payout wallet.</div>
-                    </div>
-                  </div>
-                  <div>
-                    {currentUser.role === 'teacher' ? (
-                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '8px', color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '0.82rem' }}>
-                        <i className="fas fa-check-circle"></i> Currently Active Account
-                      </div>
-                    ) : (
-                      <button 
-                        className="btn btn-gold btn-sm" 
-                        style={{ width: '100%', fontWeight: 700 }}
-                        onClick={() => handleDirectSwitch('teacher')}
-                      >
-                        <i className="fas fa-check-circle"></i> Switch to Qari Abdul Basit (Instant)
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 3. Institute Card */}
-                <div className={`account-card ${currentUser.role === 'institute' ? 'active' : ''}`}>
-                  <div>
-                    <div className="account-card-header">
-                      <div className="account-card-avatar institute">
-                        <i className="fas fa-mosque"></i>
-                      </div>
-                      <div>
-                        <span className="badge badge-teal" style={{ fontSize: '0.68rem' }}>Madrasa Administration</span>
-                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Jamia Darul Uloom</h4>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
-                      <div>• <strong>Access Scope:</strong> Madrasa Operations Hub</div>
-                      <div>• <strong>Private Data:</strong> Jamia faculty roster, talaba admissions register, departments/wings, and monthly Waqf/chanda ledger.</div>
-                    </div>
-                  </div>
-                  <div>
-                    {currentUser.role === 'institute' ? (
-                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(56, 189, 248, 0.15)', borderRadius: '8px', color: '#38bdf8', fontWeight: 700, fontSize: '0.82rem' }}>
-                        <i className="fas fa-check-circle"></i> Currently Active Account
-                      </div>
-                    ) : (
-                      <button 
-                        className="btn btn-outline btn-sm" 
-                        style={{ width: '100%', fontWeight: 700, borderColor: '#38bdf8', color: '#38bdf8' }}
-                        onClick={() => handleDirectSwitch('institute')}
-                      >
-                        <i className="fas fa-check-circle"></i> Switch to Jamia Admin (Instant)
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 4. Scholar Card */}
-                <div className={`account-card ${currentUser.role === 'admin' ? 'active' : ''}`}>
-                  <div>
-                    <div className="account-card-header">
-                      <div className="account-card-avatar scholar">
-                        <i className="fas fa-user-shield"></i>
-                      </div>
-                      <div>
-                        <span className="badge badge-ruby" style={{ fontSize: '0.68rem' }}>Shariah Board Reviewer</span>
-                        <h4 style={{ margin: '3px 0 0', fontSize: '1.1rem', fontWeight: 700 }}>Mufti Tariq Masood</h4>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.4' }}>
-                      <div>• <strong>Access Scope:</strong> Shariah Curriculum Vetting</div>
-                      <div>• <strong>Private Data:</strong> Course verification queue, kitab hawala authentication, and academic publishing decisions.</div>
-                    </div>
-                  </div>
-                  <div>
-                    {currentUser.role === 'admin' ? (
-                      <div style={{ padding: '8px', textAlign: 'center', background: 'rgba(244, 63, 94, 0.15)', borderRadius: '8px', color: 'var(--color-ruby-light)', fontWeight: 700, fontSize: '0.82rem' }}>
-                        <i className="fas fa-check-circle"></i> Currently Active Account
-                      </div>
-                    ) : (
-                      <button 
-                        className="btn btn-ruby btn-sm" 
-                        style={{ width: '100%', fontWeight: 700 }}
-                        onClick={() => handleDirectSwitch('admin')}
-                      >
-                        <i className="fas fa-check-circle"></i> Switch to Mufti Tariq (Instant)
-                      </button>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
@@ -9129,6 +9956,270 @@ function App() {
                 {recordingPlayerModal.recording.notes}
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 26. STUDENT EDIT DETAILS MODAL (SQLite UPDATE) */}
+      {editStudentModal.isOpen && (
+        <div className="auth-overlay" onClick={() => setEditStudentModal(prev => ({ ...prev, isOpen: false }))}>
+          <div className="auth-modal" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setEditStudentModal(prev => ({ ...prev, isOpen: false }))}>
+              <i className="fas fa-times"></i>
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-teal"><i className="fas fa-user-edit"></i> Edit Student Profile</span>
+              <span className="badge badge-gold">{editStudentModal.batch_name || 'Enrolled Batch'}</span>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0 2px' }}>
+              Talib-e-Ilm Ki Tafseelat Edit Karein
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              Student ID: <strong>{editStudentModal.studentId}</strong> • Tabdeeli SQLite database me live update hogi.
+            </p>
+
+            <form onSubmit={handleEditStudentSubmit}>
+              <div className="form-group">
+                <label className="form-label">Talib-e-Ilm Ka Mukammal Naam (Full Name) *</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  required 
+                  value={editStudentModal.name} 
+                  onChange={e => setEditStudentModal({ ...editStudentModal, name: e.target.value })} 
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Email Address *</label>
+                  <input 
+                    type="email" 
+                    className="form-input" 
+                    required 
+                    value={editStudentModal.email} 
+                    onChange={e => setEditStudentModal({ ...editStudentModal, email: e.target.value })} 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phone Number *</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editStudentModal.phone} 
+                    onChange={e => setEditStudentModal({ ...editStudentModal, phone: e.target.value })} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Walid / Sarparast Ka Naam (Guardian)</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="e.g. Haji Abdul Rasheed"
+                    value={editStudentModal.guardian_name} 
+                    onChange={e => setEditStudentModal({ ...editStudentModal, guardian_name: e.target.value })} 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Roll Number / Registration No</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={editStudentModal.roll_number} 
+                    onChange={e => setEditStudentModal({ ...editStudentModal, roll_number: e.target.value })} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Jins (Gender)</label>
+                  <select 
+                    className="form-select" 
+                    value={editStudentModal.gender} 
+                    onChange={e => setEditStudentModal({ ...editStudentModal, gender: e.target.value })}
+                  >
+                    <option value="Male">Male (Larka)</option>
+                    <option value="Female">Female (Larki)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Umar (Age in Years)</label>
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    placeholder="e.g. 18"
+                    value={editStudentModal.age} 
+                    onChange={e => setEditStudentModal({ ...editStudentModal, age: e.target.value })} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-outline" 
+                  style={{ flex: 1 }}
+                  onClick={() => setEditStudentModal(prev => ({ ...prev, isOpen: false }))}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  style={{ flex: 2 }}
+                  disabled={editStudentModal.isLoading}
+                >
+                  <i className="fas fa-save"></i> {editStudentModal.isLoading ? 'Saving Changes...' : 'Save Changes in SQLite Database'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 27. TAJWEED RECITATION EVALUATION & TWO-WAY VOICE MODAL */}
+      {recitationEvalModal.isOpen && recitationEvalModal.recitation && (
+        <div className="auth-overlay" onClick={() => setRecitationEvalModal(prev => ({ ...prev, isOpen: false }))}>
+          <div className="auth-modal" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
+            <button className="auth-close-btn" onClick={() => setRecitationEvalModal(prev => ({ ...prev, isOpen: false }))}>
+              <i className="fas fa-times"></i>
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-ruby"><i className="fas fa-microphone-alt"></i> Two-Way Tajweed Studio</span>
+              <span className="badge badge-teal">{recitationEvalModal.recitation.surah_name}</span>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '4px 0 2px' }}>
+              Tilawat Evaluation & Teacher Voice Reply
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              Talib-e-Ilm: <strong>{recitationEvalModal.recitation.student_name}</strong> • Ayat: <strong>{recitationEvalModal.recitation.verses}</strong>
+            </p>
+
+            {/* Student Audio Player Preview */}
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+                <i className="fas fa-play-circle"></i> Student Submission Audio:
+              </div>
+              <audio controls src={recitationEvalModal.recitation.audio_url} style={{ width: '100%', height: '36px' }}></audio>
+            </div>
+
+            <form onSubmit={handleSubmitRecitationEval}>
+              {/* Teacher Voice Recording Widget */}
+              <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '16px', borderRadius: '12px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--color-accent-gold)' }}>
+                    <i className="fas fa-microphone"></i> Ustad Ki Awaz Me Voice Note Rahnumai (Teacher Voice Feedback)
+                  </strong>
+                  {teacherVoiceNote.isRecording && (
+                    <span className="badge badge-ruby fa-fade"><i className="fas fa-circle"></i> Mic Active</span>
+                  )}
+                </div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0 0 10px' }}>
+                  Apne microphone se talib-e-ilm ko Makharij aur Tajweed ki live tasheeh record karke bhejein:
+                </p>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {!teacherVoiceNote.isRecording ? (
+                    <button 
+                      type="button" 
+                      className="btn btn-gold btn-sm"
+                      onClick={async () => {
+                        await startTeacherVoiceRecording();
+                      }}
+                    >
+                      <i className="fas fa-microphone"></i> Start Mic Recording
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      className="btn btn-danger btn-sm"
+                      onClick={() => {
+                        stopTeacherVoiceRecording();
+                      }}
+                    >
+                      <i className="fas fa-stop-circle"></i> Stop & Attach Recording
+                    </button>
+                  )}
+
+                  {/* Fallback Sample Voice Button */}
+                  <button 
+                    type="button" 
+                    className="btn btn-outline btn-sm"
+                    onClick={() => {
+                      setRecitationEvalModal(prev => ({
+                        ...prev,
+                        teacherVoiceUrl: "https://everyayah.com/data/Husary_128kbps/001001.mp3"
+                      }));
+                      alert("Sample teacher voice guidance audio attach ho gaya!");
+                    }}
+                  >
+                    <i className="fas fa-paperclip"></i> Use Sample Audio Note
+                  </button>
+                </div>
+
+                {/* Show recorded voice preview */}
+                {(teacherVoiceNote.audioUrl || recitationEvalModal.teacherVoiceUrl) && (
+                  <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-emerald-light)', marginBottom: '4px', fontWeight: 600 }}>
+                      <i className="fas fa-check-circle"></i> Attached Teacher Voice Note:
+                    </div>
+                    <audio controls src={teacherVoiceNote.audioUrl || recitationEvalModal.teacherVoiceUrl} style={{ width: '100%', height: '36px' }}></audio>
+                  </div>
+                )}
+              </div>
+
+              {/* Tajweed Score Slider */}
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Tajweed & Makharij Score:</span>
+                  <strong style={{ color: 'var(--color-primary-light)', fontSize: '1.1rem' }}>{recitationEvalModal.tajweedScore} / 100</strong>
+                </label>
+                <input 
+                  type="range" 
+                  min="50" 
+                  max="100" 
+                  step="1" 
+                  className="range-slider" 
+                  value={recitationEvalModal.tajweedScore} 
+                  onChange={e => setRecitationEvalModal({ ...recitationEvalModal, tajweedScore: e.target.value })} 
+                />
+              </div>
+
+              {/* Text Remarks & Written Guidance */}
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label">Teacher Written Remarks & Hidayat *</label>
+                <textarea 
+                  className="form-textarea" 
+                  rows="3" 
+                  required 
+                  placeholder="e.g. MashaAllah achhi tilawat hai. Ayat 3 par Madd-e-Muttasil ko 4-5 harakaat pukhta karein aur Huroof-e-Halaqi par tawajjo dein."
+                  value={recitationEvalModal.remarks} 
+                  onChange={e => setRecitationEvalModal({ ...recitationEvalModal, remarks: e.target.value })}
+                ></textarea>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-outline" 
+                  style={{ flex: 1 }}
+                  onClick={() => setRecitationEvalModal(prev => ({ ...prev, isOpen: false }))}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  style={{ flex: 2 }}
+                >
+                  <i className="fas fa-paper-plane"></i> Submit Voice & Text Remarks
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
