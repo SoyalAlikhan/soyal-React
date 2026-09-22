@@ -3,25 +3,23 @@
    Aesthetic: Emerald Luxe, Golden Accents, Glassmorphism, Modern Islamic Motif
    ========================================================================== */
 
-:root,
-[data-theme="royal-emerald"],
-.theme-royal-emerald {
-  /* 1. ROYAL EMERALD & 24K GOLD LUXURY (Default Grand Style) */
-  --color-bg-primary: #040811;        /* Midnight Obsidian Slate */
-  --color-bg-secondary: #081120;      /* Deep Sapphire Emerald Slate */
-  --color-bg-card: rgba(8, 17, 32, 0.76);
-  --color-bg-card-hover: rgba(13, 26, 48, 0.88);
-  --color-bg-glass: rgba(8, 17, 32, 0.65);
-  --color-bg-elevated: #0f1c33;
+:root {
+  /* Brand Color Palette — Modern Classic Luxury (Midnight Obsidian & Royal Emerald) */
+  --color-bg-primary: #0a0f18;        /* Deep Obsidian Slate */
+  --color-bg-secondary: #0f172a;      /* Slate Navy */
+  --color-bg-card: rgba(15, 23, 42, 0.75);
+  --color-bg-card-hover: rgba(30, 41, 59, 0.85);
+  --color-bg-glass: rgba(15, 23, 42, 0.65);
+  --color-bg-elevated: #1e293b;
   
   --color-primary: #059669;          /* Royal Emerald */
-  --color-primary-light: #10b981;    /* Radiant Sage Jade */
+  --color-primary-light: #10b981;    /* Sage Jade */
   --color-primary-dark: #047857;     /* Deep Forest */
-  --color-primary-glow: rgba(16, 185, 129, 0.22);
+  --color-primary-glow: rgba(16, 185, 129, 0.15);
   
-  --color-accent-gold: #c5a059;      /* 24K Champagne Gold */
-  --color-accent-gold-light: #dfba73;/* Polished Sunburst Gold */
-  --color-accent-gold-glow: rgba(197, 160, 89, 0.25);
+  --color-accent-gold: #c5a059;      /* Classic Champagne Gold (Restrained & Elegant) */
+  --color-accent-gold-light: #dfba73;/* Warm Antique Gold */
+  --color-accent-gold-glow: rgba(197, 160, 89, 0.15);
   
   --color-emerald: #10b981;
   --color-emerald-light: #34d399;
@@ -37,18 +35,17 @@
   --text-gold: #dfba73;
   
   /* Borders & Dividers */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.15);
-  --border-accent: rgba(16, 185, 129, 0.35);
-  --border-gold: rgba(197, 160, 89, 0.35);
-  --card-top-line: linear-gradient(90deg, transparent, #10b981, #c5a059, transparent);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-light: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(16, 185, 129, 0.3);
+  --border-gold: rgba(197, 160, 89, 0.3);
   
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 16px 40px -4px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 30px var(--color-primary-glow);
-  --shadow-gold-glow: 0 0 25px var(--color-accent-gold-glow);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 25px var(--color-primary-glow);
+  --shadow-gold-glow: 0 0 20px var(--color-accent-gold-glow);
   
   /* Typography */
   --font-main: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -61,178 +58,35 @@
   --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 2. PERSIAN TURQUOISE & LAPIS LAZULI */
-[data-theme="persian-turquoise"],
-.theme-persian-turquoise {
-  --color-bg-primary: #000c14;
-  --color-bg-secondary: #001726;
-  --color-bg-card: rgba(1, 31, 51, 0.72);
-  --color-bg-card-hover: rgba(2, 45, 74, 0.85);
-  --color-bg-glass: rgba(1, 31, 51, 0.65);
-  --color-bg-elevated: #032742;
-  --color-primary: #00d2d3;
-  --color-primary-light: #00e5ff;
-  --color-primary-dark: #0097a7;
-  --color-primary-glow: rgba(0, 229, 255, 0.22);
-  --color-accent-gold: #ffd166;
-  --color-accent-gold-light: #ffe299;
-  --color-accent-gold-glow: rgba(255, 209, 102, 0.25);
-  --text-primary: #f0fdfa;
-  --text-secondary: #8198a5;
-  --text-muted: #537182;
-  --border-subtle: rgba(0, 229, 255, 0.14);
-  --border-light: rgba(0, 229, 255, 0.25);
-  --card-top-line: linear-gradient(90deg, transparent, #00e5ff, #ffd166, transparent);
-}
-
-/* 3. CYBER-OBSIDIAN & NEON GLASSMORPHISM */
-[data-theme="cyber-obsidian"],
-.theme-cyber-obsidian {
-  --color-bg-primary: #030508;
-  --color-bg-secondary: #090e17;
-  --color-bg-card: rgba(12, 19, 31, 0.78);
-  --color-bg-card-hover: rgba(19, 29, 48, 0.9);
-  --color-bg-glass: rgba(12, 19, 31, 0.65);
-  --color-bg-elevated: #152238;
-  --color-primary: #00f0ff;
-  --color-primary-light: #38bdf8;
-  --color-primary-dark: #0284c7;
-  --color-primary-glow: rgba(0, 240, 255, 0.2);
-  --color-accent-gold: #ffb703;
-  --color-accent-gold-light: #fbbf24;
-  --color-accent-gold-glow: rgba(255, 183, 3, 0.25);
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --border-light: rgba(0, 240, 255, 0.28);
-  --card-top-line: linear-gradient(90deg, #00f0ff, #ffb703);
-}
-
-/* 4. ARABIAN GOLDEN DUNES & AMBER VELVET */
-[data-theme="arabian-dunes"],
-.theme-arabian-dunes {
-  --color-bg-primary: #100801;
-  --color-bg-secondary: #1f1103;
-  --color-bg-card: rgba(43, 24, 7, 0.75);
-  --color-bg-card-hover: rgba(61, 35, 11, 0.88);
-  --color-bg-glass: rgba(43, 24, 7, 0.65);
-  --color-bg-elevated: #361f09;
-  --color-primary: #f59e0b;
-  --color-primary-light: #fbbf24;
-  --color-primary-dark: #b45309;
-  --color-primary-glow: rgba(245, 158, 11, 0.25);
-  --color-accent-gold: #fde68a;
-  --color-accent-gold-light: #fef3c7;
-  --color-accent-gold-glow: rgba(251, 191, 36, 0.35);
-  --text-primary: #fffbeb;
-  --text-secondary: #d97706;
-  --text-muted: #92400e;
-  --border-subtle: rgba(245, 158, 11, 0.18);
-  --border-light: rgba(251, 191, 36, 0.32);
-  --card-top-line: linear-gradient(90deg, transparent, #fbbf24, #f59e0b, transparent);
-}
-
-/* 5. ROYAL IVORY & WARM SAND LUXURY (Light Mode) */
-[data-theme="royal-ivory"],
+/* Light Theme Variables — Warm Alabaster & Royal British Racing Green */
 [data-theme="light"],
-.theme-royal-ivory,
 .theme-light {
   --color-bg-primary: #f8fafc;
   --color-bg-secondary: #f1f5f9;
   --color-bg-card: #ffffff;
   --color-bg-card-hover: #ffffff;
-  --color-bg-glass: rgba(255, 255, 255, 0.94);
+  --color-bg-glass: rgba(255, 255, 255, 0.92);
   --color-bg-elevated: #ffffff;
+  
   --color-primary: #047857;
   --color-primary-light: #059669;
   --color-primary-dark: #064e3b;
-  --color-primary-glow: rgba(4, 120, 87, 0.15);
+  --color-primary-glow: rgba(4, 120, 87, 0.12);
+  
   --color-accent-gold: #92400e;
   --color-accent-gold-light: #b45309;
-  --color-accent-gold-glow: rgba(180, 83, 9, 0.15);
+  --color-accent-gold-glow: rgba(180, 83, 9, 0.12);
+  
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --text-gold: #92400e;
+  
   --border-subtle: #e2e8f0;
   --border-light: #cbd5e1;
-  --card-top-line: linear-gradient(90deg, #047857, #b45309);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 12px 30px -4px rgba(15, 23, 42, 0.09);
-}
-
-/* 6. MADINAH COURTYARD SACRED MARBLE (Light Mode) */
-[data-theme="madinah-sacred"],
-.theme-madinah-sacred {
-  --color-bg-primary: #f6f8f6;
-  --color-bg-secondary: #ebf2ec;
-  --color-bg-card: #ffffff;
-  --color-bg-card-hover: #f7faf8;
-  --color-bg-glass: rgba(255, 255, 255, 0.95);
-  --color-bg-elevated: #ffffff;
-  --color-primary: #065f46;
-  --color-primary-light: #047857;
-  --color-primary-dark: #022c22;
-  --color-primary-glow: rgba(6, 95, 70, 0.15);
-  --color-accent-gold: #b45309;
-  --color-accent-gold-light: #d97706;
-  --color-accent-gold-glow: rgba(180, 83, 9, 0.18);
-  --text-primary: #064e3b;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --border-subtle: #d1e2d4;
-  --border-light: #b6d4bc;
-  --card-top-line: linear-gradient(90deg, #047857, #b45309);
-}
-
-/* 7. ROSE GOLD & VELVET AMETHYST */
-[data-theme="rose-amethyst"],
-.theme-rose-amethyst {
-  --color-bg-primary: #0d0517;
-  --color-bg-secondary: #170928;
-  --color-bg-card: rgba(35, 14, 61, 0.75);
-  --color-bg-card-hover: rgba(49, 20, 84, 0.88);
-  --color-bg-glass: rgba(35, 14, 61, 0.65);
-  --color-bg-elevated: #281045;
-  --color-primary: #f472b6;
-  --color-primary-light: #fbcfe8;
-  --color-primary-dark: #db2777;
-  --color-primary-glow: rgba(244, 114, 182, 0.22);
-  --color-accent-gold: #fb7185;
-  --color-accent-gold-light: #fda4af;
-  --color-accent-gold-glow: rgba(251, 113, 133, 0.25);
-  --text-primary: #fdf2f8;
-  --text-secondary: #c084fc;
-  --text-muted: #9333ea;
-  --border-subtle: rgba(244, 114, 182, 0.18);
-  --border-light: rgba(244, 114, 182, 0.3);
-  --card-top-line: linear-gradient(90deg, transparent, #f472b6, #fb7185, transparent);
-}
-
-/* 8. DAMASCUS SILK & BYZANTINE 24K GOLD */
-[data-theme="damascus-silk"],
-.theme-damascus-silk {
-  --color-bg-primary: #050711;
-  --color-bg-secondary: #0c1024;
-  --color-bg-card: rgba(18, 23, 46, 0.78);
-  --color-bg-card-hover: rgba(27, 34, 69, 0.9);
-  --color-bg-glass: rgba(18, 23, 46, 0.65);
-  --color-bg-elevated: #161c38;
-  --color-primary: #eab308;
-  --color-primary-light: #facc15;
-  --color-primary-dark: #ca8a04;
-  --color-primary-glow: rgba(234, 179, 8, 0.25);
-  --color-accent-gold: #93c5fd;
-  --color-accent-gold-light: #bfdbfe;
-  --color-accent-gold-glow: rgba(147, 197, 253, 0.25);
-  --text-primary: #fefce8;
-  --text-secondary: #fef08a;
-  --text-muted: #ca8a04;
-  --border-subtle: rgba(234, 179, 8, 0.18);
-  --border-light: rgba(234, 179, 8, 0.35);
-  --card-top-line: linear-gradient(90deg, transparent, #facc15, #93c5fd, transparent);
+  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 12px 30px -4px rgba(15, 23, 42, 0.07);
 }
 
 /* Reset & Base Setup */
@@ -259,13 +113,9 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 12% 15%, rgba(5, 150, 105, 0.16) 0%, transparent 45%),
-    radial-gradient(circle at 88% 20%, rgba(197, 160, 89, 0.14) 0%, transparent 45%),
-    radial-gradient(circle at 50% 80%, rgba(6, 37, 29, 0.28) 0%, transparent 60%),
-    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: auto, auto, auto, 28px 28px;
+    radial-gradient(circle at 15% 10%, rgba(5, 150, 105, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 85% 90%, rgba(197, 160, 89, 0.04) 0%, transparent 45%);
   background-attachment: fixed;
-  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
 }
 
 #root {
@@ -303,158 +153,42 @@ body {
   background: var(--color-primary-dark);
 }
 
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+}
+
 /* Glassmorphism Classes — Sleek Modern Frosted Architecture */
 .glass-panel {
   background: var(--color-bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-light);
-  border-radius: 18px;
-  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-panel::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--card-top-line, linear-gradient(90deg, transparent, var(--color-primary-light), var(--color-accent-gold), transparent));
-  opacity: 0.9;
-  pointer-events: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-card {
   background: var(--color-bg-card);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
-  overflow: hidden;
-}
-
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--card-top-line, linear-gradient(90deg, transparent, var(--color-primary-light), var(--color-accent-gold), transparent));
-  opacity: 0.85;
-  pointer-events: none;
 }
 
 .glass-card:hover {
   background: var(--color-bg-card-hover);
-  border-color: var(--border-light);
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.45), 0 0 20px var(--color-primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-/* ==========================================================================
-   THEME SWITCHER IN NAVBAR
-   ========================================================================== */
-.theme-switcher-wrapper {
-  position: relative;
-}
-
-.theme-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 290px;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--border-light);
-  border-radius: 18px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55), 0 0 24px var(--color-primary-glow);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  padding: 12px;
-  z-index: 1200;
-  animation: dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes dropdownFade {
-  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.theme-dropdown-header {
-  font-size: 0.76rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  padding: 6px 10px 10px;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.theme-options-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 380px;
-  overflow-y: auto;
-}
-
-.theme-option-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: 1px solid transparent;
-}
-
-.theme-option-item:hover {
-  background: var(--color-bg-card-hover);
-  border-color: var(--border-light);
-  transform: translateX(3px);
-}
-
-.theme-option-item.active {
-  background: var(--color-primary-glow);
-  border-color: var(--color-primary);
-}
-
-.theme-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
-}
-
-.theme-option-text {
-  flex: 1;
-  min-width: 0;
-  line-height: 1.25;
-}
-
-.theme-option-text strong {
-  display: block;
-  font-size: 0.82rem;
-  color: var(--text-primary);
-}
-
-.theme-option-text small {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.active-check {
-  color: var(--color-primary-light);
-  font-size: 0.85rem;
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Buttons — Classic, Refined, Modern Architecture */
@@ -3662,133 +3396,3 @@ body:has(.theme-light),
   color: #047857 !important;
   font-weight: 700 !important;
 }
-
-/* ==========================================================================
-   ELEVATED LUXURY EDTECH DESIGN ENHANCEMENTS
-   ========================================================================== */
-
-/* Modern Floating Frosted Navbar */
-.navbar {
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  background: var(--color-bg-glass) !important;
-  border-bottom: 1px solid var(--border-light) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-/* Enhanced Top KPI Metric Cards */
-.teacher-metric-card,
-.stat-card,
-.metric-pill-card {
-  background: var(--color-bg-card) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: 18px !important;
-  position: relative !important;
-  overflow: hidden !important;
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-}
-
-.teacher-metric-card::before,
-.stat-card::before,
-.metric-pill-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--card-top-line, linear-gradient(90deg, transparent, var(--color-primary-light), var(--color-accent-gold), transparent));
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.teacher-metric-card:hover,
-.stat-card:hover,
-.metric-pill-card:hover {
-  transform: translateY(-5px) !important;
-  border-color: var(--border-light) !important;
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.45), 0 0 20px var(--color-primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-}
-
-.t-metric-icon.students {
-  background: rgba(56, 189, 248, 0.18) !important;
-  color: #38bdf8 !important;
-  border: 1px solid rgba(56, 189, 248, 0.3) !important;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.2) !important;
-}
-
-.t-metric-icon.batches {
-  background: rgba(16, 185, 129, 0.18) !important;
-  color: #10b981 !important;
-  border: 1px solid rgba(16, 185, 129, 0.3) !important;
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.2) !important;
-}
-
-.t-metric-icon.earnings {
-  background: rgba(245, 158, 11, 0.18) !important;
-  color: #f59e0b !important;
-  border: 1px solid rgba(245, 158, 11, 0.3) !important;
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.2) !important;
-}
-
-.t-metric-icon.courses {
-  background: rgba(168, 85, 247, 0.18) !important;
-  color: #c084fc !important;
-  border: 1px solid rgba(168, 85, 247, 0.3) !important;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.2) !important;
-}
-
-/* Enhanced Batch Cards in Workspace */
-.batch-card {
-  background: var(--color-bg-card) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: 18px !important;
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
-
-.batch-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--card-top-line, linear-gradient(90deg, transparent, var(--color-primary-light), var(--color-accent-gold), transparent));
-  opacity: 0.85;
-}
-
-.batch-card:hover {
-  transform: translateY(-4px) !important;
-  border-color: var(--color-primary-light) !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 20px var(--color-primary-glow) !important;
-}
-
-/* Pulsing Status Dot */
-.pulse-badge-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--color-primary-light);
-  box-shadow: 0 0 8px var(--color-primary-light);
-  animation: pulseDotAnim 1.6s infinite ease-in-out;
-  margin-right: 6px;
-}
-
-@keyframes pulseDotAnim {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
-}
-
-/* Audio Studio Waveform Player Styling */
-.audio-waveform-player {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-

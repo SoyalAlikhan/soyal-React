@@ -109,15 +109,9 @@ function App() {
   // Account Switcher & Role Lock Modal State
   const [accountSwitchModal, setAccountSwitchModal] = useState(false);
 
-  // Multi-Theme State & Aesthetics Engine (Supports Royal Emerald, Persian Turquoise, Cyber Slate, etc.)
-  const [theme, setTheme] = useState(() => localStorage.getItem('preferred_islamic_theme') || 'royal-emerald');
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const themeMenuRef = useRef(null);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('preferred_islamic_theme', theme);
-  }, [theme]);
+  // Theme State: 'dark' (Emerald Luxury) or 'light' (Crisp White Luxury)
+  const [theme, setTheme] = useState('dark');
+  const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
 
   // YouTube-Style Profile Dropdown Menu State
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -224,15 +218,11 @@ function App() {
       if (notifDropdownRef.current && !notifDropdownRef.current.contains(e.target)) {
         setNotifDropdownOpen(false);
       }
-      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target)) {
-        setThemeMenuOpen(false);
-      }
     };
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setUserDropdownOpen(false);
         setNotifDropdownOpen(false);
-        setThemeMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -3466,7 +3456,7 @@ function App() {
 
 
   return (
-    <div className={`app-container theme-${theme} ${theme === 'royal-ivory' || theme === 'light' ? 'theme-light' : 'theme-dark'} ${lang === 'ur' ? 'urdu-mode' : ''}`} data-theme={theme} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
+    <div className={`app-container ${theme === 'light' ? 'theme-light' : 'theme-dark'} ${lang === 'ur' ? 'urdu-mode' : ''}`} dir={lang === 'ur' ? 'rtl' : 'ltr'}>
       {/* 1. TOP NAVIGATION */}
       <nav className="navbar">
         <div className="nav-brand" onClick={() => { setActiveCourse(null); setActiveNav('home'); }}>
@@ -3513,133 +3503,14 @@ function App() {
         </ul>
 
         <div className="nav-actions">
-          {/* Multi-Theme Switcher Dropdown */}
-          <div className="theme-switcher-wrapper" ref={themeMenuRef} style={{ position: 'relative' }}>
-            <div 
-              className="nav-theme-btn"
-              onClick={() => setThemeMenuOpen(prev => !prev)}
-              title="Change UI Aesthetics & Theme"
-              id="theme-toggle-btn"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', userSelect: 'none' }}
-            >
-              <i className="fas fa-palette" style={{ color: 'var(--color-primary-light)' }}></i>
-              <span className="theme-current-name" style={{ fontSize: '0.78rem', fontWeight: 600, display: 'inline-block' }}>
-                {theme === 'royal-emerald' ? 'Royal Emerald' : 
-                 theme === 'persian-turquoise' ? 'Persian Turquoise' :
-                 theme === 'cyber-obsidian' ? 'Cyber Obsidian' :
-                 theme === 'arabian-dunes' ? 'Arabian Dunes' :
-                 theme === 'royal-ivory' || theme === 'light' ? 'Royal Ivory' :
-                 theme === 'madinah-sacred' ? 'Madinah Marble' :
-                 theme === 'rose-amethyst' ? 'Rose Amethyst' :
-                 theme === 'damascus-silk' ? 'Damascus Gold' : 'Theme'}
-              </span>
-              <i className={`fas fa-chevron-${themeMenuOpen ? 'up' : 'down'}`} style={{ fontSize: '0.65rem', opacity: 0.7 }}></i>
-            </div>
-
-            {themeMenuOpen && (
-              <div className="theme-dropdown-menu">
-                <div className="theme-dropdown-header">
-                  <i className="fas fa-wand-magic-sparkles" style={{ color: 'var(--color-primary-light)' }}></i> Select Platform Theme
-                </div>
-                <div className="theme-options-grid">
-                  <div 
-                    className={`theme-option-item ${theme === 'royal-emerald' ? 'active' : ''}`}
-                    onClick={() => { setTheme('royal-emerald'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #059669, #c5a059)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Royal Emerald & 24K Gold</strong>
-                      <small>Default Grand Luxury Obsidian</small>
-                    </div>
-                    {theme === 'royal-emerald' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${theme === 'persian-turquoise' ? 'active' : ''}`}
-                    onClick={() => { setTheme('persian-turquoise'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #00d2d3, #ffd166)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Persian Turquoise & Lapis</strong>
-                      <small>Samarkand Royal Palace Dome</small>
-                    </div>
-                    {theme === 'persian-turquoise' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${theme === 'cyber-obsidian' ? 'active' : ''}`}
-                    onClick={() => { setTheme('cyber-obsidian'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #00f0ff, #ffb703)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Cyber Obsidian Neon</strong>
-                      <small>Pitch-Black Linear/Vercel Dark</small>
-                    </div>
-                    {theme === 'cyber-obsidian' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${theme === 'arabian-dunes' ? 'active' : ''}`}
-                    onClick={() => { setTheme('arabian-dunes'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #f59e0b, #fbbf24)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Arabian Dunes & Amber</strong>
-                      <small>Dubai Luxe Espresso Velvet</small>
-                    </div>
-                    {theme === 'arabian-dunes' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${(theme === 'royal-ivory' || theme === 'light') ? 'active' : ''}`}
-                    onClick={() => { setTheme('royal-ivory'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #f7f4ee, #047857)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Royal Ivory Sand (Light)</strong>
-                      <small>Warm Sandstone & Racing Green</small>
-                    </div>
-                    {(theme === 'royal-ivory' || theme === 'light') && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${theme === 'madinah-sacred' ? 'active' : ''}`}
-                    onClick={() => { setTheme('madinah-sacred'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #ffffff, #065f46)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Madinah Sacred Marble (Light)</strong>
-                      <small>Carrara Marble & Prophetic Green</small>
-                    </div>
-                    {theme === 'madinah-sacred' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${theme === 'rose-amethyst' ? 'active' : ''}`}
-                    onClick={() => { setTheme('rose-amethyst'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #1a0b2e, #f472b6)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Rose Gold Amethyst</strong>
-                      <small>Royal Violet & Rose Metallic</small>
-                    </div>
-                    {theme === 'rose-amethyst' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-
-                  <div 
-                    className={`theme-option-item ${theme === 'damascus-silk' ? 'active' : ''}`}
-                    onClick={() => { setTheme('damascus-silk'); setThemeMenuOpen(false); }}
-                  >
-                    <span className="theme-dot" style={{ background: 'linear-gradient(135deg, #eab308, #93c5fd)' }}></span>
-                    <div className="theme-option-text">
-                      <strong>Damascus Silk & Gold</strong>
-                      <small>Antique Byzantine Tapestry</small>
-                    </div>
-                    {theme === 'damascus-silk' && <i className="fas fa-check-circle active-check"></i>}
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* Theme Toggle Button (Sun/Moon for White/Dark Theme) */}
+          <div 
+            className="nav-theme-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? "Switch to White Theme" : "Switch to Dark Theme"}
+            id="theme-toggle-btn"
+          >
+            <i className={`fas ${theme === 'dark' ? 'fa-sun' : 'fa-moon'}`} style={{ color: theme === 'dark' ? '#f59e0b' : '#38bdf8' }}></i>
           </div>
 
           {/* Interactive Notification Bell with Multi-Class Alerts */}
