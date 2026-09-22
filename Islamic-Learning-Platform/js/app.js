@@ -1,14 +1,38 @@
-// Al-Noor Open Source Islamic Learning Platform — Master React 18 Application
-// Fully Compliant with Islamic LMS BRD v2.0
-const { useState, useEffect, useRef } = React;
+// ============================================================================
+// LocalStorage Persistence Keys & Safe Accessors (Cross-Refresh State Engine)
+// ============================================================================
+const ALNOOR_STORAGE = {
+  USER: 'alnoor_current_user',
+  LOGGED_IN: 'alnoor_is_logged_in',
+  NAV: 'alnoor_active_nav',
+  TEACHER_SUBTAB: 'alnoor_teacher_subtab',
+  INSTITUTE_SUBTAB: 'alnoor_institute_subtab',
+  BATCH_ID: 'alnoor_active_batch_id',
+  BATCH_TAB: 'alnoor_batch_workspace_tab',
+  COURSE_ID: 'alnoor_active_course_id',
+  THEME: 'alnoor_theme',
+  LANG: 'alnoor_lang'
+};
+
+const getStoredItem = (key, fallback = null) => {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? val : fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
+
+const getStoredJson = (key, fallback = null) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 
 function App() {
-  // Global Language & Active Nav State
-  const [lang, setLang] = useState('ru'); // 'ru' (Roman Urdu), 'en', 'ur'
-  const [activeNav, setActiveNav] = useState('dashboard');
-  const [selectedDept, setSelectedDept] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  
   // Available Demo Personas per BRD v2.0
   const personas = {
     student: {
@@ -65,15 +89,47 @@ function App() {
     }
   };
 
-  // Active User Session State
-  const [currentUser, setCurrentUser] = useState(personas.student);
+  // Restore authenticated session from localStorage on startup / refresh
+  const initialSavedUser = getStoredJson(ALNOOR_STORAGE.USER, null);
+  const initialIsLoggedIn = getStoredItem(ALNOOR_STORAGE.LOGGED_IN, 'false') === 'true' && !!initialSavedUser;
+
+  // Global Language & Active Nav State (Restores exact active page on refresh)
+  const [lang, setLang] = useState(() => getStoredItem(ALNOOR_STORAGE.LANG, 'ru'));
+  const [activeNav, setActiveNav] = useState(() => {
+    const savedNav = getStoredItem(ALNOOR_STORAGE.NAV, null);
+    if (savedNav) return savedNav;
+    if (initialIsLoggedIn && initialSavedUser) {
+      if (initialSavedUser.role === 'teacher') return 'teacher';
+      if (initialSavedUser.role === 'institute') return 'institute';
+      if (initialSavedUser.role === 'admin') return 'admin';
+      return 'dashboard';
+    }
+    return 'home';
+  });
+  const [selectedDept, setSelectedDept] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Active User Session State (Restores exact logged-in user on refresh)
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (initialIsLoggedIn && initialSavedUser) {
+      return initialSavedUser;
+    }
+    return personas.student;
+  });
+
+  // Track if user is authenticated with a persistent session
+  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
 
   // Account Switcher & Role Lock Modal State
   const [accountSwitchModal, setAccountSwitchModal] = useState(false);
 
   // Theme State: 'dark' (Emerald Luxury) or 'light' (Crisp White Luxury)
-  const [theme, setTheme] = useState('dark');
-  const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  const [theme, setTheme] = useState(() => getStoredItem(ALNOOR_STORAGE.THEME, 'dark'));
+  const toggleTheme = () => setTheme(prev => {
+    const next = prev === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(ALNOOR_STORAGE.THEME, next); } catch (e) {}
+    return next;
+  });
 
   // YouTube-Style Profile Dropdown Menu State
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -196,15 +252,16 @@ function App() {
   }, []);
 
   // Authentication & Registration Stepper Modal
-  const [authModal, setAuthModal] = useState({
-    isOpen: false,
+  // If user is NOT logged in, auto-open the Login / Register form immediately on portal visit!
+  const [authModal, setAuthModal] = useState(() => ({
+    isOpen: !initialIsLoggedIn,
     mode: 'login', // 'login' or 'signup'
-    roleTab: 'student', // 'student', 'teacher', 'institute', 'scholar'
+    roleTab: initialSavedUser ? (initialSavedUser.role === 'admin' ? 'scholar' : initialSavedUser.role) : 'student',
     step: 1,
     errorMsg: '',
     successMsg: '',
     isLoading: false
-  });
+  }));
 
   // Auth Form State
   const [authForm, setAuthForm] = useState({
@@ -333,8 +390,8 @@ function App() {
     overrideReason: "Student informed prior about electricity outage during last 5 mins."
   });
 
-  // Teacher Workspace Sub-Navigation State (BRD v2.0)
-  const [teacherSubTab, setTeacherSubTab] = useState('courses'); // 'courses', 'live', 'batches', 'homework', 'tajweed', 'finances', 'notices', 'settings'
+  // Teacher Workspace Sub-Navigation State (BRD v2.0) - Restores on refresh
+  const [teacherSubTab, setTeacherSubTab] = useState(() => getStoredItem(ALNOOR_STORAGE.TEACHER_SUBTAB, 'courses')); // 'courses', 'live', 'batches', 'homework', 'tajweed', 'finances', 'notices', 'settings'
 
   // Teacher Lesson Modal (Add/Edit Lesson)
   const [lessonModal, setLessonModal] = useState({
@@ -428,9 +485,9 @@ function App() {
   const [availableStudentsList, setAvailableStudentsList] = useState([]);
   const [selectedBatchFilter, setSelectedBatchFilter] = useState('all');
 
-  // Active Dedicated Batch Workspace Panel State
+  // Active Dedicated Batch Workspace Panel State - Restores on refresh
   const [activeBatchWorkspace, setActiveBatchWorkspace] = useState(null);
-  const [batchWorkspaceTab, setBatchWorkspaceTab] = useState('students'); // 'students', 'homework', 'live', 'fees', 'notices', 'certificates', 'tajweed'
+  const [batchWorkspaceTab, setBatchWorkspaceTab] = useState(() => getStoredItem(ALNOOR_STORAGE.BATCH_TAB, 'students')); // 'students', 'homework', 'live', 'fees', 'notices', 'certificates', 'tajweed'
 
   // Student Edit Details Modal State
   const [editStudentModal, setEditStudentModal] = useState({
@@ -584,7 +641,7 @@ function App() {
   // ==========================================
   // INSTITUTE (MADRASA HUB) STATE & FORMS
   // ==========================================
-  const [instituteSubTab, setInstituteSubTab] = useState('faculty'); // 'faculty', 'admissions', 'finances', 'departments', 'exams', 'settings'
+  const [instituteSubTab, setInstituteSubTab] = useState(() => getStoredItem(ALNOOR_STORAGE.INSTITUTE_SUBTAB, 'faculty')); // 'faculty', 'admissions', 'finances', 'departments', 'exams', 'settings'
 
   // Affiliated Faculty List for Institute
   const [facultyList, setFacultyList] = useState([
@@ -1084,11 +1141,17 @@ function App() {
       window.apiService.getCourses().then(dbCourses => {
         if (dbCourses && dbCourses.length > 0) {
           console.log('[SQLite Backend] Loaded', dbCourses.length, 'courses from alnoor_lms.db');
-          setCourses(prev => {
-            const dbIds = new Set(dbCourses.map(c => c.id));
-            const staticExtra = (window.COURSES_DATA || []).filter(c => !dbIds.has(c.id));
-            return [...dbCourses, ...staticExtra];
-          });
+          const dbIds = new Set(dbCourses.map(c => c.id));
+          const staticExtra = (window.COURSES_DATA || []).filter(c => !dbIds.has(c.id));
+          const combinedCourses = [...dbCourses, ...staticExtra];
+          setCourses(combinedCourses);
+
+          // Restore active course if user was viewing one before refresh
+          const savedCourseId = getStoredItem(ALNOOR_STORAGE.COURSE_ID, null);
+          if (savedCourseId) {
+            const foundCourse = combinedCourses.find(c => c.id === savedCourseId);
+            if (foundCourse) setActiveCourse(foundCourse);
+          }
         }
       });
 
@@ -1186,7 +1249,7 @@ function App() {
         window.apiService.getBatches().then(dbBatches => {
           if (dbBatches && dbBatches.length > 0) {
             console.log('[SQLite Backend] Loaded', dbBatches.length, 'batches from alnoor_lms.db');
-            setTeacherBatches(dbBatches.map(b => ({
+            const mappedBatches = dbBatches.map(b => ({
               id: b.id,
               name: b.title || b.name,
               course: b.course_title || b.course || "Ahkam-e-Tajweed & Makharij Foundation",
@@ -1196,7 +1259,15 @@ function App() {
               max: b.max_talaba || b.max || 30,
               feeMonthly: b.monthly_fee ? `₹${b.monthly_fee}` : "₹650",
               status: "Active"
-            })));
+            }));
+            setTeacherBatches(mappedBatches);
+
+            // Restore active batch workspace if user was viewing one before refresh
+            const savedBatchId = getStoredItem(ALNOOR_STORAGE.BATCH_ID, null);
+            if (savedBatchId) {
+              const foundBatch = mappedBatches.find(b => b.id === savedBatchId || b.name === savedBatchId);
+              if (foundBatch) setActiveBatchWorkspace(foundBatch);
+            }
           }
         });
       }
@@ -1222,6 +1293,68 @@ function App() {
       }
     }
   }, []);
+
+  // ============================================================================
+  // Persistent Storage Sync Effects (Saves user, nav, subtabs on every change)
+  // ============================================================================
+  useEffect(() => {
+    try {
+      if (isLoggedIn && currentUser) {
+        localStorage.setItem(ALNOOR_STORAGE.USER, JSON.stringify(currentUser));
+        localStorage.setItem(ALNOOR_STORAGE.LOGGED_IN, 'true');
+      }
+    } catch (e) {}
+  }, [currentUser, isLoggedIn]);
+
+  useEffect(() => {
+    try {
+      if (activeNav) localStorage.setItem(ALNOOR_STORAGE.NAV, activeNav);
+    } catch (e) {}
+  }, [activeNav]);
+
+  useEffect(() => {
+    try {
+      if (teacherSubTab) localStorage.setItem(ALNOOR_STORAGE.TEACHER_SUBTAB, teacherSubTab);
+    } catch (e) {}
+  }, [teacherSubTab]);
+
+  useEffect(() => {
+    try {
+      if (instituteSubTab) localStorage.setItem(ALNOOR_STORAGE.INSTITUTE_SUBTAB, instituteSubTab);
+    } catch (e) {}
+  }, [instituteSubTab]);
+
+  useEffect(() => {
+    try {
+      if (activeBatchWorkspace && activeBatchWorkspace.id) {
+        localStorage.setItem(ALNOOR_STORAGE.BATCH_ID, activeBatchWorkspace.id);
+      } else {
+        localStorage.removeItem(ALNOOR_STORAGE.BATCH_ID);
+      }
+    } catch (e) {}
+  }, [activeBatchWorkspace]);
+
+  useEffect(() => {
+    try {
+      if (batchWorkspaceTab) localStorage.setItem(ALNOOR_STORAGE.BATCH_TAB, batchWorkspaceTab);
+    } catch (e) {}
+  }, [batchWorkspaceTab]);
+
+  useEffect(() => {
+    try {
+      if (activeCourse && activeCourse.id) {
+        localStorage.setItem(ALNOOR_STORAGE.COURSE_ID, activeCourse.id);
+      } else {
+        localStorage.removeItem(ALNOOR_STORAGE.COURSE_ID);
+      }
+    } catch (e) {}
+  }, [activeCourse]);
+
+  useEffect(() => {
+    try {
+      if (lang) localStorage.setItem(ALNOOR_STORAGE.LANG, lang);
+    } catch (e) {}
+  }, [lang]);
 
   // 9. Role-Isolated Portal Synchronization for Students & Teachers
   useEffect(() => {
@@ -1385,11 +1518,15 @@ function App() {
       avatarIcon: acc.avatar || basePersona.avatarIcon
     };
 
+    setIsLoggedIn(true);
     setCurrentUser(targetPersona);
-    if (rKey === 'student') setActiveNav('dashboard');
-    else if (rKey === 'teacher') setActiveNav('teacher');
-    else if (rKey === 'institute') setActiveNav('institute');
-    else if (rKey === 'admin') setActiveNav('admin');
+    const targetNav = rKey === 'student' ? 'dashboard' : rKey;
+    setActiveNav(targetNav);
+    try {
+      localStorage.setItem(ALNOOR_STORAGE.USER, JSON.stringify(targetPersona));
+      localStorage.setItem(ALNOOR_STORAGE.LOGGED_IN, 'true');
+      localStorage.setItem(ALNOOR_STORAGE.NAV, targetNav);
+    } catch (e) {}
   };
 
   // Student Edit Details Handlers
@@ -1540,20 +1677,48 @@ function App() {
       }
     }
 
+    setIsLoggedIn(true);
     setCurrentUser(targetPersona);
-    if (roleKey === 'student') setActiveNav('dashboard');
-    else if (roleKey === 'teacher') setActiveNav('teacher');
-    else if (roleKey === 'institute') setActiveNav('institute');
-    else if (roleKey === 'admin') setActiveNav('admin');
+    const targetNav = roleKey === 'student' ? 'dashboard' : roleKey;
+    setActiveNav(targetNav);
+    try {
+      localStorage.setItem(ALNOOR_STORAGE.USER, JSON.stringify(targetPersona));
+      localStorage.setItem(ALNOOR_STORAGE.LOGGED_IN, 'true');
+      localStorage.setItem(ALNOOR_STORAGE.NAV, targetNav);
+    } catch (e) {}
   };
 
-  // Safe Logout Action
+  // Safe Logout Action - Fully clears session and reopens Login/Signup
   const handleLogout = () => {
     setUserDropdownOpen(false);
     if (window.confirm("Are you sure you want to sign out of this session?")) {
+      try {
+        localStorage.removeItem(ALNOOR_STORAGE.USER);
+        localStorage.removeItem(ALNOOR_STORAGE.LOGGED_IN);
+        localStorage.removeItem(ALNOOR_STORAGE.NAV);
+        localStorage.removeItem(ALNOOR_STORAGE.TEACHER_SUBTAB);
+        localStorage.removeItem(ALNOOR_STORAGE.INSTITUTE_SUBTAB);
+        localStorage.removeItem(ALNOOR_STORAGE.BATCH_ID);
+        localStorage.removeItem(ALNOOR_STORAGE.BATCH_TAB);
+        localStorage.removeItem(ALNOOR_STORAGE.COURSE_ID);
+      } catch (e) {}
+
+      setIsLoggedIn(false);
       setCurrentUser(personas.student);
       setActiveNav('home');
       setActiveCourse(null);
+      setActiveBatchWorkspace(null);
+
+      // Immediately prompt Login / Register modal
+      setAuthModal({
+        isOpen: true,
+        mode: 'login',
+        roleTab: 'student',
+        step: 1,
+        errorMsg: '',
+        successMsg: '',
+        isLoading: false
+      });
       alert("Aap kamyabi se Sign Out ho chuke hain. Session safely reset ho gaya hai.");
     }
   };
@@ -1734,14 +1899,23 @@ function App() {
           avatarIcon: dbUser.avatar || basePersona.avatarIcon
         };
 
+        setIsLoggedIn(true);
         setCurrentUser(authenticatedPersona);
         setActiveCourse(null);
         setAuthModal(prev => ({ ...prev, isOpen: false, isLoading: false, errorMsg: '', successMsg: '' }));
         
-        if (roleKey === 'student') setActiveNav('dashboard');
-        else if (roleKey === 'teacher') setActiveNav('teacher');
-        else if (roleKey === 'institute') setActiveNav('institute');
-        else if (roleKey === 'admin') setActiveNav('admin');
+        let targetNav = 'dashboard';
+        if (roleKey === 'student') targetNav = 'dashboard';
+        else if (roleKey === 'teacher') targetNav = 'teacher';
+        else if (roleKey === 'institute') targetNav = 'institute';
+        else if (roleKey === 'admin') targetNav = 'admin';
+        setActiveNav(targetNav);
+
+        try {
+          localStorage.setItem(ALNOOR_STORAGE.USER, JSON.stringify(authenticatedPersona));
+          localStorage.setItem(ALNOOR_STORAGE.LOGGED_IN, 'true');
+          localStorage.setItem(ALNOOR_STORAGE.NAV, targetNav);
+        } catch (e) {}
 
         alert(`✅ Login Successful!\n\nKhush Amdeed, ${authenticatedPersona.name}!\nAapka ${authenticatedPersona.role.toUpperCase()} portal kamyabi se verify ho kar activate ho gaya hai.`);
       } else {
@@ -1773,19 +1947,33 @@ function App() {
         const roleKey = dbUser.role === 'scholar' ? 'admin' : dbUser.role;
         const basePersona = personas[roleKey] || personas.student;
 
-        setCurrentUser({
+        const registeredPersona = {
           ...basePersona,
           id: dbUser.id,
           name: dbUser.name,
           email: dbUser.email,
-          role: roleKey
-        });
+          role: roleKey,
+          phone: dbUser.phone || authForm.phone || basePersona.phone,
+          avatarIcon: basePersona.avatarIcon
+        };
 
+        setIsLoggedIn(true);
+        setCurrentUser(registeredPersona);
+        setActiveCourse(null);
         setAuthModal(prev => ({ ...prev, isOpen: false, isLoading: false, errorMsg: '' }));
-        if (roleKey === 'student') setActiveNav('dashboard');
-        else if (roleKey === 'teacher') setActiveNav('teacher');
-        else if (roleKey === 'institute') setActiveNav('institute');
-        else if (roleKey === 'admin') setActiveNav('admin');
+        
+        let targetNav = 'dashboard';
+        if (roleKey === 'student') targetNav = 'dashboard';
+        else if (roleKey === 'teacher') targetNav = 'teacher';
+        else if (roleKey === 'institute') targetNav = 'institute';
+        else if (roleKey === 'admin') targetNav = 'admin';
+        setActiveNav(targetNav);
+
+        try {
+          localStorage.setItem(ALNOOR_STORAGE.USER, JSON.stringify(registeredPersona));
+          localStorage.setItem(ALNOOR_STORAGE.LOGGED_IN, 'true');
+          localStorage.setItem(ALNOOR_STORAGE.NAV, targetNav);
+        } catch (e) {}
 
         alert(`MashaAllah! Registration completed and saved to database!\nWelcome, ${dbUser.name}.`);
       } else {
@@ -3433,22 +3621,22 @@ function App() {
           <li className={`nav-link ${activeNav === 'home' && !activeCourse ? 'active' : ''}`} onClick={() => { setActiveNav('home'); setActiveCourse(null); }}>
             <i className="fas fa-home"></i> {t.navHome || 'Home'}
           </li>
-          {currentUser.role === 'student' && (
+          {isLoggedIn && currentUser.role === 'student' && (
             <li className={`nav-link ${activeNav === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveNav('dashboard'); setActiveCourse(null); }}>
               <i className="fas fa-user-graduate"></i> {t.navDashboard || 'My Learning Dashboard'}
             </li>
           )}
-          {currentUser.role === 'teacher' && (
+          {isLoggedIn && currentUser.role === 'teacher' && (
             <li className={`nav-link ${activeNav === 'teacher' ? 'active' : ''}`} onClick={() => { setActiveNav('teacher'); setActiveCourse(null); }}>
               <i className="fas fa-chalkboard-teacher"></i> {t.teacherPortal || 'Teacher Studio & Academy'}
             </li>
           )}
-          {currentUser.role === 'institute' && (
+          {isLoggedIn && currentUser.role === 'institute' && (
             <li className={`nav-link ${activeNav === 'institute' ? 'active' : ''}`} onClick={() => { setActiveNav('institute'); setActiveCourse(null); }}>
               <i className="fas fa-mosque"></i> {t.madrasaDashboard || 'Madrasa Operations Hub'}
             </li>
           )}
-          {currentUser.role === 'admin' && (
+          {isLoggedIn && currentUser.role === 'admin' && (
             <li className={`nav-link ${activeNav === 'admin' ? 'active' : ''}`} onClick={() => { setActiveNav('admin'); setActiveCourse(null); }}>
               <i className="fas fa-user-shield"></i> {t.adminPortal || 'Scholar Review Pipeline'}
             </li>
@@ -3552,24 +3740,36 @@ function App() {
             )}
           </div>
 
-          {/* YouTube-Style Profile Dropdown Trigger & Floating Menu */}
-          <div className="profile-dropdown-wrapper" ref={userDropdownRef}>
-            <div 
-              className={`nav-user-pill ${userDropdownOpen ? 'active' : ''}`}
-              onClick={() => setUserDropdownOpen(prev => !prev)}
-              title="Click for Profile, Role Switching & Settings"
-              id="user-profile-menu-btn"
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              <i className={`fas ${currentUser.avatarIcon}`} style={{ color: 'var(--color-primary-light)' }}></i>
-              <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>{currentUser.name}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--color-accent-gold)' }}>
-                  {currentUser.role === 'student' ? 'Student' : currentUser.role === 'teacher' ? 'Teacher' : currentUser.role === 'institute' ? 'Madrasa Admin' : 'Scholar'}
-                </div>
-              </div>
-              <i className={`fas fa-chevron-${userDropdownOpen ? 'up' : 'down'}`} style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}></i>
+          {/* Top Navbar Profile / Login Action */}
+          {!isLoggedIn ? (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                type="button" 
+                className="btn btn-gold btn-sm" 
+                style={{ fontWeight: 800, padding: '7px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                onClick={() => setAuthModal({ isOpen: true, mode: 'login', roleTab: 'student', step: 1, errorMsg: '', successMsg: '', isLoading: false })}
+              >
+                <i className="fas fa-sign-in-alt"></i> Log In / Register
+              </button>
             </div>
+          ) : (
+            <div className="profile-dropdown-wrapper" ref={userDropdownRef}>
+              <div 
+                className={`nav-user-pill ${userDropdownOpen ? 'active' : ''}`}
+                onClick={() => setUserDropdownOpen(prev => !prev)}
+                title="Click for Profile, Role Switching & Settings"
+                id="user-profile-menu-btn"
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+              >
+                <i className={`fas ${currentUser.avatarIcon}`} style={{ color: 'var(--color-primary-light)' }}></i>
+                <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>{currentUser.name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--color-accent-gold)' }}>
+                    {currentUser.role === 'student' ? 'Student' : currentUser.role === 'teacher' ? 'Teacher' : currentUser.role === 'institute' ? 'Madrasa Admin' : 'Scholar'}
+                  </div>
+                </div>
+                <i className={`fas fa-chevron-${userDropdownOpen ? 'up' : 'down'}`} style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}></i>
+              </div>
 
             {/* FLOATING DROPDOWN MENU */}
             {userDropdownOpen && (
@@ -3765,8 +3965,9 @@ function App() {
               </div>
             )}
           </div>
-        </div>
-      </nav>
+        )}
+      </div>
+    </nav>
 
       {/* MAIN CONTAINER */}
       <main className="main-content">
@@ -7702,7 +7903,6 @@ function App() {
                   className={`auth-role-tab ${authModal.roleTab === 'student' ? 'active' : ''}`} 
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'student', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'ahmad.raza@example.com', password: 'student123' }));
                   }}
                 >
                   🎓 Student
@@ -7712,7 +7912,6 @@ function App() {
                   className={`auth-role-tab ${authModal.roleTab === 'teacher' ? 'active' : ''}`} 
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'teacher', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'qari.basit@darululoom.edu', password: 'teacher123' }));
                   }}
                 >
                   👨‍🏫 Teacher
@@ -7722,7 +7921,6 @@ function App() {
                   className={`auth-role-tab ${authModal.roleTab === 'institute' ? 'active' : ''}`} 
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'institute', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'admin@darululoom.edu', password: 'admin123' }));
                   }}
                 >
                   🏛️ Madrasa
@@ -7732,7 +7930,6 @@ function App() {
                   className={`auth-role-tab ${authModal.roleTab === 'scholar' || authModal.roleTab === 'admin' ? 'active' : ''}`} 
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'scholar', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'mufti.tariq@shariahboard.org', password: 'scholar123' }));
                   }}
                 >
                   ⚖️ Scholar
