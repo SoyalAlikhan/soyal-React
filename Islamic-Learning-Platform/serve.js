@@ -8,12 +8,57 @@ const fs = require('fs');
 const path = require('path');
 const { handleApiRequest } = require('./backend/routes/apiRoutes');
 
+// The project was originally dependent on remote React/Babel CDNs.  Keep the
+// development server self-contained by serving the already-installed local
+// React build and compiling the inline JSX on demand.
+const viteDepsDir = path.resolve(__dirname, '..', '01viteReact', 'node_modules', '.vite', 'deps');
+const babel = require(path.resolve(__dirname, '..', '01basicreact', 'node_modules', '@babel', 'core'));
+const reactPreset = require(path.resolve(__dirname, '..', '01basicreact', 'node_modules', '@babel', 'preset-react'));
+let compiledAppBundle = null;
+
+function getCompiledAppBundle() {
+  if (compiledAppBundle) return compiledAppBundle;
+
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const match = html.match(/<script type="text\/plain" id="app-jsx-source">\s*([\s\S]*?)\s*<\/script>/);
+  if (!match) throw new Error('Application JSX source was not found.');
+
+  compiledAppBundle = babel.transformSync(match[1], {
+    presets: [[reactPreset, { runtime: 'classic' }]]
+  }).code;
+  return compiledAppBundle;
+}
+
 let PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 8085;
 
 const server = http.createServer((req, res) => {
   const reqUrl = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = reqUrl.pathname;
   const query = Object.fromEntries(reqUrl.searchParams.entries());
+
+  // Local, pre-bundled React modules used by index.html's module bootstrap.
+  if (pathname.startsWith('/vendor/')) {
+    const filename = path.basename(pathname);
+    const vendorFile = path.join(viteDepsDir, filename);
+    if (/^[\w.-]+\.js$/.test(filename) && fs.existsSync(vendorFile)) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      return fs.createReadStream(vendorFile).pipe(res);
+    }
+    res.statusCode = 404;
+    return res.end('Vendor module not found');
+  }
+
+  // Compile JSX once per server process. This removes the browser's dependency
+  // on the Babel CDN, which otherwise leaves the page blank when offline.
+  if (pathname === '/js/app.bundle.js') {
+    try {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      return res.end(getCompiledAppBundle());
+    } catch (err) {
+      res.statusCode = 500;
+      return res.end(`Unable to compile application: ${err.message}`);
+    }
+  }
 
   // 1. Database Explorer GUI View
   if (pathname === '/db-explorer' || pathname === '/db-explorer/' || pathname === '/db-explorer.html' || pathname === '/admin/database') {

@@ -17,10 +17,7 @@
   <!-- Platform CSS Design System -->
   <link rel="stylesheet" href="./css/app.css">
   
-  <!-- React 18 & Babel Standalone (Production CDNs) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+  <!-- React is served locally by serve.js, so the application also works offline. -->
 </head>
 <body>
   <!-- Root React Mount Node -->
@@ -34,8 +31,24 @@
   <!-- RESTful Backend API Service Client (SQLite Database Integration) -->
   <script src="./js/services/apiService.js"></script>
 
+  <!-- Load local React first, then the server-compiled JSX application. -->
+  <script type="module">
+    import React from './vendor/react.js';
+    import ReactDOM from './vendor/react-dom_client.js';
+
+    window.React = React;
+    window.ReactDOM = ReactDOM;
+
+    const appScript = document.createElement('script');
+    appScript.src = './js/app.bundle.js';
+    document.head.appendChild(appScript);
+  </script>
+  
   <!-- Main React Application Controller -->
-  <script type="text/babel">
+  <script type="text/plain" id="app-jsx-source">
+// React hooks used throughout the application.
+const { useState, useEffect, useRef } = React;
+
 // ============================================================================
 // LocalStorage Persistence Keys & Safe Accessors (Cross-Refresh State Engine)
 // ============================================================================
