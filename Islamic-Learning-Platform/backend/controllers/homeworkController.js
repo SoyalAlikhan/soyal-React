@@ -15,8 +15,8 @@ try {
     const firstBatch = queryOne("SELECT * FROM batches WHERE id = 'batch-tj-01'") || queryOne("SELECT * FROM batches LIMIT 1");
     const batchId = firstBatch ? firstBatch.id : 'batch-tj-01';
     const batchTitle = firstBatch ? firstBatch.title : 'Tajweed Foundation (Fajr)';
-    const courseId = firstBatch ? firstBatch.course_id : 'crs-01';
-    const courseTitle = firstBatch ? firstBatch.course_title : 'Sanad Tajweed-ul-Quran';
+    const courseId = (firstBatch && firstBatch.course_id) ? firstBatch.course_id : 'crs-01';
+    const courseTitle = (firstBatch && firstBatch.course_title) ? firstBatch.course_title : 'Sanad Tajweed-ul-Quran';
 
     execute(`
       INSERT INTO homework (id, course_id, course_title, batch_id, batch_title, teacher_id, teacher_name, title, instructions, due_date, due_time, max_marks, submission_type)
