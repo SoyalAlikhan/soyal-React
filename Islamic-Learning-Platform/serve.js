@@ -6,6 +6,11 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+
+// Seed database BEFORE loading routes/controllers (they reference seeded data)
+const { seedDatabase } = require('./backend/database/seed');
+try { seedDatabase(); } catch (e) { console.warn('[SEED WARNING]', e.message); }
+
 const { handleApiRequest } = require('./backend/routes/apiRoutes');
 
 // The project was originally dependent on remote React/Babel CDNs.  Keep the
@@ -90,7 +95,7 @@ const server = http.createServer((req, res) => {
       try {
         // Hot-reload backend controllers and routes on every API call
         Object.keys(require.cache).forEach(k => {
-          if (k.includes('backend' + path.sep + 'controllers') || k.includes('backend' + path.sep + 'routes')) {
+          if (/[\\/]backend[\\/](controllers|routes)/.test(k)) {
             delete require.cache[k];
           }
         });
@@ -123,6 +128,10 @@ const server = http.createServer((req, res) => {
     '.jpg': 'image/jpeg',
     '.svg': 'image/svg+xml',
     '.mp3': 'audio/mpeg',
+    '.webm': 'audio/webm',
+    '.ogg': 'audio/ogg',
+    '.wav': 'audio/wav',
+    '.m4a': 'audio/mp4',
     '.pdf': 'application/pdf',
     '.ico': 'image/x-icon'
   };

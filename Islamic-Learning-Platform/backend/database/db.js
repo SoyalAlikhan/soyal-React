@@ -39,10 +39,13 @@ function runMigrations() {
     }
   }
 
-  // User & Student credentials migrations
+  // User & Student credentials & session migrations (BRD Section 43)
   const userCols = [
     { name: 'username', type: 'TEXT' },
-    { name: 'password', type: 'TEXT' }
+    { name: 'password', type: 'TEXT' },
+    { name: 'active_session_token', type: 'TEXT' },
+    { name: 'last_device', type: 'TEXT' },
+    { name: 'last_active_at', type: 'TEXT' }
   ];
   for (const col of userCols) {
     try {
@@ -51,6 +54,16 @@ function runMigrations() {
   }
   try {
     db.exec(`ALTER TABLE students ADD COLUMN username TEXT;`);
+  } catch {}
+
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
   } catch {}
 
   // Ensure homework & submissions tables exist

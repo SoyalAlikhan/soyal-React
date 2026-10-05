@@ -29,171 +29,8 @@ try {
   execute(`CREATE INDEX IF NOT EXISTS idx_enroll_batch ON enrollments(batch_id)`);
 } catch {}
 
-// 2. Seed Default Students if table is empty
-const studentCount = queryOne('SELECT COUNT(*) as count FROM students');
-if (!studentCount || studentCount.count === 0) {
-  console.log('[SQLite Backend] Seeding student directory and batch enrollments...');
-  
-  const defaultStudents = [
-    {
-      id: 'stu-101',
-      user_id: 'usr-student-1',
-      name: 'Ahmad Raza',
-      email: 'ahmad.raza@example.com',
-      phone: '+91 98765 43210',
-      roll_number: 'ROL-8821',
-      guardian_name: 'Muhammad Farooq',
-      gender: 'Male',
-      age: 19,
-      institute_affiliation: 'Jamia Darul Uloom (Talib-e-Ilm)'
-    },
-    {
-      id: 'stu-102',
-      user_id: null,
-      name: 'Muhammad Zaid',
-      email: 'zaid.m@example.com',
-      phone: '+91 98765 00113',
-      roll_number: 'ROL-8822',
-      guardian_name: 'Tariq Mehmood',
-      gender: 'Male',
-      age: 20,
-      institute_affiliation: 'Jamia Darul Uloom'
-    },
-    {
-      id: 'stu-103',
-      user_id: null,
-      name: 'Umar Farooq',
-      email: 'umar.f@example.com',
-      phone: '+91 98765 00114',
-      roll_number: 'ROL-8823',
-      guardian_name: 'Abdul Ghaffar',
-      gender: 'Male',
-      age: 17,
-      institute_affiliation: 'Hifz Academy'
-    },
-    {
-      id: 'stu-104',
-      user_id: null,
-      name: 'Bilal Khan',
-      email: 'bilal.khan@example.com',
-      phone: '+91 98765 00115',
-      roll_number: 'ROL-8824',
-      guardian_name: 'Jamshed Khan',
-      gender: 'Male',
-      age: 21,
-      institute_affiliation: 'Jamia Darul Uloom'
-    },
-    {
-      id: 'stu-105',
-      user_id: null,
-      name: 'Abdullah Siddiqui',
-      email: 'abdullah.s@example.com',
-      phone: '+91 98765 00116',
-      roll_number: 'ROL-8825',
-      guardian_name: 'Rashid Siddiqui',
-      gender: 'Male',
-      age: 18,
-      institute_affiliation: 'Tajweed Markaz'
-    },
-    {
-      id: 'stu-106',
-      user_id: null,
-      name: 'Fatima Bint Tariq',
-      email: 'fatima.t@example.com',
-      phone: '+91 98765 00117',
-      roll_number: 'ROL-8826',
-      guardian_name: 'Mufti Tariq Masood',
-      gender: 'Female',
-      age: 19,
-      institute_affiliation: 'Shoba-e-Banat'
-    },
-    {
-      id: 'stu-107',
-      user_id: null,
-      name: 'Zainab Qasim',
-      email: 'zainab.q@example.com',
-      phone: '+91 98765 00118',
-      roll_number: 'ROL-8827',
-      guardian_name: 'Maulana Qasim',
-      gender: 'Female',
-      age: 18,
-      institute_affiliation: 'Shoba-e-Banat'
-    },
-    {
-      id: 'stu-108',
-      user_id: null,
-      name: 'Hamza Ali',
-      email: 'hamza.ali@example.com',
-      phone: '+91 98765 00119',
-      roll_number: 'ROL-8828',
-      guardian_name: 'Akbar Ali',
-      gender: 'Male',
-      age: 22,
-      institute_affiliation: 'Jamia Darul Uloom'
-    },
-    {
-      id: 'stu-109',
-      user_id: null,
-      name: 'Hassan Raza',
-      email: 'hassan.raza@example.com',
-      phone: '+91 98765 00120',
-      roll_number: 'ROL-8829',
-      guardian_name: 'Farooq Raza',
-      gender: 'Male',
-      age: 17,
-      institute_affiliation: 'Hifz Academy'
-    },
-    {
-      id: 'stu-110',
-      user_id: null,
-      name: 'Usman Ghani',
-      email: 'usman.g@example.com',
-      phone: '+91 98765 00121',
-      roll_number: 'ROL-8830',
-      guardian_name: 'Ghulam Rasool',
-      gender: 'Male',
-      age: 20,
-      institute_affiliation: 'Jamia Darul Uloom'
-    }
-  ];
+// 2. Student seeding is now handled by seed.js — no inline seeding needed
 
-  for (const s of defaultStudents) {
-    execute(
-      `INSERT OR IGNORE INTO students (id, user_id, name, email, phone, roll_number, guardian_name, gender, age, institute_affiliation)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [s.id, s.user_id, s.name, s.email, s.phone, s.roll_number, s.guardian_name, s.gender, s.age, s.institute_affiliation]
-    );
-
-    // Also ensure user record exists for authentication
-    const userExists = queryOne('SELECT id FROM users WHERE email = ?', [s.email]);
-    if (!userExists) {
-      execute(
-        `INSERT OR IGNORE INTO users (id, name, email, role, phone, avatar, institute_affiliation)
-         VALUES (?, ?, ?, 'student', ?, 'fa-user-graduate', ?)`,
-        [s.user_id || `usr-${s.id}`, s.name, s.email, s.phone, s.institute_affiliation]
-      );
-    }
-  }
-
-  // Seed initial enrollments for existing batches
-  const batches = queryAll('SELECT id, course_id FROM batches LIMIT 3');
-  if (batches.length > 0) {
-    const b0 = batches[0]; // batch-tj-01
-    const b1 = batches[1] || batches[0];
-    
-    // Enroll Ahmad Raza and Muhammad Zaid in b0
-    execute(`INSERT OR IGNORE INTO enrollments (id, student_id, course_id, batch_id, payment_status) VALUES (?, ?, ?, ?, ?)`,
-      ['enr-101', 'stu-101', b0.course_id, b0.id, 'Paid']);
-    execute(`INSERT OR IGNORE INTO enrollments (id, student_id, course_id, batch_id, payment_status) VALUES (?, ?, ?, ?, ?)`,
-      ['enr-102', 'stu-102', b0.course_id, b0.id, 'Paid']);
-    
-    // Enroll Umar Farooq and Bilal Khan in b1
-    execute(`INSERT OR IGNORE INTO enrollments (id, student_id, course_id, batch_id, payment_status) VALUES (?, ?, ?, ?, ?)`,
-      ['enr-103', 'stu-103', b1.course_id, b1.id, 'Paid']);
-    execute(`INSERT OR IGNORE INTO enrollments (id, student_id, course_id, batch_id, payment_status) VALUES (?, ?, ?, ?, ?)`,
-      ['enr-104', 'stu-104', b1.course_id, b1.id, '100% Waqf']);
-  }
-}
 
 // ============================================================================
 // API Handlers with Relational SQL JOINs
@@ -279,7 +116,9 @@ function getBatchStudents(req, res, batchId) {
       sql = `
         SELECT 
           e.id as enrollment_id,
+          e.course_id,
           s.id as student_id,
+          s.user_id,
           s.name as student_name,
           s.email,
           s.phone,
@@ -288,7 +127,10 @@ function getBatchStudents(req, res, batchId) {
           b.id as batch_id,
           b.title as batch_name,
           b.batch_code,
+          b.instructor_name as batch_instructor,
+          b.teacher_id,
           c.title as course_title,
+          c.instructor_name as course_instructor,
           e.payment_status,
           e.created_at as enrolled_at
         FROM enrollments e
@@ -304,7 +146,9 @@ function getBatchStudents(req, res, batchId) {
       sql = `
         SELECT 
           e.id as enrollment_id,
+          e.course_id,
           s.id as student_id,
+          s.user_id,
           s.name as student_name,
           s.email,
           s.phone,
@@ -313,7 +157,10 @@ function getBatchStudents(req, res, batchId) {
           b.id as batch_id,
           b.title as batch_name,
           b.batch_code,
+          b.instructor_name as batch_instructor,
+          b.teacher_id,
           c.title as course_title,
+          c.instructor_name as course_instructor,
           e.payment_status,
           e.created_at as enrolled_at
         FROM enrollments e
@@ -341,14 +188,20 @@ function getBatchStudents(req, res, batchId) {
  * Helper to generate random 8-character secure password and username
  */
 const crypto = require('crypto');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 function hashPassword(plainText) {
   return crypto.createHash('sha256').update(plainText).digest('hex');
 }
 
-function generateStudentCredentials(name) {
+function generateStudentCredentials(name, instSlug = null) {
   const cleanName = (name || 'student').toLowerCase().replace(/[^a-z0-9]/g, '') || 'talib';
-  const username = `${cleanName}_${Math.floor(1000 + Math.random() * 9000)}`;
+  let username;
+  if (instSlug) {
+    username = `${cleanName}_${instSlug}`;
+  } else {
+    username = `${cleanName}_${Math.floor(1000 + Math.random() * 9000)}`;
+  }
   // Exactly 8 characters: 'Noor' + 4 random digits (e.g. Noor8492)
   const password = `Noor${Math.floor(1000 + Math.random() * 9000)}`;
   const passwordHash = hashPassword(password);
@@ -360,7 +213,7 @@ function generateStudentCredentials(name) {
  * Enrolls a student into a batch directly in SQLite
  * Updates enrollments table with foreign keys
  */
-function enrollStudentInBatch(req, res, batchId, body) {
+async function enrollStudentInBatch(req, res, batchId, body) {
   try {
     body = body || {};
     // Extract studentId string or student object
@@ -380,7 +233,7 @@ function enrollStudentInBatch(req, res, batchId, body) {
       studentId = body.student_id.trim();
     } else if (typeof body.studentId === 'string') {
       studentId = body.studentId.trim();
-    } else if (body.name) {
+    } else if (body.name || body.student_name) {
       studentObj = body;
     }
 
@@ -399,8 +252,41 @@ function enrollStudentInBatch(req, res, batchId, body) {
       return res.end(JSON.stringify({ success: false, error: `Batch "${targetBatchId}" database me nahi mila.` }));
     }
 
+    // Determine institute affiliation from batch, teacher, course, or request body
+    let resolvedInstituteName = body.institute_name || body.institute_affiliation || null;
+    let instSlug = null;
+
+    if (!resolvedInstituteName && (batch.teacher_id || batch.instructor_name)) {
+      const teacher = queryOne("SELECT institute_affiliation FROM users WHERE (id = ? OR name = ?) AND role = 'teacher'", [batch.teacher_id, batch.instructor_name]);
+      if (teacher && teacher.institute_affiliation && !teacher.institute_affiliation.toLowerCase().includes('independent')) {
+        resolvedInstituteName = teacher.institute_affiliation;
+      }
+    }
+
+    if (!resolvedInstituteName && batch.course_id) {
+      const courseRec = queryOne("SELECT institute_id FROM courses WHERE id = ?", [batch.course_id]);
+      if (courseRec && courseRec.institute_id && courseRec.institute_id !== 'independent') {
+        const instRec = queryOne("SELECT legal_name, subdomain FROM institutes WHERE id = ?", [courseRec.institute_id]);
+        if (instRec) {
+          resolvedInstituteName = instRec.legal_name;
+        }
+      }
+    }
+
+    if (resolvedInstituteName) {
+      const lowerAff = resolvedInstituteName.toLowerCase();
+      if (!lowerAff.includes('independent')) {
+        let slug = lowerAff.replace(/[^a-z0-9]/g, '');
+        if (slug.includes('alfurqan')) instSlug = 'alfurqan';
+        else if (slug.includes('darululoom')) instSlug = 'darululoom';
+        else instSlug = slug.slice(0, 10) || 'institute';
+      } else {
+        resolvedInstituteName = null;
+      }
+    }
+
     // Determine student name, email, phone from either body or studentObj
-    const studentName = (studentObj ? studentObj.name : body.name) || '';
+    const studentName = (studentObj ? (studentObj.name || studentObj.student_name) : (body.name || body.student_name)) || '';
     const studentEmail = ((studentObj ? studentObj.email : body.email) || '').trim().toLowerCase();
     const studentPhone = (studentObj ? studentObj.phone : body.phone) || '+91 98765 00000';
 
@@ -429,20 +315,27 @@ function enrollStudentInBatch(req, res, batchId, body) {
         rollNo = 'ROL-' + Date.now().toString().slice(-6);
       }
       
-      generatedCreds = generateStudentCredentials(studentName);
+      generatedCreds = generateStudentCredentials(studentName, instSlug);
+      // Ensure unique username
+      const existingUserU = queryOne('SELECT id FROM users WHERE username = ?', [generatedCreds.username]);
+      if (existingUserU) {
+        generatedCreds.username = `${generatedCreds.username}_${Math.floor(100 + Math.random() * 900)}`;
+      }
+
       const userId = 'usr-' + newStuId;
+      const finalAffiliation = resolvedInstituteName || 'Independent Student';
 
       // 1. Insert into users table FIRST (so foreign key user_id exists)
       execute(`
         INSERT OR REPLACE INTO users (id, name, username, email, password, password_hash, role, phone, institute_affiliation)
         VALUES (?, ?, ?, ?, ?, ?, 'student', ?, ?)
-      `, [userId, studentName, generatedCreds.username, finalEmail, generatedCreds.password, generatedCreds.passwordHash, studentPhone, 'Jamia Darul Uloom']);
+      `, [userId, studentName, generatedCreds.username, finalEmail, generatedCreds.password, generatedCreds.passwordHash, studentPhone, finalAffiliation]);
 
       // 2. Insert into students table
       execute(`
         INSERT INTO students (id, user_id, name, username, email, phone, roll_number, guardian_name, gender, institute_affiliation)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [newStuId, userId, studentName, generatedCreds.username, finalEmail, studentPhone, rollNo, body.guardian_name || 'Guardian', body.gender || 'Male', body.institute_affiliation || 'Jamia Darul Uloom']);
+      `, [newStuId, userId, studentName, generatedCreds.username, finalEmail, studentPhone, rollNo, body.guardian_name || 'Guardian', body.gender || 'Male', finalAffiliation]);
 
       student = queryOne('SELECT * FROM students WHERE id = ?', [newStuId]);
     }
@@ -502,34 +395,243 @@ function enrollStudentInBatch(req, res, batchId, body) {
     const responsePayload = {
       success: true,
       message: `Talib-e-Ilm "${student.name}" kamyabi se batch "${batch.title}" me dakhil kar liya gaya!`,
-      batch_enrolled_count: currentEnrolledCount ? currentEnrolledCount.count : 1,
       data: fullRecord
     };
 
-    if (generatedCreds) {
-      const msg = `Assalamu Alaikum ${student.name}!\n\nAapko Al-Noor Islamic Platform ke batch "${batch.title}" me dakhil kar liya gaya hai.\n\n📚 BATCH DETAILS:\n• Batch: ${batch.title} (${batch.batch_code || ''})\n• Class Timings: ${batch.class_time || '07:00 AM'}\n• Schedule Days: ${batch.schedule_days || 'Mon, Wed, Fri'}\n\n🔐 LOGIN CREDENTIALS:\n• Portal: http://localhost:8085\n• Username: ${generatedCreds.username}\n• 8-Digit Password: ${generatedCreds.password}\n• Registered Email: ${student.email}\n\nJazakAllahu Khaira.`;
+    // Fetch course & teacher information for email and notification dispatch
+    const course = queryOne('SELECT * FROM courses WHERE id = ?', [batch.course_id]);
+    const courseTitle = course ? course.title : 'Islamic Studies';
+    const courseArabicTitle = (course && course.arabic_title) ? ` (${course.arabic_title})` : '';
+    const fullCourseTitle = courseTitle + courseArabicTitle;
+    const instructorName = batch.instructor_name || (course ? course.instructor_name : 'Ustadh Bilal Ahmed');
+    const courseLevel = (course && course.level) || 'All Levels';
+    const courseMode = (course && course.mode) || 'Interactive Live Halaqah';
+    const courseDuration = (course && course.duration) || 'Ongoing';
+    const classTime = batch.class_time || '07:00 AM';
+    const scheduleDays = batch.schedule_days || 'Mon, Wed, Fri';
+    const batchCode = batch.batch_code ? `[${batch.batch_code}] ` : '';
+    const feeInfo = (course && (course.tuition_type === 'free' || !course.fee_amount)) 
+      ? 'Bila Muawaza (Free / Waqf)' 
+      : (course ? `₹${course.fee_amount} (${course.tuition_type || 'Standard'})` : 'Standard');
+    const courseDesc = (course && course.description) ? course.description : '';
 
-      console.log(`[DISPATCH EMAIL SIMULATION] To: ${student.email} | Subject: Welcome to ${batch.title} | Password: ${generatedCreds.password}`);
-      console.log(`[DISPATCH WHATSAPP SIMULATION] To: ${student.phone} | Batch: ${batch.title} | Username: ${generatedCreds.username}`);
-
-      responsePayload.credentials = {
-        student_id: student.id,
-        name: student.name,
-        username: generatedCreds.username,
-        plain_password: generatedCreds.password,
-        email: student.email,
-        phone: student.phone,
-        batch_id: batch.id,
-        batch_name: batch.title,
-        batch_code: batch.batch_code || '',
-        timings: batch.class_time || '07:00 AM',
-        class_time: batch.class_time || '07:00 AM',
-        schedule_days: batch.schedule_days || 'Mon, Wed, Fri',
-        portal_url: 'http://localhost:8085',
-        dispatch_message: msg,
-        email_subject: `Welcome to Al-Noor Academy — ${batch.title} Credentials`
-      };
+    // Generate secure password reset token and link
+    const resetToken = 'rst_' + crypto.randomBytes(16).toString('hex');
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+    const usernameForLogin = (generatedCreds ? generatedCreds.username : (student.username || student.name.toLowerCase().replace(/[^a-z0-9]/g, '')));
+    let studentUserId = student.user_id;
+    const existingUser = queryOne('SELECT id FROM users WHERE email = ? OR username = ?', [student.email.toLowerCase(), usernameForLogin.toLowerCase()]);
+    if (existingUser) {
+      studentUserId = existingUser.id;
+      execute('UPDATE students SET user_id = ? WHERE id = ?', [studentUserId, student.id]);
+    } else if (!studentUserId || !queryOne('SELECT id FROM users WHERE id = ?', [studentUserId])) {
+      studentUserId = 'usr-' + student.id;
+      try {
+        execute(`INSERT INTO users (id, name, username, email, password, role) VALUES (?, ?, ?, ?, ?, 'student')`,
+          [studentUserId, student.name, usernameForLogin, student.email.toLowerCase(), 'student123']
+        );
+      } catch (errIns) {
+        // Fallback to student-1 if any constraint conflicts
+        const fallback = queryOne("SELECT id FROM users WHERE role = 'student' LIMIT 1");
+        if (fallback) studentUserId = fallback.id;
+      }
+      execute(`UPDATE students SET user_id = ? WHERE id = ?`, [studentUserId, student.id]);
     }
+
+    try {
+      execute(`
+        INSERT OR REPLACE INTO password_resets (identifier, token, otp, expires_at, user_id)
+        VALUES (?, ?, ?, ?, ?)
+      `, [student.email.toLowerCase(), resetToken, Math.floor(100000 + Math.random() * 900000).toString(), expiresAt, studentUserId]);
+
+      if (usernameForLogin) {
+        execute(`
+          INSERT OR REPLACE INTO password_resets (identifier, token, otp, expires_at, user_id)
+          VALUES (?, ?, ?, ?, ?)
+        `, [usernameForLogin.toLowerCase(), resetToken, Math.floor(100000 + Math.random() * 900000).toString(), expiresAt, studentUserId]);
+      }
+    } catch (e) {
+      console.warn('[RESET TOKEN WARNING]', e.message);
+    }
+
+    const resetLink = `http://localhost:8085/?reset_token=${resetToken}&user=${encodeURIComponent(usernameForLogin)}`;
+
+    // Detailed in-app Notification for student with full course & batch details
+    const notifTitle = `🎉 Naye Course me Dakhila: ${courseTitle}`;
+    const notifMessage = 
+      `Assalamu Alaikum wa Rahmatullahi wa Barakatuh!\n` +
+      `Mubarak ho! Ustad ${instructorName} ne aapko naye course "${fullCourseTitle}" ke batch "${batch.title}" ${batchCode}me dakhil kar liya hai.\n\n` +
+      `📋 COURSE & BATCH DETAILS:\n` +
+      `• Course: ${fullCourseTitle}\n` +
+      `• Batch: ${batch.title} ${batchCode}\n` +
+      `• Ustad / Teacher: ${instructorName}\n` +
+      `• Class Timings: ${classTime}\n` +
+      `• Schedule Days: ${scheduleDays}\n` +
+      `• Level & Mode: ${courseLevel} · ${courseMode}\n` +
+      `• Duration: ${courseDuration}\n` +
+      `• Fee Model: ${feeInfo}` +
+      (courseDesc ? `\n• Overview: ${courseDesc}` : '');
+
+    try {
+      let validUid = studentUserId;
+      if (!validUid && student.email) {
+        const uRow = queryOne('SELECT id FROM users WHERE LOWER(email) = LOWER(?)', [student.email]);
+        if (uRow) validUid = uRow.id;
+      }
+      if (validUid) {
+        const notifId = 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+        execute(`
+          INSERT INTO notifications (id, user_id, type, title, message, link)
+          VALUES (?, ?, 'course_enrollment', ?, ?, ?)
+        `, [
+          notifId,
+          validUid,
+          notifTitle,
+          notifMessage,
+          '#courses'
+        ]);
+      }
+    } catch (e) {
+      console.warn('[ENROLL NOTIF WARNING]', e.message);
+    }
+
+    // Construct full simulated email dispatch payload
+    const isExistingStudent = !generatedCreds;
+    const instHeader = resolvedInstituteName || 'School of Deeni Ilm';
+    const emailSubject = isExistingStudent 
+      ? `✦ Course Enrollment Confirmation — ${courseTitle} (${batch.title})`
+      : `✦ Welcome to ${instHeader} — Enrolled in ${courseTitle} (${batch.title})`;
+
+    const emailText = isExistingStudent
+      ? `Assalamu Alaikum wa Rahmatullahi wa Barakatuh ${student.name},\n\n` +
+        `Mubarak ho! Aapko ${instHeader} ke naye course "${fullCourseTitle}" ke batch "${batch.title}" me shamil kar liya gaya hai.\n\n` +
+        `📚 COURSE & BATCH DETAILS:\n` +
+        `• Institute: ${instHeader}\n` +
+        `• Course: ${fullCourseTitle}\n` +
+        `• Batch: ${batch.title} (${batch.batch_code || ''})\n` +
+        `• Teacher / Ustad: ${instructorName}\n` +
+        `• Timings: ${classTime}\n` +
+        `• Schedule Days: ${scheduleDays}\n` +
+        `• Level & Mode: ${courseLevel} · ${courseMode}\n` +
+        `• Duration: ${courseDuration}\n` +
+        `• Fee Model: ${feeInfo}\n` +
+        (courseDesc ? `• Overview: ${courseDesc}\n\n` : `\n`) +
+        `🔐 YOUR LOGIN ACCESS:\n` +
+        `• Portal URL: http://localhost:8085\n` +
+        `• Username: ${usernameForLogin}\n` +
+        `• Password: Aapka pehle se set kiya hua password hi is naye course ke liye chalega.\n\n` +
+        `Agar aap password bhool gaye hain to is link se reset kar sakte hain:\n${resetLink}\n\n` +
+        `JazakAllahu Khaira,\n${instHeader} Administration`
+      : `Assalamu Alaikum wa Rahmatullahi wa Barakatuh ${student.name},\n\n` +
+        `Mubarak ho! Aapko ${instHeader} ke course "${fullCourseTitle}" ke batch "${batch.title}" me kamyabi se enroll kar liya gaya hai.\n\n` +
+        `📚 COURSE & BATCH DETAILS:\n` +
+        `• Institute: ${instHeader}\n` +
+        `• Course: ${fullCourseTitle}\n` +
+        `• Batch: ${batch.title} (${batch.batch_code || ''})\n` +
+        `• Teacher / Ustad: ${instructorName}\n` +
+        `• Timings: ${classTime}\n` +
+        `• Schedule Days: ${scheduleDays}\n` +
+        `• Level & Mode: ${courseLevel} · ${courseMode}\n` +
+        `• Duration: ${courseDuration}\n` +
+        `• Fee Model: ${feeInfo}\n` +
+        (courseDesc ? `• Overview: ${courseDesc}\n\n` : `\n`) +
+        `🔐 YOUR LOGIN CREDENTIALS:\n` +
+        `• Portal URL: http://localhost:8085\n` +
+        `• Username: ${usernameForLogin}\n` +
+        `• Temporary Password: ${generatedCreds ? generatedCreds.password : '(Use reset link below)'}\n\n` +
+        `🔗 PASSWORD RESET LINK (BRD 41.1):\n` +
+        `Aap niche diye gaye link par click karke apna naya password set kar sakte hain:\n` +
+        `${resetLink}\n\n` +
+        `JazakAllahu Khaira,\n${instHeader} Administration`;
+
+    console.log(`[DISPATCH EMAIL SIMULATION] To: ${student.email}`);
+    console.log(`[DISPATCH EMAIL SUBJECT] ${emailSubject}`);
+    console.log(`[DISPATCH EMAIL RESET LINK] ${resetLink}`);
+
+    // Real Email Dispatch via SMTP / Nodemailer
+    let emailResult = { success: false };
+    try {
+      emailResult = await sendWelcomeEmail({
+        to: student.email,
+        studentName: student.name,
+        instituteName: resolvedInstituteName,
+        courseTitle: fullCourseTitle,
+        batchTitle: batch.title,
+        batchCode: batch.batch_code,
+        classTime: classTime,
+        scheduleDays: scheduleDays,
+        instructorName: instructorName,
+        courseLevel: courseLevel,
+        courseMode: courseMode,
+        courseDuration: courseDuration,
+        courseFee: feeInfo,
+        courseDescription: courseDesc,
+        username: usernameForLogin,
+        tempPassword: generatedCreds ? generatedCreds.password : 'Student@2026',
+        isExistingStudent: isExistingStudent,
+        resetUrl: resetLink
+      });
+      console.log(`[STUDENT ENROLL] Real email dispatch result for ${student.email}:`, emailResult.success);
+    } catch (e) {
+      console.warn('[STUDENT ENROLL] Email dispatch error:', e.message);
+    }
+
+    responsePayload.student_id = student.id;
+    responsePayload.user_id = studentUserId;
+    responsePayload.username = usernameForLogin;
+    responsePayload.email = student.email;
+    responsePayload.institute_name = resolvedInstituteName;
+    responsePayload.course_title = fullCourseTitle;
+    responsePayload.batch_title = batch.title;
+    responsePayload.class_time = classTime;
+    responsePayload.schedule_days = scheduleDays;
+    responsePayload.course_level = courseLevel;
+    responsePayload.course_mode = courseMode;
+    responsePayload.course_duration = courseDuration;
+    responsePayload.course_fee = feeInfo;
+    responsePayload.course_description = courseDesc;
+    responsePayload.instructor_name = instructorName;
+    responsePayload.notification_title = notifTitle;
+    responsePayload.notification_message = notifMessage;
+    responsePayload.reset_token = resetToken;
+    responsePayload.reset_url = resetLink;
+    responsePayload.email_sent = emailResult.success;
+    responsePayload.is_existing_student = isExistingStudent;
+    responsePayload.message = isExistingStudent 
+      ? `Talib-e-Ilm "${student.name}" ko naye course "${courseTitle}" (${batch.title}) me kamyabi se shamil kar liya gaya!`
+      : `Talib-e-Ilm "${student.name}" kamyabi se batch "${batch.title}" me dakhil kar liya gaya!`;
+    responsePayload.email_preview_url = emailResult.previewUrl || null;
+    responsePayload.email_dispatch = {
+      to: student.email,
+      subject: emailSubject,
+      body: emailText,
+      sent: emailResult.success,
+      previewUrl: emailResult.previewUrl || null
+    };
+
+    responsePayload.credentials = {
+      student_id: student.id,
+      user_id: studentUserId,
+      name: student.name,
+      username: usernameForLogin,
+      plain_password: generatedCreds ? generatedCreds.password : null,
+      email: student.email,
+      phone: student.phone,
+      course_id: batch.course_id,
+      course_title: courseTitle,
+      batch_id: batch.id,
+      batch_name: batch.title,
+      batch_code: batch.batch_code || '',
+      timings: batch.class_time || '07:00 AM',
+      class_time: batch.class_time || '07:00 AM',
+      schedule_days: batch.schedule_days || 'Mon, Wed, Fri',
+      instructor_name: instructorName,
+      reset_token: resetToken,
+      reset_link: resetLink,
+      portal_url: 'http://localhost:8085',
+      dispatch_message: emailText,
+      email_subject: emailSubject
+    };
 
     res.writeHead(201, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(responsePayload));
@@ -602,11 +704,19 @@ function createStudent(req, res, body) {
       VALUES (?, ?, ?, ?, ?, ?, 'student', ?, ?)
     `, [userId, name, creds.username, email, creds.password, creds.passwordHash, phone, instituteAffiliation]);
 
-    // 2. Insert into students table
-    execute(`
-      INSERT INTO students (id, user_id, name, username, email, phone, roll_number, guardian_name, gender, institute_affiliation)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [id, userId, name, creds.username, email, phone, rollNumber, guardianName, gender, instituteAffiliation]);
+    // If batch_id is provided, automatically enroll student into this batch
+    if (body.batch_id) {
+      return enrollStudentInBatch(req, res, body.batch_id, {
+        student_id: id,
+        name,
+        email,
+        phone,
+        roll_number: rollNumber,
+        guardian_name: guardianName,
+        gender,
+        institute_affiliation: instituteAffiliation
+      });
+    }
 
     const created = queryOne('SELECT * FROM students WHERE id = ?', [id]);
     res.writeHead(201, { 'Content-Type': 'application/json' });

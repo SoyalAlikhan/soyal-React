@@ -12,6 +12,8 @@ const liveClassesController = require('../controllers/liveClassesController');
 const studentsController = require('../controllers/studentsController');
 const homeworkController = require('../controllers/homeworkController');
 const recitationsController = require('../controllers/recitationsController');
+const platformController = require('../controllers/platformController');
+const toolsController = require('../controllers/toolsController');
 
 function handleApiRequest(req, res, pathname, query, body) {
   // CORS Headers for both Web & Mobile
@@ -34,6 +36,18 @@ function handleApiRequest(req, res, pathname, query, body) {
   if (pathname === '/api/v1/auth/users' && req.method === 'GET') {
     return authController.getUsers(req, res);
   }
+  if (pathname === '/api/v1/auth/session-check' && req.method === 'POST') {
+    return toolsController.sessionCheckHandler(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/simulate-second-device' && req.method === 'POST') {
+    return toolsController.simulateSecondDeviceLoginHandler(req, res, body);
+  }
+  if (pathname === '/api/v1/tools/prayer-times' && req.method === 'GET') {
+    return toolsController.getPrayerTimesHandler(req, res, query);
+  }
+  if (pathname === '/api/v1/tools/qibla' && req.method === 'GET') {
+    return toolsController.getQiblaHandler(req, res, query);
+  }
   if (pathname === '/api/v1/auth/forgot-password' && req.method === 'POST') {
     return authController.forgotPassword(req, res, body);
   }
@@ -46,6 +60,15 @@ function handleApiRequest(req, res, pathname, query, body) {
   if (pathname === '/api/v1/auth/linked-accounts' && req.method === 'GET') {
     const email = query && query.email;
     return authController.getLinkedAccounts(req, res, email);
+  }
+  if (pathname === '/api/v1/auth/profiles' && req.method === 'GET') {
+    return authController.getProfiles(req, res, query);
+  }
+  if (pathname === '/api/v1/auth/switch-profile' && req.method === 'POST') {
+    return authController.switchProfile(req, res, body);
+  }
+  if (pathname === '/api/v1/auth/add-profile' && req.method === 'POST') {
+    return authController.addProfile(req, res, body);
   }
 
   // 1. Health Check
@@ -209,6 +232,73 @@ function handleApiRequest(req, res, pathname, query, body) {
   }
   if (pathname === '/api/v1/explorer/query' && req.method === 'POST') {
     return explorerController.executeConsoleQuery(req, res, body);
+  }
+
+  // 8. BRD v4 Notifications (BRD 33)
+  if (pathname === '/api/v1/notifications') {
+    if (req.method === 'GET') return platformController.getNotifications(req, res, query);
+    if (req.method === 'POST') return platformController.createNotification(req, res, body);
+  }
+  if (pathname.startsWith('/api/v1/notifications/') && (pathname.endsWith('/read') || req.method === 'PATCH' || req.method === 'POST')) {
+    const notifId = pathname.replace('/api/v1/notifications/', '').replace('/read', '').trim();
+    return platformController.markNotificationRead(req, res, notifId);
+  }
+
+  // 9. BRD v4 Fee & Payments (BRD 32)
+  if (pathname === '/api/v1/payments') {
+    if (req.method === 'GET') return platformController.getPayments(req, res, query);
+    if (req.method === 'POST') return platformController.createPayment(req, res, body);
+  }
+
+  // 10. BRD v4 Certificates (BRD 19)
+  if (pathname === '/api/v1/certificates') {
+    if (req.method === 'GET') return platformController.getCertificates(req, res, query);
+    if (req.method === 'POST') return platformController.createCertificate(req, res, body);
+  }
+
+  // 11. BRD v4 Content Moderation Reports (BRD 36)
+  if (pathname === '/api/v1/reports') {
+    if (req.method === 'GET') return platformController.getReports(req, res, query);
+    if (req.method === 'POST') return platformController.createReport(req, res, body);
+  }
+  if (pathname.startsWith('/api/v1/reports/') && (req.method === 'PATCH' || req.method === 'PUT' || req.method === 'POST')) {
+    const reportId = pathname.replace('/api/v1/reports/', '').trim();
+    return platformController.updateReportStatus(req, res, reportId, body);
+  }
+
+  // 12. Real SMTP Server Settings & Live Testing
+  if (pathname === '/api/v1/settings/smtp') {
+    const { getSmtpConfig, saveSmtpConfig } = require('../services/emailService');
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, data: getSmtpConfig() }));
+    }
+    if (req.method === 'POST') {
+      const saved = saveSmtpConfig(body || {});
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, message: 'SMTP settings saved successfully and live transporter updated', data: saved }));
+    }
+  }
+
+  if (pathname === '/api/v1/settings/smtp/test' && req.method === 'POST') {
+    const { testSmtpConnection } = require('../services/emailService');
+    const testTo = (body && (body.test_to || body.to || body.email || body.recipient)) || null;
+    if (!testTo) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Test recipient email address (to / test_to) is required.' }));
+    }
+    const customSettings = (body && body.settings) ? body.settings : (body && body.host ? body : null);
+    testSmtpConnection(testTo, customSettings)
+      .then(result => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: `Real test email successfully dispatched to ${testTo}`, data: result }));
+      })
+      .catch(err => {
+        console.error('[SMTP TEST ERROR]', err);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      });
+    return;
   }
 
   // 404 Route Not Found

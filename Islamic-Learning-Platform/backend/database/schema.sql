@@ -297,3 +297,85 @@ CREATE INDEX IF NOT EXISTS idx_hw_batch ON homework(batch_id);
 CREATE INDEX IF NOT EXISTS idx_hw_sub_hw ON homework_submissions(homework_id);
 CREATE INDEX IF NOT EXISTS idx_hw_sub_stu ON homework_submissions(student_id);
 
+-- ============================================================================
+-- BRD v4 Additions
+-- ============================================================================
+
+-- 16. Multi-Role Profile Switching (BRD Section 28)
+CREATE TABLE IF NOT EXISTS profiles (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('student','teacher','institute_admin','admin')),
+    display_name TEXT,
+    linked_institute_id TEXT,
+    verification_status TEXT DEFAULT 'pending',
+    is_active INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_profiles_user ON profiles(user_id);
+
+-- 17. In-App Notifications (BRD Section 33)
+CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    profile_id TEXT,
+    type TEXT DEFAULT 'info',
+    title TEXT NOT NULL,
+    message TEXT,
+    is_read INTEGER DEFAULT 0,
+    link TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_notif_user ON notifications(user_id);
+
+-- 18. Fee & Payment Tracking (BRD Section 32)
+CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL,
+    course_id TEXT,
+    batch_id TEXT,
+    amount INTEGER NOT NULL,
+    currency TEXT DEFAULT 'INR',
+    payment_method TEXT DEFAULT 'UPI',
+    status TEXT DEFAULT 'paid',
+    invoice_number TEXT,
+    teacher_share INTEGER DEFAULT 0,
+    platform_share INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id)
+);
+
+-- 19. Certificates (BRD Section 19)
+CREATE TABLE IF NOT EXISTS certificates (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL,
+    student_name TEXT NOT NULL,
+    course_id TEXT NOT NULL,
+    course_title TEXT NOT NULL,
+    instructor_name TEXT,
+    grade TEXT,
+    score INTEGER,
+    completion_date TEXT,
+    verification_qr TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+
+-- 20. Content Reports & Moderation Queue (BRD Section 36)
+CREATE TABLE IF NOT EXISTS content_reports (
+    id TEXT PRIMARY KEY,
+    reporter_id TEXT NOT NULL,
+    reporter_name TEXT,
+    content_type TEXT NOT NULL,
+    content_id TEXT,
+    reason TEXT NOT NULL,
+    details TEXT,
+    status TEXT DEFAULT 'pending',
+    moderator_notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES users(id)
+);
+

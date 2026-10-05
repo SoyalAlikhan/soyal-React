@@ -62,12 +62,18 @@ const apiService = {
     }
   },
 
-  resetPassword: async (identifier, otp, newPassword) => {
+  resetPassword: async (identifierOrPayload, otp, newPassword) => {
     try {
+      let bodyData = {};
+      if (typeof identifierOrPayload === 'object' && identifierOrPayload !== null) {
+        bodyData = identifierOrPayload;
+      } else {
+        bodyData = { identifier: identifierOrPayload, otp, new_password: newPassword };
+      }
       const res = await fetch(`${API_BASE}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, otp, new_password: newPassword })
+        body: JSON.stringify(bodyData)
       });
       return await res.json();
     } catch (err) {
@@ -535,6 +541,231 @@ const apiService = {
       return await res.json();
     } catch (err) {
       console.warn('[API Service] submitTajweedEvaluation error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 10. Astronomical Prayer Times & Qibla
+  getPrayerTimes: async (params = {}) => {
+    try {
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE}/tools/prayer-times${qs ? '?' + qs : ''}`);
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] getPrayerTimes error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  getQibla: async (params = {}) => {
+    try {
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE}/tools/qibla${qs ? '?' + qs : ''}`);
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] getQibla error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 11. Single-Session / Multi-Device Restriction (BRD Section 43)
+  checkSession: async (userId, sessionToken) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/session-check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, session_token: sessionToken })
+      });
+      return await res.json();
+    } catch (err) {
+      return { success: true, valid: true }; // network resilience
+    }
+  },
+
+  simulateSecondDevice: async (userId, deviceName) => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/simulate-second-device`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, device_name: deviceName })
+      });
+      return await res.json();
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  // 12. Payments, Certificates, Notifications & Moderation
+  getPayments: async (studentId) => {
+    try {
+      const url = studentId ? `${API_BASE}/payments?student_id=${encodeURIComponent(studentId)}` : `${API_BASE}/payments`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      return [];
+    }
+  },
+
+  createPayment: async (paymentData) => {
+    try {
+      const res = await fetch(`${API_BASE}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData)
+      });
+      return await res.json();
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  getCertificates: async (studentId) => {
+    try {
+      const url = studentId ? `${API_BASE}/certificates?student_id=${encodeURIComponent(studentId)}` : `${API_BASE}/certificates`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      return [];
+    }
+  },
+
+  createCertificate: async (certData) => {
+    try {
+      const res = await fetch(`${API_BASE}/certificates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(certData)
+      });
+      return await res.json();
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  getReports: async (status) => {
+    try {
+      const url = status ? `${API_BASE}/reports?status=${encodeURIComponent(status)}` : `${API_BASE}/reports`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      return [];
+    }
+  },
+
+  createReport: async (reportData) => {
+    try {
+      const res = await fetch(`${API_BASE}/reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportData)
+      });
+      return await res.json();
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  getDepartments: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/departments`);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getDepartments error:', err.message);
+      return [];
+    }
+  },
+
+  getNotifications: async (userId) => {
+    try {
+      const url = userId ? `${API_BASE}/notifications?user_id=${userId}` : `${API_BASE}/notifications`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch (err) {
+      console.warn('[API Service] getNotifications error:', err.message);
+      return [];
+    }
+  },
+
+  markNotificationRead: async (notifId = 'all') => {
+    try {
+      const res = await fetch(`${API_BASE}/notifications/${notifId}/read`, {
+        method: 'POST'
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] markNotificationRead error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  createRecitation: async (recitationData) => {
+    try {
+      const res = await fetch(`${API_BASE}/recitations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(recitationData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] createRecitation error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  gradeRecitation: async (recitationId, gradeData) => {
+    try {
+      const res = await fetch(`${API_BASE}/recitations/${encodeURIComponent(recitationId)}/grade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gradeData)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] gradeRecitation error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  // SMTP Settings & Live Testing
+  getSmtpSettings: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/settings/smtp`);
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] getSmtpSettings error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  saveSmtpSettings: async (settings) => {
+    try {
+      const res = await fetch(`${API_BASE}/settings/smtp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] saveSmtpSettings error:', err.message);
+      return { success: false, error: err.message };
+    }
+  },
+
+  testSmtpConnection: async (payload) => {
+    try {
+      const res = await fetch(`${API_BASE}/settings/smtp/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[API Service] testSmtpConnection error:', err.message);
       return { success: false, error: err.message };
     }
   }

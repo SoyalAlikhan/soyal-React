@@ -1,35 +1,7 @@
 // Live Classes & Halaqaat Schedulers Controller
 const { queryAll, queryOne, execute } = require('../database/db');
 
-// Ensure live_classes table exists
-execute(`
-  CREATE TABLE IF NOT EXISTS live_classes (
-    id TEXT PRIMARY KEY,
-    course_id TEXT,
-    title TEXT NOT NULL,
-    instructor_name TEXT NOT NULL,
-    class_date TEXT NOT NULL,
-    class_time TEXT,
-    recurrence TEXT DEFAULT 'Daily',
-    enrolled_count INTEGER DEFAULT 0,
-    status TEXT DEFAULT 'Scheduled',
-    meeting_link TEXT DEFAULT '#auto-attendance',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// Seed default live classes if empty
-const count = queryOne('SELECT COUNT(*) as cnt FROM live_classes');
-if (!count || count.cnt === 0) {
-  execute(`
-    INSERT INTO live_classes (id, course_id, title, instructor_name, class_date, class_time, recurrence, enrolled_count, status, meeting_link)
-    VALUES 
-      ('live-1', 'crs-tajweed-101', 'Interactive Tajweed Halaqah: Huroof-e-Musta''liyah (Daily)', 'Qari Abdul Basit Siddiqui', 'Tomorrow at 07:00 AM', '07:00 AM PKT', 'Daily', 48, 'Scheduled', '#auto-attendance'),
-      ('live-2', 'crs-darse-nizami-201', 'Dars-e-Nizami Aalimiyyah Program (Mon, Wed, Fri)', 'Mufti Tariq Masood', 'Every Mon, Wed, Fri at 09:00 PM', '09:00 PM PKT', 'Mon, Wed, Fri', 35, 'Scheduled', '#auto-attendance'),
-      ('live-3', 'crs-noorani-qaida', 'Noorani Qaida Live Huroof-e-Halqi Dars (Daily)', 'Maulana Ibrahim Qasmi', 'Daily at 05:00 PM', '05:00 PM PKT', 'Daily', 29, 'Scheduled', '#auto-attendance')
-  `);
-  console.log('[SQLite Backend] Seeded default live_classes into alnoor_lms.db');
-}
+// Table creation and seeding is handled by schema.sql and seed.js
 
 function getLiveClasses(req, res, query) {
   try {

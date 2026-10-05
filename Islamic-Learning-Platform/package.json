@@ -16,5 +16,8 @@
     "react"
   ],
   "author": "Al-Noor Open Academy",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "nodemailer": "^10.0.12"
+  }
 }

@@ -7855,11 +7855,13 @@ function App() {
 
       {/* 6. AUTHENTICATION & LOGIN / SIGNUP MODAL */}
       {authModal.isOpen && (
-        <div className="auth-overlay" onClick={() => setAuthModal({ ...authModal, isOpen: false, errorMsg: '', successMsg: '' })}>
+        <div className="auth-overlay" onClick={() => { if (isLoggedIn) setAuthModal({ ...authModal, isOpen: false, errorMsg: '', successMsg: '' }); }}>
           <div className="auth-modal modal-wizard" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
-            <button className="auth-close-btn" onClick={() => setAuthModal({ ...authModal, isOpen: false, errorMsg: '', successMsg: '' })}>
-              <i className="fas fa-times"></i>
-            </button>
+            {isLoggedIn && (
+              <button className="auth-close-btn" onClick={() => setAuthModal({ ...authModal, isOpen: false, errorMsg: '', successMsg: '' })}>
+                <i className="fas fa-times"></i>
+              </button>
+            )}
 
             {/* Header with Mode Switcher */}
             <div style={{ textAlign: 'center', marginBottom: '18px' }}>
@@ -7969,7 +7971,7 @@ function App() {
                   type="text" 
                   className="form-input" 
                   required 
-                  placeholder="e.g. sonukhan_6266 ya ahmad.raza@example.com"
+                  placeholder="e.g. ayesha@test.com ya ayesha"
                   value={authForm.email} 
                   onChange={e => {
                     setAuthForm({ ...authForm, email: e.target.value });
@@ -8035,10 +8037,10 @@ function App() {
                   style={{ fontSize: '0.74rem', padding: '4px 8px' }}
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'student', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'ahmad.raza@example.com', password: 'student123' }));
+                    setAuthForm(prev => ({ ...prev, email: 'ayesha@test.com', password: 'student123' }));
                   }}
                 >
-                  🎓 Ahmad Raza (student123)
+                  🎓 Ayesha Khan (student123)
                 </button>
                 <button 
                   type="button" 
@@ -8046,10 +8048,10 @@ function App() {
                   style={{ fontSize: '0.74rem', padding: '4px 8px' }}
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'teacher', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'qari.basit@darululoom.edu', password: 'teacher123' }));
+                    setAuthForm(prev => ({ ...prev, email: 'bilal@test.com', password: 'teacher123' }));
                   }}
                 >
-                  👨‍🏫 Qari Basit (teacher123)
+                  👨‍🏫 Ustadh Bilal (teacher123)
                 </button>
                 <button 
                   type="button" 
@@ -8057,10 +8059,10 @@ function App() {
                   style={{ fontSize: '0.74rem', padding: '4px 8px' }}
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'institute', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'admin@darululoom.edu', password: 'admin123' }));
+                    setAuthForm(prev => ({ ...prev, email: 'admin@alfurqan.edu', password: 'institute123' }));
                   }}
                 >
-                  🏛️ Jamia Admin (admin123)
+                  🏛️ Al-Furqan Academy (institute123)
                 </button>
                 <button 
                   type="button" 
@@ -8068,10 +8070,21 @@ function App() {
                   style={{ fontSize: '0.74rem', padding: '4px 8px' }}
                   onClick={() => {
                     setAuthModal({ ...authModal, roleTab: 'scholar', errorMsg: '' });
-                    setAuthForm(prev => ({ ...prev, email: 'mufti.tariq@shariahboard.org', password: 'scholar123' }));
+                    setAuthForm(prev => ({ ...prev, email: 'admin@test.com', password: 'admin123' }));
                   }}
                 >
-                  ⚖️ Mufti Tariq (scholar123)
+                  ⚖️ Platform Admin (admin123)
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.74rem', padding: '4px 8px' }}
+                  onClick={() => {
+                    setAuthModal({ ...authModal, roleTab: 'student', errorMsg: '' });
+                    setAuthForm(prev => ({ ...prev, email: 'soyal@test.com', password: 'test123' }));
+                  }}
+                >
+                  🔄 Soyal Multi-Role (test123)
                 </button>
               </div>
             </div>

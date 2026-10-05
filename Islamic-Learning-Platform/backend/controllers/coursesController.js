@@ -178,7 +178,10 @@ function createCourse(req, res, body) {
 function getBatches(req, res) {
   try {
     const batches = queryAll(`
-      SELECT b.*, c.title as course_title, c.instructor_name,
+      SELECT b.*, 
+             c.title as course_title, 
+             COALESCE(b.instructor_name, c.instructor_name, 'Ustadh Bilal Ahmed') as instructor_name,
+             COALESCE(b.teacher_id, (SELECT id FROM users WHERE role = 'teacher' AND name = COALESCE(b.instructor_name, c.instructor_name) LIMIT 1), 'usr-teacher-1') as teacher_id,
              (SELECT COUNT(*) FROM enrollments WHERE batch_id = b.id) as enrolled
       FROM batches b
       LEFT JOIN courses c ON b.course_id = c.id
@@ -194,22 +197,93 @@ function getBatches(req, res) {
 
 function createBatch(req, res, body) {
   try {
+    body = body || {};
     const id = body.id || 'bat-' + Date.now();
     const {
-      course_id = 'crs-tajweed-101',
+      course_id,
       batch_code = 'BCH-' + Math.floor(100 + Math.random() * 900),
       title,
       schedule_days = 'Mon, Wed, Fri',
       class_time = '08:30 PM PKT',
-      max_talaba = 30
+      max_talaba = 30,
+      teacher_id,
+      instructor_name
     } = body;
 
-    execute(`
-      INSERT INTO batches (id, course_id, batch_code, title, schedule_days, class_time, max_talaba)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [id, course_id, batch_code, title || 'Halaqah Batch', schedule_days, class_time, Number(max_talaba) || 30]);
+    if (!course_id) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'course_id lazmi hai. Batch banane ke liye pehle apna Course create karna zaroori hai.'
+      }));
+    }
 
-    const created = queryOne('SELECT * FROM batches WHERE id = ?', [id]);
+    // Resolve course in database
+    const course = queryOne('SELECT id, title, instructor_name FROM courses WHERE id = ?', [course_id]);
+    if (!course) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: `Selected course (${course_id}) database me nahi mila.`
+      }));
+    }
+
+    // Resolve instructor name and teacher id
+    let finalInstructor = (instructor_name || (course ? course.instructor_name : 'Ustadh Bilal Ahmed')).trim();
+    let finalTeacherId = teacher_id;
+
+    if (!finalTeacherId && finalInstructor) {
+      const teacherUser = queryOne("SELECT id FROM users WHERE role = 'teacher' AND (name = ? OR name LIKE ?)", [finalInstructor, `%${finalInstructor}%`]);
+      if (teacherUser) finalTeacherId = teacherUser.id;
+    }
+
+    if (!finalTeacherId) {
+      finalTeacherId = 'usr-teacher-1';
+    }
+
+    // Verify teacher course prerequisite: A teacher CANNOT create any batch until they have at least one course
+    const cleanInstructor = finalInstructor.toLowerCase()
+      .replace(/^(ustadh|ustadha|maulana|mufti|qari|hafiz|sheikh)\s+/i, '').trim();
+
+    // Query courses strictly owned by this teacher
+    const teacherCourses = queryAll(
+      `SELECT id, title, instructor_name FROM courses 
+       WHERE LOWER(instructor_name) = ? OR LOWER(instructor_name) LIKE ?`,
+      [cleanInstructor, `%${cleanInstructor}%`]
+    );
+
+    if (teacherCourses.length === 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Aapke pass abhi koi course create kiya hua nahi hai! Pehle apna Course create karein, uske baad hi aap Batch bana sakte hain.'
+      }));
+    }
+
+    // Course isolation check: the batch must be for one of the teacher's own courses
+    const ownsCourse = teacherCourses.some(c => c.id === course_id);
+    if (!ownsCourse) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Aap sirf apne create kiye hue Course ke liye hi Batch bana sakte hain. Kisi dusre ka course select karne ki ijazat nahi hai.'
+      }));
+    }
+
+    execute(`
+      INSERT INTO batches (id, course_id, batch_code, title, schedule_days, class_time, max_talaba, teacher_id, instructor_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, course_id, batch_code, title || 'Halaqah Batch', schedule_days, class_time, Number(max_talaba) || 30, finalTeacherId, finalInstructor]);
+
+    const created = queryOne(`
+      SELECT b.*, c.title as course_title, 
+             COALESCE(b.instructor_name, c.instructor_name) as instructor_name,
+             b.teacher_id
+      FROM batches b 
+      LEFT JOIN courses c ON b.course_id = c.id 
+      WHERE b.id = ?
+    `, [id]);
+
     res.writeHead(201, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ success: true, message: 'Batch schedule created successfully', data: created }));
   } catch (err) {

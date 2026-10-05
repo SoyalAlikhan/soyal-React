@@ -66,26 +66,51 @@ function login(req, res, body) {
       }));
     }
 
-    // Strict Role Enforcement (BRD Section 03 & Role Isolation)
+    // Multi-Profile & Persona Handling (BRD Section 28 & 41)
+    let userProfiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [user.id]);
+    if (!userProfiles || userProfiles.length === 0) {
+      // Auto-create default profile if none exists
+      const defProfId = 'prf-' + Date.now();
+      execute(
+        'INSERT INTO profiles (id, user_id, role, display_name, verification_status, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+        [defProfId, user.id, user.role, user.name, 'verified', 1]
+      );
+      userProfiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [user.id]);
+    }
+
+    // Determine active profile based on requested role or active flag
+    let activeProfile = null;
     if (role) {
       const normalizedReqRole = role.toLowerCase();
-      let normalizedUserRole = (user.role || '').toLowerCase();
-      
-      if (normalizedUserRole === 'scholar' && normalizedReqRole === 'admin') normalizedUserRole = 'admin';
-      if (normalizedUserRole === 'admin' && normalizedReqRole === 'scholar') normalizedUserRole = 'scholar';
-
-      if (normalizedUserRole !== normalizedReqRole) {
-        res.writeHead(403, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({
-          success: false,
-          error: `[ROLES MISMATCH] Yeh account "${user.role.toUpperCase()}" ke taur par registered hai. Aap "${role.toUpperCase()}" portal me is ID se login nahi kar sakte!`
-        }));
-      }
+      activeProfile = userProfiles.find(p => {
+        let pRole = (p.role || '').toLowerCase();
+        // Cross-role alias matching
+        if (pRole === 'scholar' && normalizedReqRole === 'admin') pRole = 'admin';
+        if (pRole === 'admin' && normalizedReqRole === 'scholar') pRole = 'scholar';
+        if (pRole === 'institute_admin' && normalizedReqRole === 'institute') pRole = 'institute';
+        if (pRole === 'institute' && normalizedReqRole === 'institute_admin') pRole = 'institute_admin';
+        return pRole === normalizedReqRole;
+      });
     }
+
+    if (!activeProfile) {
+      activeProfile = userProfiles.find(p => p.is_active === 1) || userProfiles[0];
+    }
+
+    // Update active flag in DB
+    if (activeProfile) {
+      execute('UPDATE profiles SET is_active = 0 WHERE user_id = ?', [user.id]);
+      execute('UPDATE profiles SET is_active = 1 WHERE id = ?', [activeProfile.id]);
+    }
+
+    // Normalize role for frontend: institute_admin → institute, scholar → admin
+    let currentRole = activeProfile ? activeProfile.role : user.role;
+    if (currentRole === 'institute_admin') currentRole = 'institute';
+    if (currentRole === 'scholar') currentRole = 'admin';
 
     // Successful Authentication
     let studentInfo = null;
-    if (user.role === 'student') {
+    if (currentRole === 'student' || user.role === 'student') {
       try {
         studentInfo = queryOne(`
           SELECT s.id, 
@@ -97,22 +122,41 @@ function login(req, res, body) {
         console.warn('[AUTH] Student lookup warning:', err.message);
       }
     }
+    // Generate single active session token (BRD Section 43 - Multi-device restriction)
+    const sessionToken = 'sess_' + crypto.randomBytes(16).toString('hex');
+    const userAgent = (req.headers && req.headers['user-agent']) || 'Web Browser';
+    try {
+      execute(`
+        UPDATE users 
+        SET active_session_token = ?, 
+            last_device = ?, 
+            last_active_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
+      `, [sessionToken, userAgent.substring(0, 80), user.id]);
+    } catch (e) {
+      console.warn('[AUTH SESSION] Warning recording session token:', e.message);
+    }
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       success: true,
       message: `Khush Amdeed, ${user.name}! Login kamyabi se verify ho gaya.`,
+      session_token: sessionToken,
       data: {
         id: user.id,
+        userId: user.id,
         studentId: studentInfo ? studentInfo.id : null,
         batchId: studentInfo ? studentInfo.batch_id : null,
         name: user.name,
         username: user.username || user.name.toLowerCase().replace(/\s+/g, ''),
         email: user.email,
-        role: user.role,
+        role: currentRole,
+        activeProfile: activeProfile,
+        profiles: userProfiles,
         phone: user.phone,
         avatar: user.avatar,
-        institute_affiliation: user.institute_affiliation
+        session_token: sessionToken,
+        institute_affiliation: (activeProfile && activeProfile.linked_institute_id) || user.institute_affiliation
       }
     }));
   } catch (err) {
@@ -144,17 +188,83 @@ function register(req, res, body) {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanUsername = (username || name.toLowerCase().replace(/[^a-z0-9]/g, '') + Math.floor(100 + Math.random() * 900)).toLowerCase();
-    
-    const existing = queryOne('SELECT id FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?', [cleanEmail, cleanUsername]);
+    const normalizedRole = (role === 'institute' ? 'institute_admin' : role).toLowerCase();
+
+    // Check if a user with this email or username already exists
+    const existing = queryOne('SELECT id, name, role, email, password, password_hash FROM users WHERE LOWER(email) = ? OR LOWER(username) = ?', [cleanEmail, cleanUsername]);
 
     if (existing) {
-      res.writeHead(409, { 'Content-Type': 'application/json' });
+      // Check if this existing user already has this specific role in profiles or users table
+      const existingRoleProfile = queryOne(`
+        SELECT id, role FROM profiles 
+        WHERE user_id = ? AND (LOWER(role) = ? OR (LOWER(role) = 'institute_admin' AND ? = 'institute') OR (LOWER(role) = 'institute' AND ? = 'institute_admin'))
+      `, [existing.id, normalizedRole, normalizedRole, normalizedRole]);
+
+      const currentPrimaryRole = (existing.role || '').toLowerCase();
+      const isSameRole = (currentPrimaryRole === normalizedRole) || 
+                         (currentPrimaryRole === 'institute' && normalizedRole === 'institute_admin') ||
+                         (currentPrimaryRole === 'institute_admin' && normalizedRole === 'institute');
+
+      if (existingRoleProfile || isSameRole) {
+        res.writeHead(409, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: false,
+          error: `Aapka is email (${cleanEmail}) par "${role}" account pehle se bana hua hai! Barah-e-karam Sign In karein.`
+        }));
+      }
+
+      // Valid case: Same user adding a NEW ROLE / Persona (e.g. Student -> Teacher or Teacher -> Student)
+      const profId = 'prf-' + Date.now();
+      execute(`
+        INSERT OR REPLACE INTO profiles (id, user_id, role, display_name, verification_status, is_active)
+        VALUES (?, ?, ?, ?, 'verified', 1)
+      `, [profId, existing.id, normalizedRole, name]);
+
+      // Ensure specialized role record exists
+      if (role === 'student') {
+        const existingStudent = queryOne('SELECT id FROM students WHERE user_id = ? OR LOWER(email) = ?', [existing.id, cleanEmail]);
+        if (!existingStudent) {
+          const stuId = 'stu-' + Date.now();
+          execute(`INSERT OR IGNORE INTO students (id, user_id, name, username, email, phone) VALUES (?, ?, ?, ?, ?, ?)`,
+            [stuId, existing.id, name, cleanUsername, cleanEmail, phone]
+          );
+        }
+      } else if (role === 'teacher') {
+        const existingFaculty = queryOne('SELECT id FROM faculty WHERE user_id = ?', [existing.id]);
+        if (!existingFaculty) {
+          const facId = 'fac-' + Date.now();
+          execute(`INSERT OR IGNORE INTO faculty (id, institute_id, user_id, title, name, designation, department_id, status) VALUES (?, ?, ?, 'Ustad', ?, 'Independent Scholar', 'dept-general', 'Active')`,
+            [facId, 'inst-alfurqan', existing.id, name]
+          );
+        }
+      }
+
+      // Update password if new password was provided
+      if (password && password !== 'password123') {
+        const passHash = hashPassword(password);
+        execute('UPDATE users SET password = ?, password_hash = ? WHERE id = ?', [password, passHash, existing.id]);
+      }
+
+      // Set active role
+      execute('UPDATE users SET role = ? WHERE id = ?', [role, existing.id]);
+
+      const updatedUser = queryOne('SELECT id, name, username, email, role, phone, institute_affiliation FROM users WHERE id = ?', [existing.id]);
+      const allProfiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [existing.id]);
+
+      res.writeHead(201, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
-        success: false,
-        error: `Yeh account (${cleanEmail}) pehle se registered hai! Barah-e-karam Login karein.`
+        success: true,
+        is_new_persona: true,
+        message: `MashaAllah! Naya "${role}" profile aapke email (${cleanEmail}) ke sath link ho gaya hai. Aap is role me login kar sakte hain!`,
+        data: {
+          ...updatedUser,
+          role: role,
+          profiles: allProfiles
+        }
       }));
     }
 
+    // Fresh new user registration
     const id = 'usr-' + Date.now();
     const passHash = hashPassword(password);
 
@@ -163,13 +273,36 @@ function register(req, res, body) {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [id, name, cleanUsername, cleanEmail, password, passHash, role, phone, institute_affiliation]);
 
+    // Initial profile
+    const profId = 'prf-' + Date.now();
+    execute(`
+      INSERT OR REPLACE INTO profiles (id, user_id, role, display_name, verification_status, is_active)
+      VALUES (?, ?, ?, ?, 'verified', 1)
+    `, [profId, id, normalizedRole, name]);
+
+    if (role === 'student') {
+      const stuId = 'stu-' + Date.now();
+      execute(`INSERT OR IGNORE INTO students (id, user_id, name, username, email, phone) VALUES (?, ?, ?, ?, ?, ?)`,
+        [stuId, id, name, cleanUsername, cleanEmail, phone]
+      );
+    } else if (role === 'teacher') {
+      const facId = 'fac-' + Date.now();
+      execute(`INSERT OR IGNORE INTO faculty (id, institute_id, user_id, title, name, designation, department_id, status) VALUES (?, ?, ?, 'Ustad', ?, 'Independent Scholar', 'dept-general', 'Active')`,
+        [facId, 'inst-alfurqan', id, name]
+      );
+    }
+
     const created = queryOne('SELECT id, name, username, email, role, phone, institute_affiliation FROM users WHERE id = ?', [id]);
+    const initialProfiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [id]);
 
     res.writeHead(201, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       success: true,
       message: 'Account kamyabi se create ho gaya!',
-      data: created
+      data: {
+        ...created,
+        profiles: initialProfiles
+      }
     }));
   } catch (err) {
     console.error('[AUTH REGISTER ERROR]', err);
@@ -247,11 +380,11 @@ function forgotPassword(req, res, body) {
 // 4. Reset Password — Verify OTP & Set New Password
 function resetPassword(req, res, body) {
   try {
-    const { identifier, otp, new_password } = body || {};
+    const { identifier, otp, token, new_password } = body || {};
 
-    if (!identifier || !otp || !new_password) {
+    if (!new_password || (!token && (!identifier || !otp))) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: false, error: 'Identifier, OTP aur Naya Password sabhi darj karein.' }));
+      return res.end(JSON.stringify({ success: false, error: 'Password aur valid Reset Token ya OTP darj karein.' }));
     }
 
     if (new_password.length < 6) {
@@ -259,18 +392,27 @@ function resetPassword(req, res, body) {
       return res.end(JSON.stringify({ success: false, error: 'Password kam az kam 6 characters ka hona chahiye.' }));
     }
 
-    const cleanId = identifier.trim().toLowerCase();
-    const resetEntry = queryOne('SELECT * FROM password_resets WHERE LOWER(identifier) = ?', [cleanId]);
+    let resetEntry = null;
 
-    if (!resetEntry || resetEntry.otp !== otp.trim()) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: false, error: 'Ghalat ya Expired OTP code! Barah-e-karam dobara OTP generate karein.' }));
+    if (token) {
+      resetEntry = queryOne('SELECT * FROM password_resets WHERE token = ?', [token.trim()]);
+      if (!resetEntry) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: 'Ghalat ya Expired Reset Token link! Barah-e-karam naya reset link mangwayen.' }));
+      }
+    } else {
+      const cleanId = identifier.trim().toLowerCase();
+      resetEntry = queryOne('SELECT * FROM password_resets WHERE LOWER(identifier) = ?', [cleanId]);
+      if (!resetEntry || resetEntry.otp !== otp.trim()) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: 'Ghalat ya Expired OTP code! Barah-e-karam dobara OTP generate karein.' }));
+      }
     }
 
     if (Date.now() > resetEntry.expires_at) {
       execute('DELETE FROM password_resets WHERE user_id = ?', [resetEntry.user_id]);
       res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: false, error: 'OTP ki muddat (15 min) khatam ho chuki hai. Naya OTP lein.' }));
+      return res.end(JSON.stringify({ success: false, error: 'Reset link / OTP ki muddat khatam ho chuki hai. Naya reset link mangwayen.' }));
     }
 
     const passHash = hashPassword(new_password);
@@ -370,6 +512,125 @@ function getLinkedAccounts(req, res, email) {
   }
 }
 
+function getProfiles(req, res, query) {
+  try {
+    const userId = query && (query.user_id || query.userId);
+    if (!userId) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'user_id required' }));
+    }
+
+    const profiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [userId]);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, count: profiles.length, data: profiles }));
+  } catch (err) {
+    console.error('[GET PROFILES ERROR]', err);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
+}
+
+function switchProfile(req, res, body) {
+  try {
+    const { user_id, profile_id } = body || {};
+    if (!profile_id) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'profile_id required' }));
+    }
+
+    const profile = queryOne('SELECT * FROM profiles WHERE id = ?', [profile_id]);
+    if (!profile) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'Profile nahi mila!' }));
+    }
+
+    const targetUserId = user_id || profile.user_id;
+    execute('UPDATE profiles SET is_active = 0 WHERE user_id = ?', [targetUserId]);
+    execute('UPDATE profiles SET is_active = 1 WHERE id = ?', [profile_id]);
+
+    const user = queryOne('SELECT * FROM users WHERE id = ?', [targetUserId]);
+    const allProfiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [targetUserId]);
+    const activeProf = allProfiles.find(p => p.id === profile_id) || profile;
+
+    let studentInfo = null;
+    if (activeProf.role === 'student') {
+      try {
+        studentInfo = queryOne(`
+          SELECT s.id, 
+                 (SELECT batch_id FROM enrollments e WHERE e.student_id = s.id LIMIT 1) as batch_id
+          FROM students s 
+          WHERE s.user_id = ? OR s.email = ?
+        `, [user.id, user.email]);
+      } catch (e) {}
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      message: `Profile badal kar "${activeProf.display_name || activeProf.role.toUpperCase()}" kar diya gaya!`,
+      data: {
+        id: user.id,
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: activeProf.role,
+        activeProfile: activeProf,
+        profiles: allProfiles,
+        studentId: studentInfo ? studentInfo.id : null,
+        batchId: studentInfo ? studentInfo.batch_id : null,
+        phone: user.phone,
+        avatar: user.avatar,
+        institute_affiliation: activeProf.linked_institute_id || user.institute_affiliation
+      }
+    }));
+  } catch (err) {
+    console.error('[SWITCH PROFILE ERROR]', err);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
+}
+
+function addProfile(req, res, body) {
+  try {
+    const { user_id, role, display_name, linked_institute_id } = body || {};
+    if (!user_id || !role) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'user_id and role required' }));
+    }
+
+    const user = queryOne('SELECT * FROM users WHERE id = ?', [user_id]);
+    if (!user) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: 'User nahi mila' }));
+    }
+
+    const existing = queryOne('SELECT id FROM profiles WHERE user_id = ? AND role = ?', [user_id, role]);
+    if (existing) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: `Aapka ${role.toUpperCase()} profile pehle se mojood hai!` }));
+    }
+
+    const id = 'prf-' + Date.now();
+    execute(`
+      INSERT INTO profiles (id, user_id, role, display_name, linked_institute_id, verification_status, is_active)
+      VALUES (?, ?, ?, ?, ?, 'verified', 0)
+    `, [id, user_id, role, display_name || `${user.name} (${role})`, linked_institute_id || null]);
+
+    const allProfiles = queryAll('SELECT * FROM profiles WHERE user_id = ?', [user_id]);
+    res.writeHead(201, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: true,
+      message: `Naya ${role.toUpperCase()} profile kamyabi se ban gaya!`,
+      profiles: allProfiles
+    }));
+  } catch (err) {
+    console.error('[ADD PROFILE ERROR]', err);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
+}
+
 module.exports = {
   login,
   register,
@@ -378,5 +639,9 @@ module.exports = {
   changePassword,
   getUsers,
   getLinkedAccounts,
+  getProfiles,
+  switchProfile,
+  addProfile,
   hashPassword
 };
+
